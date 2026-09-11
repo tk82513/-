@@ -64,7 +64,13 @@ small.warn{color:var(--red);font-weight:700}
 
 .project-item{width:100%;border:1px solid var(--line);background:#fff;color:inherit;text-align:left}
 .project-item:active{transform:scale(.995);background:#f8fbfa}
+
+#ocrBox button{padding:8px 12px;font-size:13px}
+#ocrStatus.working{color:#7a5a00;font-weight:700}
+#ocrStatus.ok{color:#176c56;font-weight:700}
+#ocrStatus.err{color:#b42318;font-weight:700}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 <header>
@@ -154,6 +160,10 @@ small.warn{color:var(--red);font-weight:700}
 <label>缺失說明</label><textarea id="fDesc" rows="3" placeholder="描述問題、位置、要求改善方式"></textarea>
 <label>缺失相片（可多張）</label><div class="sub">可從相簿選擇；右上角 × 可刪除。</div>
 <input id="fPhotos" type="file" accept="image/*" multiple>
+<div id="ocrBox" style="display:none;margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:#f8fbfa">
+  <div id="ocrStatus" class="sub">準備辨識浮水印…</div>
+  <button type="button" class="secondary" style="margin-top:8px" onclick="recognizeWatermarkFromLatest()">✨ 重新辨識浮水印</button>
+</div>
 <div id="preview" class="photo-grid"></div>
 <label style="margin-top:18px">改善相片（可多張）</label><div class="sub">改善完成後可上傳照片；右上角 × 可刪除。</div>
 <input id="fImprovePhotos" type="file" accept="image/*" multiple>
@@ -191,6 +201,8 @@ const fPhotos = $('fPhotos');
 const fImprovePhotos = $('fImprovePhotos');
 const fTitle = $('fTitle');
 const fArea = $('fArea');
+const ocrBox=$('ocrBox');
+const ocrStatus=$('ocrStatus');
 const fVendor = $('fVendor');
 const fCreated = $('fCreated');
 const fDue = $('fDue');
@@ -349,15 +361,19 @@ function openDefect(id=null){
   fImprovePhotos.value='';
   renderPhotoPreview();
   renderImprovePhotoPreview();
+  ocrBox.style.display='none';
+  ocrStatus.className='sub';
   modal.style.display='flex';
 }
 fPhotos.addEventListener('change',async e=>{
+  let firstData=null;
   for(const file of [...e.target.files]){
     const data=await compressImage(file);
-    if(data) tempPhotos.push(data);
+    if(data){ tempPhotos.push(data); if(!firstData) firstData=data; }
   }
   renderPhotoPreview();
   e.target.value='';
+  if(firstData) recognizeWatermark(firstData);
 });
 fImprovePhotos.addEventListener('change',async e=>{
   for(const file of [...e.target.files]){
@@ -367,6 +383,92 @@ fImprovePhotos.addEventListener('change',async e=>{
   renderImprovePhotoPreview();
   e.target.value='';
 });
+
+
+async function recognizeWatermarkFromLatest(){
+  if(!tempPhotos.length)return alert('請先上傳缺失相片');
+  await recognizeWatermark(tempPhotos[tempPhotos.length-1]);
+}
+function cropWatermarkForOCR(dataUrl){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      // 浮水印通常位於左下，裁切左側 60% × 下方 48%，並放大增強辨識率。
+      const sx=0, sy=Math.floor(img.height*0.50), sw=Math.floor(img.width*0.62), sh=Math.floor(img.height*0.48);
+      const scale=2;
+      const c=document.createElement('canvas'); c.width=sw*scale; c.height=sh*scale;
+      const ctx=c.getContext('2d');
+      ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);
+      // 灰階+對比，讓浮水印字更容易被 OCR 抓到。
+      const im=ctx.getImageData(0,0,c.width,c.height), d=im.data;
+      for(let i=0;i<d.length;i+=4){
+        const g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+        const v=Math.max(0,Math.min(255,(g-128)*1.55+128));
+        d[i]=d[i+1]=d[i+2]=v;
+      }
+      ctx.putImageData(im,0,0);
+      resolve(c.toDataURL('image/jpeg',0.92));
+    };
+    img.onerror=()=>resolve(dataUrl); img.src=dataUrl;
+  });
+}
+function cleanOCRText(s){
+  return (s||'').replace(/[：:]/g,':').replace(/[｜|]/g,' ').replace(/\s+/g,' ').trim();
+}
+function parseWatermarkText(raw){
+  const txt=(raw||'').replace(/\r/g,'');
+  const lines=txt.split(/\n+/).map(cleanOCRText).filter(Boolean);
+  let location='', area='', defect='';
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    let m=line.match(/(?:施工)?位置\s*:?\s*(.+)/); if(m) location=m[1].trim();
+    m=line.match(/(?:施工)?區域\s*:?\s*(.+)/); if(m) area=m[1].trim();
+    m=line.match(/缺失(?:項目)?\s*:?\s*(.*)/);
+    if(m){
+      defect=m[1].trim();
+      // 缺失常跨兩行，順帶抓下一行，直到拍攝時間/日期欄位。
+      for(let j=i+1;j<Math.min(lines.length,i+3);j++){
+        if(/拍攝|時間|日期|施工位置|施工區域/.test(lines[j])) break;
+        if(lines[j].length>=2) defect+=(defect?'／':'')+lines[j];
+      }
+    }
+  }
+  // OCR 漏掉標籤時的保底：抓樓層格式與明顯缺失詞。
+  if(!location){
+    const m=txt.match(/([A-Za-z一-龥0-9]+棟\s*)?\d+F\s*[A-Za-z0-9-]*/i); if(m) location=cleanOCRText(m[0]);
+  }
+  return {location:cleanOCRText(location),area:cleanOCRText(area),defect:cleanOCRText(defect)};
+}
+async function recognizeWatermark(dataUrl){
+  if(!window.Tesseract){
+    ocrBox.style.display='block'; ocrStatus.className='sub err';
+    ocrStatus.textContent='浮水印辨識元件載入失敗，請確認網路後按「重新辨識」。'; return;
+  }
+  ocrBox.style.display='block'; ocrStatus.className='sub working';
+  ocrStatus.textContent='正在辨識浮水印文字，第一次約需 5～20 秒…';
+  try{
+    const crop=await cropWatermarkForOCR(dataUrl);
+    const result=await Tesseract.recognize(crop,'chi_tra+eng',{logger:m=>{
+      if(m.status==='recognizing text') ocrStatus.textContent=`正在辨識浮水印… ${Math.round((m.progress||0)*100)}%`;
+    }});
+    const parsed=parseWatermarkText(result.data.text||'');
+    let changed=[];
+    if(parsed.location||parsed.area){
+      fArea.value=[parsed.location,parsed.area].filter(Boolean).join('｜'); changed.push('樓層/區域');
+    }
+    if(parsed.defect){ fTitle.value=parsed.defect; changed.push('缺失名稱'); }
+    if(changed.length){
+      ocrStatus.className='sub ok';
+      ocrStatus.textContent='✓ 已自動帶入：'+changed.join('、')+'。請快速確認文字是否正確。';
+    }else{
+      ocrStatus.className='sub err';
+      ocrStatus.textContent='沒有辨識到固定格式文字，可按「重新辨識」或手動輸入。';
+    }
+  }catch(err){
+    console.error(err); ocrStatus.className='sub err';
+    ocrStatus.textContent='浮水印辨識失敗，請確認網路或改用較清楚的原圖。';
+  }
+}
 
 function localToday(){
   const d=new Date();
