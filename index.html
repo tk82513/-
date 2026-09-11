@@ -61,6 +61,9 @@ small.warn{color:var(--red);font-weight:700}
 .photo-count{font-size:12px;color:var(--muted);white-space:nowrap}
 .fab{width:auto;min-width:58px;padding:0 17px;border-radius:29px;font-weight:800}
 .fab::after{content:' 新增缺失';font-size:14px}
+
+.project-item{width:100%;border:1px solid var(--line);background:#fff;color:inherit;text-align:left}
+.project-item:active{transform:scale(.995);background:#f8fbfa}
 </style>
 </head>
 <body>
@@ -231,7 +234,7 @@ function renderProjects(){
  const el=document.getElementById('projects');
  el.innerHTML=state.projects.map(p=>{
    const done=p.defects.filter(x=>x.status==='closed').length;
-   return `<div class="item" onclick="selectProject('${p.id}')"><div class="num">🏗️</div><div><h3>${esc(p.name)}</h3><div class="meta">${esc(p.address||'尚未設定地址')}<br>缺失 ${p.defects.length} 項　完成 ${done} 項</div></div><div>›</div></div>`;
+   return `<button type="button" class="item project-item" onclick="selectProjectByIndex(${state.projects.indexOf(p)})"><div class="num">🏗️</div><div style="text-align:left;flex:1"><h3>${esc(p.name)}</h3><div class="meta">${esc(p.address||'尚未設定地址')}<br>缺失 ${p.defects.length} 項　完成 ${done} 項</div></div><div>›</div></button>`;
  }).join('') + `<button style="width:100%;margin-top:8px" onclick="openProject()">＋ 新增其他工程</button>`;
 }
 function renderDefects(){
@@ -269,16 +272,38 @@ function renderDefects(){
 function render(){renderProjects();renderDefects()}
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function selectProject(id){
-  state.current=id;
+  const idx=state.projects.findIndex(p=>String(p.id)===String(id));
+  if(idx>=0) selectProjectByIndex(idx);
+}
+function selectProjectByIndex(idx){
+  const p=state.projects[idx];
+  if(!p) return;
+  state.current=p.id;
   save();
   document.getElementById('search').value='';
   document.getElementById('filter').value='all';
   document.getElementById('categoryFilter').value='all';
   render();
   showDetailPage();
+  try{ history.replaceState(null,'','#project='+encodeURIComponent(String(p.id))); }catch(e){}
+}
+
+
+function restoreProjectFromHash(){
+  const m=location.hash.match(/^#project=(.+)$/);
+  if(!m)return false;
+  const id=decodeURIComponent(m[1]);
+  const idx=state.projects.findIndex(p=>String(p.id)===String(id));
+  if(idx<0)return false;
+  state.current=state.projects[idx].id;
+  save();
+  render();
+  showDetailPage();
+  return true;
 }
 
 function showProjectsPage(){
+  try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
   document.getElementById('projectsPage').classList.add('active');
   document.getElementById('detailPage').classList.remove('active');
   document.getElementById('pageTitle').textContent='我的工程';
@@ -530,7 +555,7 @@ function closeStatusModal(){
 
 normalizeDates();
 render();
-showProjectsPage();
+if(!restoreProjectFromHash()) showProjectsPage();
 </script>
 
 <div class="modal" id="statusModal"><div class="sheet">
