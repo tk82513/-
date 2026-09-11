@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#3f7773">
 <title>DH2 工程缺失管理</title>
-<!-- OCR build: v16 exact-location -->
+<!-- OCR build: v17 exact-location-no-merge -->
 <!-- OCR build: v12-polished-dashboard-table -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -1159,20 +1159,9 @@ function parseLocationOnly(raw){
   return {location,area};
 }
 function formatAreaValue(location,area){
-  // AI 已經理解浮水印欄位，樓層／棟別要優先完整保留，
-  // 不再用舊 OCR 規則把「R1F C棟」截成「R1F」。
-  let loc=cleanAILocation(location) || extractAreaCode(location) || '';
-  let ar=cleanRoomName(area) || '';
-
-  // 少數模型會把完整施工區域誤放進 area，仍嘗試救回。
-  if(!loc){
-    const areaLoc=cleanAILocation(area) || extractAreaCode(area);
-    if(areaLoc){ loc=areaLoc; ar=''; }
-  }
-
-  if(loc && ar && loc===ar) ar='';
-  if(loc && ar) return loc+'｜'+ar;
-  return loc||ar||'';
+  // v17：樓層／區域欄只顯示「施工區域：」冒號後的原文。
+  // 不再拼接 area，也不再補棟別/戶別，避免產生多餘文字。
+  return cleanAILocation(location) || '';
 }
 
 function cropDefectBlockForOCR(dataUrl){
