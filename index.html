@@ -1981,4 +1981,63 @@ window.addEventListener('DOMContentLoaded',()=>{
 });
 </script>
 
+
+<script>
+/* V27.1: cloud-first delete. Prevent deleted cloud rows from being recreated by local upsert. */
+async function cloudDeleteOneV271(x){
+  const id=x?.cloudId||x?.id;
+  if(!id) throw new Error('找不到缺失雲端 ID');
+  const {data:photos,error:qe}=await dh2Cloud.from('defect_photos').select('storage_path').eq('defect_id',id);
+  if(qe) throw qe;
+  const paths=(photos||[]).map(r=>r.storage_path).filter(Boolean);
+  if(paths.length){
+    const {error:se}=await dh2Cloud.storage.from('defect-photos').remove(paths);
+    if(se) throw se;
+  }
+  const {error:de}=await dh2Cloud.from('defects').delete().eq('id',id);
+  if(de) throw de;
+}
+
+window.deleteDefect=async function(){
+  const p=project(); if(!p)return;
+  const x=p.defects.find(d=>String(d.id)===String(currentId)); if(!x)return;
+  if(!confirm('確定刪除這筆缺失？\n刪除後會同步從雲端移除，無法復原。'))return;
+  try{
+    if(cloudProfileV27){
+      if(cloudProfileV27.role==='vendor') throw new Error('廠商帳號沒有刪除缺失權限');
+      await cloudDeleteOneV271(x);
+    }
+    p.defects=p.defects.filter(d=>String(d.id)!==String(currentId));
+    originalSaveV27();
+    closeDetail(); render();
+    setCloudStatusV27(cloudProfileV27?'缺失已從雲端刪除':'缺失已從本機刪除');
+  }catch(e){console.error(e);alert('刪除失敗：'+e.message+'\n資料尚未刪除。');}
+};
+
+window.bulkDeleteDefects=async function(){
+  if(!selectedDefectIds.size){alert('請先勾選要刪除的缺失');return;}
+  const p=project(); if(!p)return;
+  const targets=p.defects.filter(x=>selectedDefectIds.has(String(x.id)));
+  if(!targets.length)return;
+  if(!confirm(`確定要刪除已選取的 ${targets.length} 筆缺失嗎？\n刪除後會同步從雲端移除，無法復原。`))return;
+  if(cloudProfileV27?.role==='vendor'){alert('廠商帳號沒有刪除缺失權限');return;}
+  try{
+    if(cloudProfileV27){
+      setCloudStatusV27(`正在刪除 ${targets.length} 筆雲端缺失…`);
+      for(const x of targets) await cloudDeleteOneV271(x);
+    }
+    const gone=new Set(targets.map(x=>String(x.id)));
+    p.defects=p.defects.filter(x=>!gone.has(String(x.id)));
+    selectedDefectIds.clear();
+    originalSaveV27(); render();
+    setCloudStatusV27(cloudProfileV27?'批量刪除已同步至雲端':'已從本機批量刪除');
+  }catch(e){
+    console.error(e);
+    selectedDefectIds.clear();
+    if(cloudProfileV27) await cloudLoadAllV27(); else render();
+    alert('批量刪除未全部完成：'+e.message+'\n畫面已重新同步雲端資料。');
+  }
+};
+</script>
+
 </body></html>
