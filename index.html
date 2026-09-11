@@ -79,6 +79,9 @@ small.warn{color:var(--red);font-weight:700}
 #batchStatus.working{color:#7a5a00;font-weight:700}
 #batchStatus.ok{color:#24734f;font-weight:700}
 #batchStatus.err{color:#b42318;font-weight:700}
+.report-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.report-actions button{width:100%;padding:11px 6px;font-size:14px;white-space:nowrap}
+@media (max-width:430px){.report-actions button{font-size:13px;padding:10px 4px}}
 
 #list{display:flex;flex-direction:column;gap:7px}
 #list .item{
@@ -178,10 +181,10 @@ small.warn{color:var(--red);font-weight:700}
 <section class="card">
   <b>缺失報告</b>
   <div class="sub">將目前工程的缺失、照片、狀態與品牌資訊整理成 PDF 報告。</div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-<button onclick="generatePDF()">產生 PDF 報表</button>
-<button onclick="generateExcel()">產生 EXCEL 表格</button>
-<button class="secondary" onclick="copyOpenDefects()">📋 一鍵複製未改善缺失</button>
+  <div class="report-actions">
+<button onclick="generatePDF()">產生 PDF</button>
+<button onclick="generateExcel()">產生 EXCEL</button>
+<button class="secondary" onclick="copyOpenDefects()">📋 一鍵複製</button>
 </div>
 </section>
 
@@ -727,6 +730,12 @@ async function batchCreateFromWatermarks(){
   if(!p)return;
 
   btn.disabled=true;
+  const originalBtnText=btn.textContent;
+  btn.textContent='AI 辨識中…';
+  status.className='sub working';
+  status.textContent=`開始 AI 辨識，共 ${files.length} 張照片…`;
+  // 讓瀏覽器先把狀態文字畫出來，再開始較耗時的圖片處理/API 呼叫。
+  await new Promise(r=>setTimeout(r,30));
   let created=0, failed=0, finished=0;
   const failures=[];
   const results=new Array(files.length);
@@ -765,7 +774,7 @@ async function batchCreateFromWatermarks(){
     }finally{
       finished++;
       status.className='sub working';
-      status.textContent=`AI 批次辨識中 ${finished} / ${files.length}（同時處理 2 張）`;
+      status.textContent=`AI 批次辨識中 ${finished} / ${files.length}（同時處理最多 3 張）`;
     }
   }
 
@@ -779,7 +788,7 @@ async function batchCreateFromWatermarks(){
         await processOne(i);
       }
     }
-    await Promise.all([worker(),worker()]);
+    await Promise.all([worker(),worker(),worker()]);
 
     for(const defect of results){
       if(defect) p.defects.push(defect);
@@ -801,8 +810,13 @@ async function batchCreateFromWatermarks(){
     if(failures.length){
       alert('以下照片未成功建單：\n'+failures.join('\n'));
     }
+  }catch(err){
+    status.className='sub err';
+    status.textContent=`AI 辨識發生錯誤：${err?.message||String(err)}`;
+    console.error('batchCreateFromWatermarks',err);
   }finally{
     btn.disabled=false;
+    btn.textContent=originalBtnText;
   }
 }
 
@@ -1337,7 +1351,7 @@ if(batchPhotos){
     const n=e.target.files?e.target.files.length:0;
     const s=document.getElementById('batchStatus');
     s.className='sub';
-    s.textContent=n?`已選擇 ${n} 張照片，按「辨識並自動建立全部缺失」。`:'';
+    s.textContent=n?`已選擇 ${n} 張照片，按「AI 辨識並自動建立全部缺失」。`:'';
   });
 }
 
