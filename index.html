@@ -5,25 +5,25 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#3f7773">
 <title>DH2 工程缺失管理</title>
-<!-- OCR build: v8-floor-excel -->
+<!-- OCR build: v11-polished-location-retry -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-:root{--bg:#f3f5f6;--card:#fff;--ink:#17191b;--muted:#7b8185;--brand:#3f7773;--red:#c34d3b;--amber:#c38a32;--green:#4f8a68;--line:#e4e7e8}
+:root{--bg:#e9edee;--card:#fff;--ink:#182022;--muted:#747d80;--brand:#2f756d;--brand-deep:#245f59;--brand-soft:#e8f3f0;--red:#c44b3d;--amber:#bd842d;--green:#4c8b68;--line:#dfe5e6}
 *{box-sizing:border-box} body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC",sans-serif;color:var(--ink)}
-header{position:sticky;top:0;z-index:5;background:rgba(243,245,246,.94);backdrop-filter:blur(12px);padding:16px 18px 10px;display:flex;align-items:center;justify-content:space-between}
+header{position:sticky;top:0;z-index:5;background:rgba(233,237,238,.92);backdrop-filter:blur(16px);padding:16px 18px 10px;display:flex;align-items:center;justify-content:space-between}
 h1{font-size:23px;margin:0}.sub{color:var(--muted);font-size:13px;margin-top:3px}
 main{max-width:760px;margin:auto;padding:8px 16px 150px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin:12px 0;box-shadow:0 2px 8px rgba(0,0,0,.03)}
-.stats{display:grid;grid-template-columns:110px 1fr;gap:18px;align-items:center}
-.ring{width:104px;height:104px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--brand) 0deg,#e2e6e7 0);font-size:20px;font-weight:700}
-.ring span{background:white;width:76px;height:76px;border-radius:50%;display:grid;place-items:center}
+.card{background:rgba(255,255,255,.97);border:1px solid rgba(211,219,220,.95);border-radius:22px;padding:17px;margin:11px 0;box-shadow:0 8px 24px rgba(43,60,62,.055)}
+.stats{display:grid;grid-template-columns:92px 1fr;gap:14px;align-items:center}
+.ring{width:88px;height:88px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--brand) 0deg,#e2e6e7 0);font-size:20px;font-weight:700}
+.ring span{background:white;width:64px;height:64px;border-radius:50%;display:grid;place-items:center}
 .location{font-size:15px;color:var(--muted)} .big{font-size:28px;font-weight:700;margin:2px 0 8px}
-.pills{display:flex;gap:8px;flex-wrap:wrap}.pill{padding:8px 12px;border-radius:999px;font-size:13px;background:#eef1f1}.pill.red{background:#fae9e6;color:#a33d30}.pill.amber{background:#fbf2df;color:#986a22}.pill.green{background:#e6f2ea;color:#3f7656}
+.pills{display:flex;gap:6px;flex-wrap:nowrap;align-items:center}.pill{padding:7px 9px;border-radius:999px;font-size:12px;white-space:nowrap;background:#eef1f1}.pill.red{background:#fae9e6;color:#a33d30}.pill.amber{background:#fbf2df;color:#986a22}.pill.green{background:#e6f2ea;color:#3f7656}
 .section-title{font-weight:700;font-size:18px;margin:22px 4px 8px}
 .item{background:white;border:1px solid var(--line);border-radius:18px;padding:15px;margin:10px 0;display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:start}
 .num{width:40px;height:40px;border-radius:50%;background:var(--brand);color:white;display:grid;place-items:center;font-weight:700}
 .item h3{margin:0 0 8px;font-size:17px}.meta{font-size:13px;color:var(--muted);line-height:1.65}.photo-count{font-size:12px;color:var(--muted);white-space:nowrap}
-button{border:0;border-radius:14px;padding:12px 15px;font-weight:650;background:var(--brand);color:white;font-size:14px}button.secondary{background:#e9eeee;color:#285d59}button.danger{background:#f8e5e2;color:#a33d30}
+button{border:0;border-radius:14px;padding:12px 15px;font-weight:700;background:var(--brand);color:white;font-size:14px;box-shadow:0 5px 14px rgba(47,117,109,.10)}button.secondary{background:#eef3f2;color:var(--brand-deep);box-shadow:none}button.danger{background:#f8e5e2;color:#a33d30}
 .fab{position:fixed;right:18px;bottom:calc(92px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;font-size:32px;padding:0;box-shadow:0 8px 24px rgba(0,0,0,.18)}
 input,select,textarea{width:100%;border:1px solid #dfe3e4;border-radius:13px;padding:12px;font:inherit;background:white}
 label{font-size:13px;color:#666;display:block;margin:12px 0 6px}
@@ -39,7 +39,7 @@ label{font-size:13px;color:#666;display:block;margin:12px 0 6px}
 .bottom-nav button{background:transparent;color:var(--muted);padding:8px;font-size:13px}
 .bottom-nav button.active{color:var(--brand);font-weight:800}
 .project-back{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.project-back button{background:#e9eeee;color:#285d59}
+.project-back button{background:#eef3f2;color:var(--brand-deep);box-shadow:none}
 small.warn{color:var(--red);font-weight:700}
 
 #printReport{display:none}
@@ -144,10 +144,30 @@ small.warn{color:var(--red);font-weight:700}
 }
 .section-title{margin:14px 4px 8px}
 
+
+/* v11：精緻灰底＋低飽和青綠 */
+#projectPanel{background:linear-gradient(180deg,#ffffff 0%,#fbfcfc 100%)}
+#projectPanel .big{font-size:25px;margin-bottom:7px}
+.report-actions button:first-child,.report-actions button:nth-child(2){background:linear-gradient(135deg,var(--brand),var(--brand-deep))}
+.batch-card{background:linear-gradient(180deg,#ffffff 0%,#f8fbfa 100%)}
+#batchStartBtn{background:linear-gradient(100deg,#3f9b67 0%,#148a98 100%);box-shadow:0 7px 18px rgba(31,126,119,.18)}
+.toolbar{background:transparent;border-radius:16px}
+.toolbar input,.toolbar select{background:rgba(255,255,255,.94);border-color:#d9e0e1;box-shadow:0 3px 10px rgba(52,67,68,.035)}
+#list .item{background:rgba(255,255,255,.98);border-color:#dbe2e3;box-shadow:0 5px 14px rgba(40,56,58,.045)}
+#list .num{background:linear-gradient(145deg,#3d877f,#2f6e68)}
+#list .badge.location-badge{background:#e7f4ee;color:#2b7157;font-weight:800}
+.bottom-nav{background:rgba(255,255,255,.94);backdrop-filter:blur(16px)}
+.fab{background:linear-gradient(145deg,#3d877f,#2c6f68)}
+@media(max-width:430px){
+  .stats{grid-template-columns:82px 1fr;gap:10px}
+  .ring{width:78px;height:78px;font-size:17px}.ring span{width:57px;height:57px}
+  .pill{padding:6px 7px;font-size:11px}
+  #projectPanel .big{font-size:23px}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
-<body data-build="2026-09-11-v2">
+<body data-build="2026-09-11-v11">
 <header>
 <div>
   <h1 id="pageTitle">我的工程</h1>
@@ -218,7 +238,7 @@ small.warn{color:var(--red);font-weight:700}
 </select>
 </div>
 
-<div class="section-title">缺失</div>
+<div class="section-title" id="defectSectionTitle">缺失</div>
 <div id="list"></div>
 
 </div>
@@ -388,6 +408,7 @@ function renderDefects(){
  document.getElementById('pct').textContent=`${pct}%`;
  document.getElementById('ring').style.background=`conic-gradient(var(--brand) ${pct*3.6}deg,#e2e6e7 0deg)`;
  document.getElementById('location').textContent='📍 '+(p.address||'尚未設定地址');
+ const st=document.getElementById('defectSectionTitle'); if(st) st.textContent=`缺失（${all.length}）`;
 
  const q=document.getElementById('search').value.toLowerCase();
  const f=document.getElementById('filter').value;
@@ -428,7 +449,7 @@ function renderDefects(){
          ${photoText}
        </div>
        <div class="compact-badges">
-         ${x.area?`<span class="badge" style="background:#e8f5ed;color:#2e7258;font-weight:700">📍 ${esc(x.area)}</span>`:''}
+         ${x.area?`<span class="badge location-badge">📍 ${esc(x.area)}</span>`:''}
          <span class="badge level">${esc(x.level||'中')}</span>
          <span class="badge category">🏷️${esc(x.category||'其他')}</span>
          <span class="badge ${x.status}">${statusText[x.status]||'待處理'}</span>
@@ -620,6 +641,38 @@ function prepareAIWatermarkImage(dataUrl){
   });
 }
 
+function prepareAILocationOnlyImage(dataUrl){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      // 只截浮水印「施工區域」白色列，讓 AI 專心讀完整樓層＋棟別。
+      const sx=0;
+      const sy=Math.floor(img.height*0.73);
+      const sw=Math.floor(img.width*0.48);
+      const sh=Math.floor(img.height*0.115);
+      const maxW=760;
+      const scale=Math.min(2.4,maxW/Math.max(1,sw));
+      const c=document.createElement('canvas');
+      c.width=Math.max(1,Math.floor(sw*scale));
+      c.height=Math.max(1,Math.floor(sh*scale));
+      const ctx=c.getContext('2d');
+      ctx.imageSmoothingEnabled=true;
+      ctx.imageSmoothingQuality='high';
+      ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);
+      resolve(c.toDataURL('image/jpeg',0.84));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
+}
+
+function locationNeedsBuildingRetry(loc){
+  const t=String(loc||'').trim().toUpperCase();
+  // 1S11 這類區域碼不需要棟別；只有純樓層 R1F/B3F/4F 才補做精準辨識。
+  if(/^\d{1,2}S\d{1,3}$/.test(t)) return false;
+  return /^(?:B|R)?\d{1,2}F$/.test(t);
+}
+
 function cleanAILocation(value){
   let t=String(value||'')
     .replace(/遠雄山禾/g,' ')
@@ -685,33 +738,44 @@ function sanitizeAIResult(obj){
   return out;
 }
 
-async function recognizeWatermarkData(dataUrl){
+async function callAIVision(image, promptText){
   const endpoint=getAIVisionEndpoint();
   if(!endpoint) throw new Error('尚未設定 AI 辨識服務，請先按「AI 辨識服務設定」。');
-
-  const image=await prepareAIWatermarkImage(dataUrl);
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),45000);
   try{
     const res=await fetch(endpoint,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({image, prompt:'只讀左下角浮水印。location 必須完整逐字保留施工區域，尤其樓層後面的棟別不可省略，例如 B3F A棟、R1F C棟、A棟 3F A02、1S11。不要只回 R1F/B3F。defect 只回施工缺失黃色欄文字。'}),
+      body:JSON.stringify({image,prompt:promptText||''}),
       signal:controller.signal
     });
     const text=await res.text();
     let payload={};
     try{payload=JSON.parse(text)}catch(_){throw new Error('AI 服務回傳格式錯誤');}
     if(!res.ok) throw new Error(payload.error||`AI 服務錯誤 (${res.status})`);
-    const parsed=sanitizeAIResult(payload);
-    if(!parsed.location && !parsed.area && !parsed.defect) throw new Error('AI 沒有辨識到有效的浮水印欄位');
-    return parsed;
+    return sanitizeAIResult(payload);
   }catch(err){
     if(err?.name==='AbortError') throw new Error('AI 辨識逾時，請確認網路後重試');
     throw err;
-  }finally{
-    clearTimeout(timer);
+  }finally{ clearTimeout(timer); }
+}
+
+async function recognizeWatermarkData(dataUrl){
+  const image=await prepareAIWatermarkImage(dataUrl);
+  let parsed=await callAIVision(image,'完整讀取左下角浮水印。location 必須逐字保留施工區域的樓層、棟別、戶別，例如 B3F A棟、R1F C棟、A棟 3F A02、1S11；不得只回 R1F/B3F。defect 只回黃色施工缺失。');
+  if(!parsed.location && !parsed.area && !parsed.defect) throw new Error('AI 沒有辨識到有效的浮水印欄位');
+
+  // 若第一輪只得到 R1F/B3F 這類「純樓層」，再用極小的施工區域列補辨識一次。
+  // 只有缺棟別時才多打一個很小的請求，因此一般照片速度不受影響。
+  if(locationNeedsBuildingRetry(parsed.location)){
+    try{
+      const locImage=await prepareAILocationOnlyImage(dataUrl);
+      const retry=await callAIVision(locImage,'這張圖只包含施工區域欄。請把 location 原文完整讀出，樓層後面的 A棟/B棟/C棟不得省略。看不清楚就留空，不要猜。');
+      if(retry.location && /棟/.test(retry.location)) parsed.location=retry.location;
+    }catch(_){ /* 補辨識失敗時保留第一輪結果 */ }
   }
+  return parsed;
 }
 
 async function batchCreateFromWatermarks(){
