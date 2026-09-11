@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#3f7773">
 <title>DH2 工程缺失管理</title>
-<!-- OCR build: v17 exact-location-no-merge -->
+<!-- OCR build: v18 dashboard-title-address-edit -->
 <!-- OCR build: v12-polished-dashboard-table -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -213,10 +213,28 @@ main{max-width:980px;padding:8px 20px 160px}
   #list{margin:0 -1px}.defect-table-v12{min-width:0}.defect-table-v12 th,.defect-table-v12 td{padding:7px 6px}.defect-table-v12 .thumb{width:48px;height:44px}.defect-table-v12 th:nth-child(1),.defect-table-v12 td:nth-child(1){width:54px}.defect-table-v12 th:nth-child(2),.defect-table-v12 td:nth-child(2){width:auto}.defect-table-v12 th:nth-child(3),.defect-table-v12 td:nth-child(3){width:104px}.defect-table-v12 th:nth-child(4),.defect-table-v12 td:nth-child(4){width:68px}.defect-table-v12 .loc-chip{font-size:10px;padding:5px 5px}.defect-table-v12 .state-chip{font-size:10px;padding:5px 5px}
 }
 
+/* v18：工程名稱移入摘要卡＋地址可編輯 */
+.dashboard-project-info{display:flex;align-items:flex-start;gap:11px;min-width:0;flex:1}
+.dashboard-project-text{min-width:0;flex:1}
+.dashboard-project-name{font-size:24px;font-weight:850;line-height:1.1;color:#182022;margin:0 0 4px}
+.dashboard-project-subtitle{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:8px}
+.dashboard-address-line{display:flex;align-items:center;gap:7px;min-width:0}
+.dashboard-address-line .location{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.address-edit-btn{flex:0 0 auto;width:32px;height:32px;padding:0;border-radius:10px;background:#eef3f2;color:var(--brand-deep);box-shadow:none;font-size:15px;display:grid;place-items:center}
+.address-edit-btn:active{transform:scale(.96)}
+#detailPage .project-back{margin-top:2px}
+@media(max-width:650px){
+  .dashboard-project-name{font-size:21px}
+  .dashboard-project-subtitle{font-size:11px;margin-bottom:6px}
+  .dashboard-address-row{align-items:flex-start}
+  .dashboard-address-line .location{font-size:13px}
+  .address-edit-btn{width:30px;height:30px;font-size:14px}
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
-<body data-build="2026-09-11-v13">
+<body data-build="2026-09-11-v18">
 <header>
 <div>
   <h1 id="pageTitle">我的工程</h1>
@@ -241,8 +259,17 @@ main{max-width:980px;padding:8px 20px 160px}
 
 <section class="card dashboard-card" id="projectPanel">
   <div class="dashboard-address-row">
-    <div class="dashboard-project-icon">🏢</div>
-    <div class="location" id="location">請先建立工程</div>
+    <div class="dashboard-project-info">
+      <div class="dashboard-project-icon">🏢</div>
+      <div class="dashboard-project-text">
+        <div class="dashboard-project-name" id="dashboardProjectName">工程</div>
+        <div class="dashboard-project-subtitle">工程缺失管理</div>
+        <div class="dashboard-address-line">
+          <div class="location" id="location">請先建立工程</div>
+          <button type="button" class="address-edit-btn" onclick="editProjectAddress()" aria-label="編輯地址" title="編輯地址">✎</button>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="stats">
     <div class="ring" id="ring"><span><b id="pct">0%</b><small>改善完成率</small></span></div>
@@ -496,6 +523,7 @@ function renderDefects(){
  document.getElementById('pct').textContent=`${pct}%`;
  document.getElementById('ring').style.background=`conic-gradient(#7ed9ac ${pct*3.6}deg,#e4e8e9 0deg)`;
  document.getElementById('location').textContent=(p.address||'尚未設定地址');
+ const dpn=document.getElementById('dashboardProjectName'); if(dpn) dpn.textContent=p.name||'工程';
  const st=document.getElementById('defectSectionTitle'); if(st) st.textContent=`缺失（${all.length}）`;
 
  const q=document.getElementById('search').value.toLowerCase();
@@ -580,6 +608,7 @@ function restoreProjectFromHash(){
 }
 
 function showProjectsPage(){
+  const hdr=document.querySelector('header'); if(hdr) hdr.style.display='flex';
   try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
   document.getElementById('projectsPage').classList.add('active');
   document.getElementById('detailPage').classList.remove('active');
@@ -594,6 +623,7 @@ function showProjectsPage(){
 function showDetailPage(){
   const p=project();
   if(!p){ showProjectsPage(); return; }
+  const hdr=document.querySelector('header'); if(hdr) hdr.style.display='none';
   document.getElementById('projectsPage').classList.remove('active');
   document.getElementById('detailPage').classList.add('active');
   document.getElementById('pageTitle').textContent=p.name;
@@ -602,7 +632,20 @@ function showDetailPage(){
   const fab=document.querySelector('.fab'); if(fab) fab.style.display='';
   document.getElementById('navProjects').classList.remove('active');
   document.getElementById('navDefects').classList.add('active');
-  document.getElementById('location').textContent='📍 '+(p.address||'尚未設定地址');
+  const dpn=document.getElementById('dashboardProjectName'); if(dpn) dpn.textContent=p.name||'工程';
+  document.getElementById('location').textContent=(p.address||'尚未設定地址');
+  renderDefects();
+}
+
+function editProjectAddress(){
+  const p=project();
+  if(!p) return;
+  const next=prompt('編輯工程地址',p.address||'');
+  if(next===null) return;
+  p.address=String(next).trim();
+  if(!save()) return;
+  const loc=document.getElementById('location');
+  if(loc) loc.textContent=p.address||'尚未設定地址';
   renderDefects();
 }
 
