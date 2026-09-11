@@ -343,6 +343,7 @@ main{max-width:980px;padding:8px 20px 160px}
   .defect-table-v12 .defect-select:checked::after{font-size:12px;}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body data-build="2026-09-11-v18">
 <header>
@@ -1775,4 +1776,209 @@ if(!restoreProjectFromHash()) showProjectsPage();
 </div>
 
 <div id="printReport"></div>
+
+<style>
+#cloudPanelV27{margin:10px 12px 0;padding:12px;border:1px solid #dfe7e7;border-radius:14px;background:#fff}
+#cloudPanelV27 .cloud-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+#cloudPanelV27 input,#cloudPanelV27 select{max-width:260px}
+#cloudPanelV27 .cloud-badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef7f2;font-size:12px}
+#teamManagerV27{display:none;margin-top:10px;border-top:1px solid #e7ecec;padding-top:10px}
+#teamManagerV27 .member{display:grid;grid-template-columns:1.3fr .8fr 1fr auto;gap:6px;align-items:center;margin:6px 0}
+@media(max-width:650px){#teamManagerV27 .member{grid-template-columns:1fr 1fr}.member .member-name{grid-column:1/-1}}
+.vendor-v27-hide{display:none!important}
+</style>
+<section id="cloudPanelV27">
+  <div><b>☁️ DH2 團隊雲端</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
+  <div id="cloudStatusV27" class="sub" style="margin-top:4px">目前仍使用本機資料</div>
+  <div id="cloudLoginV27">
+    <div class="cloud-row">
+      <input id="cloudEmailV27" type="email" placeholder="Email">
+      <input id="cloudPasswordV27" type="password" placeholder="密碼至少 6 碼">
+      <input id="cloudNameV27" type="text" placeholder="顯示名稱">
+    </div>
+    <div class="cloud-row">
+      <button type="button" onclick="cloudSignInV27()">登入</button>
+      <button type="button" class="secondary" onclick="cloudSignUpV27()">建立帳號</button>
+    </div>
+  </div>
+  <div id="cloudUserV27" style="display:none">
+    <div class="cloud-row">
+      <button type="button" class="secondary" onclick="cloudForceReloadV27()">重新同步</button>
+      <button type="button" class="secondary" id="cloudImportBtnV27" onclick="cloudImportLocalV27()">上傳本機資料到雲端</button>
+      <button type="button" class="secondary" id="teamManageBtnV27" onclick="toggleTeamManagerV27()" style="display:none">成員管理</button>
+      <button type="button" class="secondary" onclick="cloudSignOutV27()">登出</button>
+    </div>
+  </div>
+  <div id="teamManagerV27"></div>
+</section>
+<script>
+const DH2_SUPABASE_URL='https://gtfqhcmdikygnusvftxy.supabase.co';
+const DH2_SUPABASE_KEY='sb_publishable_Cs7RfmIw9Wg1pH3H-Lm7BA_Fa_CxH_h';
+const dh2Cloud=window.supabase.createClient(DH2_SUPABASE_URL,DH2_SUPABASE_KEY);
+let cloudProfileV27=null, cloudSyncingV27=false, cloudLoadedV27=false, cloudTimerV27=null, cloudChannelV27=null;
+const originalSaveV27=save;
+
+function setCloudStatusV27(t){const e=document.getElementById('cloudStatusV27');if(e)e.textContent=t}
+function dataUrlToBlobV27(dataUrl){const [h,b64]=dataUrl.split(',');const mime=(h.match(/data:([^;]+)/)||[])[1]||'image/jpeg';const bin=atob(b64),arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:mime})}
+function uuidV27(){return crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==='x'?r:(r&3|8);return v.toString(16)})}
+function roleNameV27(r){return r==='admin'?'管理員':r==='vendor'?'廠商':'團隊成員'}
+
+async function cloudRefreshAuthV27(){
+ const {data:{session}}=await dh2Cloud.auth.getSession();
+ const login=document.getElementById('cloudLoginV27'), user=document.getElementById('cloudUserV27'), badge=document.getElementById('cloudRoleBadgeV27');
+ if(!session){cloudProfileV27=null;cloudLoadedV27=false;login.style.display='block';user.style.display='none';badge.textContent='尚未登入';setCloudStatusV27('目前仍使用本機資料');applyRoleUIV27();return;}
+ const {data:p,error}=await dh2Cloud.from('profiles').select('id,display_name,role,vendor_name').eq('id',session.user.id).maybeSingle();
+ if(error){setCloudStatusV27('登入成功，但讀取權限失敗：'+error.message);return;}
+ cloudProfileV27=p||{id:session.user.id,display_name:session.user.email,role:'editor',vendor_name:null};
+ login.style.display='none';user.style.display='block';badge.textContent=roleNameV27(cloudProfileV27.role)+(cloudProfileV27.vendor_name?' · '+cloudProfileV27.vendor_name:'');
+ document.getElementById('teamManageBtnV27').style.display=cloudProfileV27.role==='admin'?'':'none';
+ applyRoleUIV27();
+ await cloudLoadAllV27();
+ startRealtimeV27();
+}
+
+async function cloudSignUpV27(){
+ const email=document.getElementById('cloudEmailV27').value.trim(), password=document.getElementById('cloudPasswordV27').value, display_name=document.getElementById('cloudNameV27').value.trim()||email.split('@')[0];
+ if(!email||password.length<6)return alert('請輸入 Email，密碼至少 6 碼。');
+ const {data,error}=await dh2Cloud.auth.signUp({email,password,options:{data:{display_name}}});
+ if(error)return alert('建立帳號失敗：'+error.message);
+ alert(data.session?'帳號已建立並登入。':'帳號已建立。若有收到驗證信，請先完成 Email 驗證再登入。');
+ await cloudRefreshAuthV27();
+}
+async function cloudSignInV27(){
+ const email=document.getElementById('cloudEmailV27').value.trim(), password=document.getElementById('cloudPasswordV27').value;
+ const {error}=await dh2Cloud.auth.signInWithPassword({email,password});
+ if(error)return alert('登入失敗：'+error.message);
+ await cloudRefreshAuthV27();
+}
+async function cloudSignOutV27(){if(cloudChannelV27)await dh2Cloud.removeChannel(cloudChannelV27);await dh2Cloud.auth.signOut();await cloudRefreshAuthV27();}
+
+function applyRoleUIV27(){
+ const vendor=cloudProfileV27?.role==='vendor';
+ const fab=document.querySelector('.fab');if(fab)fab.classList.toggle('vendor-v27-hide',vendor);
+ const bulk=document.getElementById('bulkActions');if(bulk)bulk.classList.toggle('vendor-v27-hide',vendor);
+ const imp=document.getElementById('cloudImportBtnV27');if(imp)imp.style.display=vendor?'none':'';
+}
+
+async function signedPhotoUrlV27(path){
+ const {data,error}=await dh2Cloud.storage.from('defect-photos').createSignedUrl(path,3600);
+ return error?'':data.signedUrl;
+}
+async function cloudLoadAllV27(){
+ if(!cloudProfileV27)return;
+ setCloudStatusV27('正在同步雲端資料…');
+ const [{data:projects,error:pe},{data:defects,error:de},{data:photos,error:phe}]=await Promise.all([
+  dh2Cloud.from('projects').select('*').order('created_at'),
+  dh2Cloud.from('defects').select('*').order('created_date'),
+  dh2Cloud.from('defect_photos').select('*').order('created_at')
+ ]);
+ if(pe||de||phe){setCloudStatusV27('同步失敗：'+(pe||de||phe).message);return;}
+ if(!projects?.length){setCloudStatusV27('雲端目前沒有工程資料，可按「上傳本機資料到雲端」初始化。');cloudLoadedV27=true;return;}
+ const photoMap={};
+ for(const ph of photos||[]){
+   const url=await signedPhotoUrlV27(ph.storage_path); if(!url)continue;
+   (photoMap[ph.defect_id]??=[]).push({type:ph.photo_type,url});
+ }
+ const next={current:projects[0].id,projects:projects.map(p=>({
+   id:p.id,cloudId:p.id,name:p.name,no:p.no||'',address:p.address||'',owner:p.owner||'',builder:p.builder||'',start:'',end:'',
+   defects:(defects||[]).filter(d=>d.project_id===p.id).map(d=>({
+     id:d.id,cloudId:d.id,title:d.title,area:d.area||'',level:d.severity||'中',status:d.status||'pending',category:d.category||'其他',vendor:d.vendor||'',created:d.created_date||'',due:d.due_date||'',desc:d.description||'',improvementReply:d.improvement_reply||'',
+     defectPhotos:(photoMap[d.id]||[]).filter(x=>x.type==='defect').map(x=>x.url),
+     improvementPhotos:(photoMap[d.id]||[]).filter(x=>x.type==='improvement').map(x=>x.url)
+   }))
+ }))};
+ state=next;originalSaveV27();cloudLoadedV27=true;render();showDetailPage();
+ setCloudStatusV27(`雲端同步完成 · ${next.projects.length} 個工程 · ${(defects||[]).length} 筆缺失`);
+}
+
+async function uploadPhotoV27(projectId,defectId,type,dataUrl){
+ if(!String(dataUrl).startsWith('data:'))return null;
+ const ext=(dataUrl.match(/^data:image\/([^;]+)/)||[])[1]?.replace('jpeg','jpg')||'jpg';
+ const path=`${projectId}/${defectId}/${type}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+ const {error}=await dh2Cloud.storage.from('defect-photos').upload(path,dataUrlToBlobV27(dataUrl),{contentType:'image/'+(ext==='jpg'?'jpeg':ext),upsert:false});
+ if(error)throw error;
+ const {error:ie}=await dh2Cloud.from('defect_photos').insert({defect_id:defectId,photo_type:type==='improvement'?'improvement':'defect',storage_path:path});
+ if(ie)throw ie;
+ return path;
+}
+
+async function cloudImportLocalV27(){
+ if(!cloudProfileV27||cloudProfileV27.role==='vendor')return;
+ const {count}=await dh2Cloud.from('projects').select('*',{count:'exact',head:true});
+ if(count>0&&!confirm('雲端已經有工程資料。仍要把目前本機資料加入雲端嗎？'))return;
+ if(!confirm('確定將目前這支手機瀏覽器內的工程、缺失及照片上傳到 Supabase 雲端？'))return;
+ await cloudSyncAllV27(true);
+ await cloudLoadAllV27();
+ alert('本機資料已上傳到雲端。');
+}
+
+async function cloudSyncAllV27(force=false){
+ if(cloudSyncingV27||!cloudProfileV27||cloudProfileV27.role==='vendor')return;
+ cloudSyncingV27=true;setCloudStatusV27('正在上傳變更…');
+ try{
+  for(const p of state.projects){
+    p.cloudId=p.cloudId||(/^[0-9a-f-]{36}$/i.test(String(p.id))?String(p.id):uuidV27());
+    const {error:pe}=await dh2Cloud.from('projects').upsert({id:p.cloudId,name:p.name||'工程',no:p.no||null,address:p.address||null,owner:p.owner||null,builder:p.builder||null});if(pe)throw pe;
+    for(const x of p.defects||[]){
+      x.cloudId=x.cloudId||(/^[0-9a-f-]{36}$/i.test(String(x.id))?String(x.id):uuidV27());
+      const payload={id:x.cloudId,project_id:p.cloudId,title:x.title||'未命名缺失',area:x.area||null,severity:x.level||'中',category:x.category||'其他',vendor:x.vendor||null,status:x.status||'pending',created_date:x.created||localToday(),due_date:x.due||null,description:x.desc||null,improvement_reply:x.improvementReply||null};
+      const {error:de}=await dh2Cloud.from('defects').upsert(payload);if(de)throw de;
+      for(const ph of (x.defectPhotos||x.photos||[]))if(String(ph).startsWith('data:'))await uploadPhotoV27(p.cloudId,x.cloudId,'defect',ph);
+      for(const ph of (x.improvementPhotos||[]))if(String(ph).startsWith('data:'))await uploadPhotoV27(p.cloudId,x.cloudId,'improvement',ph);
+    }
+  }
+  originalSaveV27();setCloudStatusV27('雲端已更新');
+ }catch(e){console.error(e);setCloudStatusV27('雲端更新失敗：'+e.message);if(force)alert('上傳失敗：'+e.message)}finally{cloudSyncingV27=false;}
+}
+
+save=function(){const ok=originalSaveV27();if(ok&&cloudProfileV27&&cloudProfileV27.role!=='vendor'){clearTimeout(cloudTimerV27);cloudTimerV27=setTimeout(()=>cloudSyncAllV27(false),700)}return ok};
+
+function startRealtimeV27(){
+ if(cloudChannelV27)dh2Cloud.removeChannel(cloudChannelV27);
+ cloudChannelV27=dh2Cloud.channel('dh2-live-v27')
+  .on('postgres_changes',{event:'*',schema:'public',table:'defects'},()=>{if(!cloudSyncingV27)setTimeout(cloudLoadAllV27,500)})
+  .on('postgres_changes',{event:'*',schema:'public',table:'defect_photos'},()=>{if(!cloudSyncingV27)setTimeout(cloudLoadAllV27,500)})
+  .on('postgres_changes',{event:'*',schema:'public',table:'projects'},()=>{if(!cloudSyncingV27)setTimeout(cloudLoadAllV27,500)})
+  .subscribe();
+}
+async function cloudForceReloadV27(){await cloudLoadAllV27();}
+
+async function vendorUpdateV27(id){
+ const x=project()?.defects?.find(a=>String(a.id)===String(id));if(!x)return;
+ const status=document.getElementById('vendorStatusV27').value, improvement_reply=document.getElementById('vendorReplyV27').value.trim();
+ const {error}=await dh2Cloud.from('defects').update({status,improvement_reply,updated_at:new Date().toISOString()}).eq('id',x.cloudId||x.id);
+ if(error)return alert('更新失敗：'+error.message);
+ if(tempImprovePhotos?.length){for(const ph of tempImprovePhotos)if(String(ph).startsWith('data:'))try{await uploadPhotoV27(project().cloudId||project().id,x.cloudId||x.id,'improvement',ph)}catch(e){alert('改善照片上傳失敗：'+e.message);break;}}
+ closeModal();await cloudLoadAllV27();alert('改善狀態已更新。');
+}
+
+const originalOpenDetailV27=openDetail;
+openDetail=function(id){originalOpenDetailV27(id);if(cloudProfileV27?.role==='vendor'){
+ const p=project(),x=p?.defects?.find(a=>String(a.id)===String(id));if(!x)return;
+ const actions=dBody.querySelector('.actions');if(actions)actions.innerHTML=`<button type="button" onclick="openVendorImproveV27('${x.id}')">更新改善狀態／照片</button>`;
+}};
+function openVendorImproveV27(id){
+ const x=project()?.defects?.find(a=>String(a.id)===String(id));if(!x)return;currentId=id;editId=id;tempImprovePhotos=[];
+ document.getElementById('modalTitle').textContent='廠商改善回覆';
+ modal.style.display='flex';
+ [...modal.querySelectorAll('label,input,select,textarea,.ocr-actions,#preview,#ocrBox')].forEach(el=>el.style.display='none');
+ improvePreview.style.display='grid'; fImprovePhotos.parentElement.style.display='block'; fImprovePhotos.style.display='block';
+ let box=document.getElementById('vendorBoxV27');if(!box){box=document.createElement('div');box.id='vendorBoxV27';box.innerHTML=`<label>改善狀態</label><select id="vendorStatusV27"><option value="pending">待處理</option><option value="doing">進行中</option><option value="closed">已關閉</option></select><label>改善回覆</label><textarea id="vendorReplyV27" rows="4"></textarea><div class="actions"><button type="button" onclick="vendorUpdateV27(currentId)">儲存改善資料</button><button type="button" class="secondary" onclick="location.reload()">取消</button></div>`;modal.querySelector('.modal-card')?.appendChild(box)}
+ box.style.display='block';document.getElementById('vendorStatusV27').value=x.status||'pending';document.getElementById('vendorReplyV27').value=x.improvementReply||'';
+}
+
+async function toggleTeamManagerV27(){
+ const box=document.getElementById('teamManagerV27');if(box.style.display==='block'){box.style.display='none';return}
+ const {data,error}=await dh2Cloud.from('profiles').select('id,display_name,role,vendor_name').order('created_at');if(error)return alert(error.message);
+ box.innerHTML='<b>成員管理</b><div class="sub">廠商帳號請把角色改為「廠商」，並填入與缺失「負責廠商」完全相同的名稱。</div>'+data.map(m=>`<div class="member"><div class="member-name">${esc(m.display_name||m.id)}</div><select id="role_${m.id}"><option value="admin" ${m.role==='admin'?'selected':''}>管理員</option><option value="editor" ${m.role==='editor'?'selected':''}>團隊成員</option><option value="vendor" ${m.role==='vendor'?'selected':''}>廠商</option></select><input id="vendor_${m.id}" value="${esc(m.vendor_name||'')}" placeholder="廠商名稱"><button type="button" onclick="saveMemberV27('${m.id}')">儲存</button></div>`).join('');box.style.display='block';
+}
+async function saveMemberV27(id){const role=document.getElementById('role_'+id).value,vendor_name=document.getElementById('vendor_'+id).value.trim()||null;const {error}=await dh2Cloud.from('profiles').update({role,vendor_name}).eq('id',id);if(error)return alert('儲存失敗：'+error.message);alert('成員權限已更新。')}
+
+dh2Cloud.auth.onAuthStateChange(()=>setTimeout(cloudRefreshAuthV27,0));
+window.addEventListener('DOMContentLoaded',()=>{
+ const main=document.querySelector('main');const panel=document.getElementById('cloudPanelV27');if(main&&panel)main.parentNode.insertBefore(panel,main);
+ cloudRefreshAuthV27();
+});
+</script>
+
 </body></html>
