@@ -1788,8 +1788,8 @@ if(!restoreProjectFromHash()) showProjectsPage();
 .vendor-v27-hide{display:none!important}
 </style>
 <section id="cloudPanelV27">
-  <div><b>☁️ DH2 團隊雲端</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
-  <div id="cloudStatusV27" class="sub" style="margin-top:4px">目前仍使用本機資料</div>
+  <div><b>☁️ DH2 團隊雲端 · V28</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
+  <div id="cloudStatusV27" class="sub" style="margin-top:4px">請先登入以讀取雲端資料</div>
   <div id="cloudLoginV27">
     <div class="cloud-row">
       <input id="cloudEmailV27" type="email" placeholder="Email">
@@ -1817,6 +1817,9 @@ const DH2_SUPABASE_KEY='sb_publishable_Cs7RfmIw9Wg1pH3H-Lm7BA_Fa_CxH_h';
 const dh2Cloud=window.supabase.createClient(DH2_SUPABASE_URL,DH2_SUPABASE_KEY);
 let cloudProfileV27=null, cloudSyncingV27=false, cloudLoadedV27=false, cloudTimerV27=null, cloudChannelV27=null;
 const originalSaveV27=save;
+/* V28: keep one immutable snapshot of pre-cloud browser data for one-time manual import only. */
+const localImportSnapshotV28 = JSON.parse(JSON.stringify(state || {current:null,projects:[]}));
+
 
 function setCloudStatusV27(t){const e=document.getElementById('cloudStatusV27');if(e)e.textContent=t}
 function dataUrlToBlobV27(dataUrl){const [h,b64]=dataUrl.split(',');const mime=(h.match(/data:([^;]+)/)||[])[1]||'image/jpeg';const bin=atob(b64),arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:mime})}
@@ -1826,7 +1829,13 @@ function roleNameV27(r){return r==='admin'?'管理員':r==='vendor'?'廠商':'�
 async function cloudRefreshAuthV27(){
  const {data:{session}}=await dh2Cloud.auth.getSession();
  const login=document.getElementById('cloudLoginV27'), user=document.getElementById('cloudUserV27'), badge=document.getElementById('cloudRoleBadgeV27');
- if(!session){cloudProfileV27=null;cloudLoadedV27=false;login.style.display='block';user.style.display='none';badge.textContent='尚未登入';setCloudStatusV27('目前仍使用本機資料');applyRoleUIV27();return;}
+ if(!session){
+  cloudProfileV27=null; cloudLoadedV27=false;
+  login.style.display='block'; user.style.display='none'; badge.textContent='尚未登入';
+  state={current:null,projects:[]}; render(); showProjectsPage();
+  setCloudStatusV27('請登入。同一帳號／團隊帳號登入後，所有裝置都以 Supabase 雲端為唯一資料來源。');
+  applyRoleUIV27(); return;
+}
  const {data:p,error}=await dh2Cloud.from('profiles').select('id,display_name,role,vendor_name').eq('id',session.user.id).maybeSingle();
  if(error){setCloudStatusV27('登入成功，但讀取權限失敗：'+error.message);return;}
  cloudProfileV27=p||{id:session.user.id,display_name:session.user.email,role:'editor',vendor_name:null};
@@ -1873,7 +1882,14 @@ async function cloudLoadAllV27(){
   dh2Cloud.from('defect_photos').select('*').order('created_at')
  ]);
  if(pe||de||phe){setCloudStatusV27('同步失敗：'+(pe||de||phe).message);return;}
- if(!projects?.length){setCloudStatusV27('雲端目前沒有工程資料，可按「上傳本機資料到雲端」初始化。');cloudLoadedV27=true;return;}
+ if(!projects?.length){
+  state={current:null,projects:[]};
+  originalSaveV27();
+  cloudLoadedV27=true;
+  render(); showProjectsPage();
+  setCloudStatusV27('雲端目前沒有工程資料。若這台裝置有舊資料，可由管理員按「上傳本機資料到雲端」一次性匯入。');
+  return;
+}
  const photoMap={};
  for(const ph of photos||[]){
    const url=await signedPhotoUrlV27(ph.storage_path); if(!url)continue;
@@ -1907,14 +1923,22 @@ async function cloudImportLocalV27(){
  const {count}=await dh2Cloud.from('projects').select('*',{count:'exact',head:true});
  if(count>0&&!confirm('雲端已經有工程資料。仍要把目前本機資料加入雲端嗎？'))return;
  if(!confirm('確定將目前這支手機瀏覽器內的工程、缺失及照片上傳到 Supabase 雲端？'))return;
- await cloudSyncAllV27(true);
+ if(!localImportSnapshotV28?.projects?.length)return alert('這台裝置沒有可匯入的舊本機資料。');
+ const cloudStateBeforeImport=state;
+ state=JSON.parse(JSON.stringify(localImportSnapshotV28));
+ try{
+   await cloudSyncAllV27(true);
+ }finally{
+   state=cloudStateBeforeImport;
+ }
  await cloudLoadAllV27();
- alert('本機資料已上傳到雲端。');
+ alert('舊本機資料已一次性匯入雲端。之後所有裝置都只讀寫 Supabase。');
 }
 
 async function cloudSyncAllV27(force=false){
  if(cloudSyncingV27||!cloudProfileV27||cloudProfileV27.role==='vendor')return;
- cloudSyncingV27=true;setCloudStatusV27('正在上傳變更…');
+ if(!force && !cloudLoadedV27)return;
+ cloudSyncingV27=true;setCloudStatusV27(force?'正在匯入舊本機資料…':'正在上傳變更…');
  try{
   for(const p of state.projects){
     p.cloudId=p.cloudId||(/^[0-9a-f-]{36}$/i.test(String(p.id))?String(p.id):uuidV27());
@@ -1931,7 +1955,14 @@ async function cloudSyncAllV27(force=false){
  }catch(e){console.error(e);setCloudStatusV27('雲端更新失敗：'+e.message);if(force)alert('上傳失敗：'+e.message)}finally{cloudSyncingV27=false;}
 }
 
-save=function(){const ok=originalSaveV27();if(ok&&cloudProfileV27&&cloudProfileV27.role!=='vendor'){clearTimeout(cloudTimerV27);cloudTimerV27=setTimeout(()=>cloudSyncAllV27(false),700)}return ok};
+save=function(){
+ const ok=originalSaveV27();
+ if(ok&&cloudLoadedV27&&cloudProfileV27&&cloudProfileV27.role!=='vendor'){
+   clearTimeout(cloudTimerV27);
+   cloudTimerV27=setTimeout(()=>cloudSyncAllV27(false),700);
+ }
+ return ok;
+};
 
 function startRealtimeV27(){
  if(cloudChannelV27)dh2Cloud.removeChannel(cloudChannelV27);
