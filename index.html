@@ -344,6 +344,19 @@ main{max-width:980px;padding:8px 20px 160px}
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+#teamManagerV27 .member{align-items:center}
+#teamManagerV27 .member-name{min-width:130px}
+#teamManagerV27 .member .sub{margin-top:3px;font-size:12px;opacity:.78}
+#teamManagerV27 .member button.danger{background:#fff1f0!important;color:#b42318!important;border:1px solid #f1b5b0!important}
+@media(max-width:600px){
+ #teamManagerV27 .member{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
+ #teamManagerV27 .member-name{grid-column:1/-1!important}
+ #teamManagerV27 .member input{min-width:0!important;width:100%!important}
+ #teamManagerV27 .member button{width:100%!important}
+}
+</style>
 </head>
 <body data-build="2026-09-11-v18">
 <header>
@@ -1788,7 +1801,7 @@ if(!restoreProjectFromHash()) showProjectsPage();
 .vendor-v27-hide{display:none!important}
 </style>
 <section id="cloudPanelV27">
-  <div><b>☁️ DH2 團隊雲端 · V30</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
+  <div><b>☁️ DH2 團隊雲端 · V31</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
   <div id="cloudStatusV27" class="sub" style="margin-top:4px">請先登入以讀取雲端資料</div>
   <div id="cloudLoginV27">
     <div class="cloud-row">
@@ -2025,14 +2038,30 @@ async function adminCreateAccountV29(){
  } finally {btn.disabled=false;btn.textContent='＋ 建立帳號'}
 }
 function toggleVendorFieldV29(){document.getElementById('vendorWrapV29').style.display=document.getElementById('newMemberRoleV29').value==='vendor'?'block':'none'}
+async function deleteMemberV31(id,name){
+ if(cloudProfileV27?.role!=='admin')return alert('只有管理員可以刪除成員。');
+ if(!confirm(`確定刪除成員「${name}」？\n\n刪除後此帳號將無法再登入。`))return;
+ try{
+   const {data,error}=await dh2Cloud.functions.invoke('admin-delete-user',{body:{user_id:id}});
+   if(error)throw error;if(data?.error)throw new Error(data.error);
+   alert('成員已刪除。');
+   await renderTeamManagerV29();
+ }catch(e){alert('刪除成員失敗：'+(e?.message||e));}
+}
 async function renderTeamManagerV29(){
  const box=document.getElementById('teamManagerV27');
- const {data,error}=await dh2Cloud.from('profiles').select('id,display_name,role,vendor_name').order('created_at');if(error)return alert(error.message);
+ const {data,error}=await dh2Cloud.from('profiles').select('id,username,display_name,role,vendor_name').order('created_at');if(error)return alert(error.message);
  box.innerHTML=`<b>成員管理</b><div class="sub">帳號由管理員統一建立。廠商名稱需與缺失的「負責廠商」完全相同。</div>
  <div style="padding:10px;margin:10px 0;border:1px solid #dce7e5;border-radius:12px">
  <div class="cloud-grid"><input id="newMemberEmailV29" type="text" autocomplete="off" placeholder="登入帳號，例如 water01"><input id="newMemberPasswordV29" type="password" placeholder="初始密碼至少 6 碼"><input id="newMemberNameV29" placeholder="姓名／顯示名稱"></div>
  <div class="cloud-row"><select id="newMemberRoleV29" onchange="toggleVendorFieldV29()"><option value="editor">團隊成員</option><option value="vendor">廠商</option></select><span id="vendorWrapV29" style="display:none"><input id="newMemberVendorV29" placeholder="廠商名稱"></span><button id="createMemberBtnV29" type="button" onclick="adminCreateAccountV29()">＋ 建立帳號</button></div></div>`+
- data.map(m=>`<div class="member"><div class="member-name">${esc(m.display_name||m.id)}<div class="sub">帳號：${esc(m.username||'舊 Email 帳號')}</div></div><select id="role_${m.id}"><option value="admin" ${m.role==='admin'?'selected':''}>管理員</option><option value="editor" ${m.role==='editor'?'selected':''}>團隊成員</option><option value="vendor" ${m.role==='vendor'?'selected':''}>廠商</option></select><input id="vendor_${m.id}" value="${esc(m.vendor_name||'')}" placeholder="廠商名稱"><button type="button" onclick="saveMemberV27('${m.id}')">儲存</button></div>`).join('');
+ data.map(m=>`<div class="member">
+ <div class="member-name">${esc(m.display_name||m.id)}<div class="sub">帳號：<b>${esc(m.username||'舊 Email 帳號')}</b></div></div>
+ <select id="role_${m.id}"><option value="admin" ${m.role==='admin'?'selected':''}>管理員</option><option value="editor" ${m.role==='editor'?'selected':''}>團隊成員</option><option value="vendor" ${m.role==='vendor'?'selected':''}>廠商</option></select>
+ <input id="vendor_${m.id}" value="${esc(m.vendor_name||'')}" placeholder="廠商名稱">
+ <button type="button" onclick="saveMemberV27('${m.id}')">儲存</button>
+ <button type="button" class="danger" onclick="deleteMemberV31('${m.id}','${esc(m.display_name||m.username||'此成員')}')">刪除</button>
+ </div>`).join('');
  box.style.display='block';
 }
 async function toggleTeamManagerV27(){
