@@ -326,6 +326,15 @@ function localToday(){
   const day=String(d.getDate()).padStart(2,'0');
   return `${y}-${m}-${day}`;
 }
+function addDaysISO(dateStr,days=14){
+  const m=String(dateStr||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const d=m?new Date(Number(m[1]),Number(m[2])-1,Number(m[3])):new Date();
+  d.setDate(d.getDate()+days);
+  const y=d.getFullYear();
+  const mo=String(d.getMonth()+1).padStart(2,'0');
+  const da=String(d.getDate()).padStart(2,'0');
+  return `${y}-${mo}-${da}`;
+}
 function normalizeDates(){
   const today=localToday();
   state.projects.forEach(p=>p.defects.forEach(d=>{if(!d.created)d.created=today;}));
@@ -509,7 +518,7 @@ function openDefect(id=null){
   fArea.value=x.area||'';
   fVendor.value=x.vendor||'機電工程';
   fCreated.value=x.created||localToday();
-  fDue.value=x.due||'';
+  fDue.value=x.due||(id?'':addDaysISO(fCreated.value,14));
   fDesc.value=x.desc||'請依照改善期限內修繕完成';
   fLevel.value=x.level||'中';fCategory.value=x.category||'其他';
   fPhotos.value='';
@@ -520,6 +529,10 @@ function openDefect(id=null){
   ocrStatus.className='sub'; ocrStatus.textContent='上傳缺失相片後，按下方按鈕即可自動帶入樓層／區域與缺失名稱。';
   modal.style.display='flex';
 }
+// 新增缺失時，起單日期變更就同步預設改善期限為 +14 天；編輯既有缺失不強制覆蓋人工期限。
+fCreated.addEventListener('change',()=>{
+  if(!editId) fDue.value=addDaysISO(fCreated.value||localToday(),14);
+});
 fPhotos.addEventListener('change',async e=>{
   let firstOCRData=null;
   for(const file of [...e.target.files]){
@@ -578,14 +591,14 @@ function prepareAIWatermarkImage(dataUrl){
   return new Promise(resolve=>{
     const img=new Image();
     img.onload=()=>{
-      // AI 只看左下角浮水印本體。原本裁太大，現場背景文字會干擾模型。
-      // 依目前「今日水印」固定版型裁切：約左 43% × 下 31%。
+      // AI 只看左下角浮水印區。往上、往右多保留一點，避免把「樓層 / 棟別」那一列裁掉。
+      // 同時把傳送寬度控制在約 1100px，降低上傳量，加快批次辨識。
       const sx=0;
-      const sy=Math.floor(img.height*0.69);
-      const sw=Math.floor(img.width*0.43);
-      const sh=Math.floor(img.height*0.305);
-      const maxW=1800;
-      const scale=Math.min(3,maxW/Math.max(1,sw));
+      const sy=Math.floor(img.height*0.64);
+      const sw=Math.floor(img.width*0.50);
+      const sh=Math.floor(img.height*0.355);
+      const maxW=1100;
+      const scale=Math.min(2,maxW/Math.max(1,sw));
       const c=document.createElement('canvas');
       c.width=Math.max(1,Math.floor(sw*scale));
       c.height=Math.max(1,Math.floor(sh*scale));
@@ -594,7 +607,7 @@ function prepareAIWatermarkImage(dataUrl){
       ctx.imageSmoothingQuality='high';
       ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);
       // 保留彩色欄位，不做灰階，讓 AI 能利用藍/白/黃欄辨識欄位。
-      resolve(c.toDataURL('image/jpeg',0.96));
+      resolve(c.toDataURL('image/jpeg',0.88));
     };
     img.onerror=()=>resolve(dataUrl);
     img.src=dataUrl;
@@ -711,44 +724,62 @@ async function batchCreateFromWatermarks(){
   if(!p)return;
 
   btn.disabled=true;
-  let created=0, failed=0;
+  let created=0, failed=0, finished=0;
   const failures=[];
+  const results=new Array(files.length);
+  const createdDate=localToday();
+  const defaultDue=addDaysISO(createdDate,14);
+
+  async function processOne(i){
+    const file=files[i];
+    try{
+      const original=await fileToDataURL(file);
+      const data=await compressImage(file);
+      if(!data) throw new Error('照片讀取失敗');
+
+      const parsed=await recognizeWatermarkData(original||data);
+      if(!parsed.defect) throw new Error('無法辨識缺失項目');
+
+      results[i]={
+        id:Date.now()+i,
+        title:parsed.defect,
+        // AI location 原文清理後直接優先保存，例如 B3F A棟、R1F C棟、1S11。
+        area:formatAreaValue(parsed.location,parsed.area),
+        level:'中',
+        status:'pending',
+        category:'其他',
+        vendor:'機電工程',
+        created:createdDate,
+        due:defaultDue,
+        desc:'請依照改善期限內修繕完成',
+        defectPhotos:[data],
+        improvementPhotos:[]
+      };
+      created++;
+    }catch(err){
+      failed++;
+      failures.push(`${i+1}. ${file.name}：${err.message||'辨識失敗'}`);
+    }finally{
+      finished++;
+      status.className='sub working';
+      status.textContent=`AI 批次辨識中 ${finished} / ${files.length}（同時處理 2 張）`;
+    }
+  }
 
   try{
-    for(let i=0;i<files.length;i++){
-      status.className='sub working';
-      status.textContent=`正在處理第 ${i+1} / ${files.length} 張：${files[i].name}`;
-
-      try{
-        const original=await fileToDataURL(files[i]);
-        const data=await compressImage(files[i]);
-        if(!data) throw new Error('照片讀取失敗');
-
-        // 辨識使用原圖，儲存才使用壓縮圖。
-        const parsed=await recognizeWatermarkData(original||data);
-        if(!parsed.defect) throw new Error('無法辨識缺失項目');
-
-        const defect={
-          id:Date.now()+i,
-          title:parsed.defect,
-          area:formatAreaValue(parsed.location,parsed.area),
-          level:'中',
-          status:'pending',
-          category:'其他',
-          vendor:'機電工程',
-          created:localToday(),
-          due:'',
-          desc:'請依照改善期限內修繕完成',
-          defectPhotos:[data],
-          improvementPhotos:[]
-        };
-
-        p.defects.push(defect);
-        created++;
-      }catch(err){
-        failed++;
-        failures.push(`${i+1}. ${files[i].name}：${err.message||'辨識失敗'}`);
+    // 同時處理 2 張，手機端比逐張等待快很多，又不至於一次把 API 打爆。
+    let cursor=0;
+    async function worker(){
+      while(true){
+        const i=cursor++;
+        if(i>=files.length) return;
+        await processOne(i);
       }
+    }
+    await Promise.all([worker(),worker()]);
+
+    for(const defect of results){
+      if(defect) p.defects.push(defect);
     }
 
     save();
@@ -758,7 +789,7 @@ async function batchCreateFromWatermarks(){
 
     if(created){
       status.className='sub ok';
-      status.textContent=`完成：已自動建立 ${created} 筆缺失${failed?`，${failed} 張辨識失敗`:''}。`;
+      status.textContent=`完成：已自動建立 ${created} 筆缺失${failed?`，${failed} 張辨識失敗`:''}。改善期限預設為起單日 +14 天。`;
     }else{
       status.className='sub err';
       status.textContent='沒有成功建立缺失。';
