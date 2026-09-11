@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#3f7773">
 <title>DH2 工程缺失管理</title>
-<!-- OCR build: v3-fixed-crops -->
+<!-- OCR build: v4-ai-vision -->
 <style>
 :root{--bg:#f3f5f6;--card:#fff;--ink:#17191b;--muted:#7b8185;--brand:#3f7773;--red:#c34d3b;--amber:#c38a32;--green:#4f8a68;--line:#e4e7e8}
 *{box-sizing:border-box} body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC",sans-serif;color:var(--ink)}
@@ -188,11 +188,12 @@ small.warn{color:var(--red);font-weight:700}
   <div class="batch-head">
     <div>
       <b>✨ 批次浮水印建單</b>
-      <div class="sub">一次選多張缺失照片，每張照片會自動辨識並建立 1 筆缺失。</div>
+      <div class="sub">一次選多張缺失照片，每張照片會優先使用 AI 圖像辨識，自動建立 1 筆缺失。</div>
     </div>
   </div>
   <input id="batchPhotos" type="file" accept="image/*" multiple>
-  <button id="batchStartBtn" type="button" style="width:100%;margin-top:8px" onclick="batchCreateFromWatermarks()">辨識並自動建立全部缺失</button>
+  <button id="batchStartBtn" type="button" style="width:100%;margin-top:8px" onclick="batchCreateFromWatermarks()">AI 辨識並自動建立全部缺失</button>
+  <button type="button" class="secondary" style="width:100%;margin-top:8px" onclick="configureAIVisionEndpoint()">⚙️ AI 辨識服務設定</button>
   <div id="batchStatus" class="sub" style="margin-top:8px"></div>
 </section>
 
@@ -245,9 +246,10 @@ small.warn{color:var(--red);font-weight:700}
 <label>缺失相片（可多張）</label><div class="sub">可從相簿選擇；右上角 × 可刪除。</div>
 <input id="fPhotos" type="file" accept="image/*" multiple>
 <div id="ocrBox" style="display:block;margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#f8fbfa">
-  <div style="font-weight:800;color:var(--brand);margin-bottom:4px">✨ 浮水印自動辨識</div>
-  <div id="ocrStatus" class="sub">上傳缺失相片後，按下方按鈕即可自動帶入樓層／區域與缺失名稱。</div>
-  <button type="button" style="width:100%;margin-top:10px" onclick="recognizeWatermarkFromLatest()">辨識最新一張缺失相片</button>
+  <div style="font-weight:800;color:var(--brand);margin-bottom:4px">✨ AI 浮水印辨識</div>
+  <div id="ocrStatus" class="sub">上傳缺失相片後，AI 會直接讀取左下角浮水印的施工位置、區域與缺失名稱。</div>
+  <button type="button" style="width:100%;margin-top:10px" onclick="recognizeWatermarkFromLatest()">AI 辨識最新一張缺失相片</button>
+  <button type="button" class="secondary" style="width:100%;margin-top:8px" onclick="configureAIVisionEndpoint()">⚙️ AI 辨識服務設定</button>
 </div>
 <div id="preview" class="photo-grid"></div>
 <label style="margin-top:18px">改善相片（可多張）</label><div class="sub">改善完成後可上傳照片；右上角 × 可刪除。</div>
@@ -542,44 +544,110 @@ fImprovePhotos.addEventListener('change',async e=>{
 
 
 
+const AI_OCR_ENDPOINT_KEY='dh2_ai_ocr_endpoint_v1';
+
+function getAIVisionEndpoint(){
+  return 'https://dh2-ai-ocr.tk82513.workers.dev';
+}
+function configureAIVisionEndpoint(){
+  const current=getAIVisionEndpoint();
+  const value=prompt('AI 辨識服務已固定使用 Cloudflare Worker。',current);
+  if(value===null) return;
+  const v=value.trim().replace(/\/$/,'');
+  if(!v){
+    localStorage.removeItem(AI_OCR_ENDPOINT_KEY);
+    alert('已清除 AI 辨識服務設定。');
+    return;
+  }
+  if(!/^https:\/\//i.test(v)){
+    alert('網址必須以 https:// 開頭。');
+    return;
+  }
+  localStorage.setItem(AI_OCR_ENDPOINT_KEY,v);
+  alert('AI 辨識服務網址已儲存。');
+}
+
+function prepareAIWatermarkImage(dataUrl){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      // 浮水印固定在左下角。保留足夠背景，讓 AI 能理解欄位，而不是只猜單一字元。
+      const sx=0;
+      const sy=Math.floor(img.height*0.53);
+      const sw=Math.floor(img.width*0.62);
+      const sh=Math.floor(img.height*0.46);
+      const maxW=1500;
+      const scale=Math.min(2,maxW/sw);
+      const c=document.createElement('canvas');
+      c.width=Math.max(1,Math.floor(sw*scale));
+      c.height=Math.max(1,Math.floor(sh*scale));
+      const ctx=c.getContext('2d');
+      ctx.imageSmoothingEnabled=true;
+      ctx.imageSmoothingQuality='high';
+      ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);
+      resolve(c.toDataURL('image/jpeg',0.92));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
+}
+
+function sanitizeAIResult(obj){
+  const out={location:'',area:'',defect:''};
+  if(!obj||typeof obj!=='object') return out;
+  out.location=String(obj.location||'').trim();
+  out.area=String(obj.area||'').trim();
+  out.defect=String(obj.defect||obj.defectName||'').trim();
+
+  // 位置只接受工地常用編碼；避免把「遠雄山禾」或其他背景字帶進來。
+  const code=extractAreaCode(out.location);
+  if(code) out.location=code;
+  else out.location='';
+
+  // 區域必須是乾淨中文房間名，AI 若回傳雜訊就直接捨棄。
+  if(out.area){
+    const room=cleanRoomName(out.area);
+    out.area=room||'';
+  }
+
+  // AI 已理解欄位，所以這裡只做最輕量清理，不再硬猜 OCR 誤字。
+  out.defect=out.defect
+    .replace(/[|｜]+/g,'／')
+    .replace(/[=＝]+/g,'／')
+    .replace(/\s*／\s*/g,'／')
+    .replace(/／{2,}/g,'／')
+    .replace(/^／|／$/g,'')
+    .trim();
+  return out;
+}
+
 async function recognizeWatermarkData(dataUrl){
-  if(typeof Tesseract==='undefined') throw new Error('OCR 模組尚未載入，請確認網路後重試');
+  const endpoint=getAIVisionEndpoint();
+  if(!endpoint) throw new Error('尚未設定 AI 辨識服務，請先按「AI 辨識服務設定」。');
 
-  const parsed={location:'',area:'',defect:''};
-
-  // 1. 施工位置：只看白色位置列，英數混合辨識，用格式規則留下 A棟 3F A02 / 1S8 等編碼。
-  const locCrop=await cropLocationCodeForOCR(dataUrl);
-  const locResult=await Tesseract.recognize(locCrop,'chi_tra+eng');
-  parsed.location=extractAreaCode(locResult.data.text||'');
-
-  // 若極小裁切沒抓到，再用稍大的白色區域做一次備援。
-  if(!parsed.location){
-    const locationCrop=await cropLocationBlockForOCR(dataUrl);
-    const locationResult=await Tesseract.recognize(locationCrop,'chi_tra+eng');
-    parsed.location=parseLocationOnly(locationResult.data.text||'').location||'';
+  const image=await prepareAIWatermarkImage(dataUrl);
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),45000);
+  try{
+    const res=await fetch(endpoint,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({image}),
+      signal:controller.signal
+    });
+    const text=await res.text();
+    let payload={};
+    try{payload=JSON.parse(text)}catch(_){throw new Error('AI 服務回傳格式錯誤');}
+    if(!res.ok) throw new Error(payload.error||`AI 服務錯誤 (${res.status})`);
+    const parsed=sanitizeAIResult(payload);
+    if(!parsed.location && !parsed.area && !parsed.defect) throw new Error('AI 沒有辨識到有效的浮水印欄位');
+    return parsed;
+  }catch(err){
+    if(err?.name==='AbortError') throw new Error('AI 辨識逾時，請確認網路後重試');
+    throw err;
+  }finally{
+    clearTimeout(timer);
   }
-
-  // 2. 區域名稱：獨立裁切、只用繁中模型；不是 2~6 個乾淨中文字就不要自動填。
-  const areaCrop=await cropAreaNameForOCR(dataUrl);
-  const areaResult=await Tesseract.recognize(areaCrop,'chi_tra');
-  parsed.area=parseAreaNameOnly(areaResult.data.text||'');
-
-  // 3. 缺失名稱：永遠以黃色欄位的專用裁切為主，不再優先相信整張浮水印 OCR。
-  const defectCrop=await cropDefectBlockForOCR(dataUrl);
-  const defectResult=await Tesseract.recognize(defectCrop,'chi_tra');
-  parsed.defect=normalizeDefectName(defectResult.data.text||'');
-
-  // 專用裁切若完全失敗，才回頭用整個浮水印備援。
-  if(!parsed.defect){
-    const cropped=await cropWatermarkForOCR(dataUrl);
-    const result=await Tesseract.recognize(cropped,'chi_tra+eng');
-    const backup=parseWatermarkText(result.data.text||'');
-    parsed.defect=normalizeDefectName(backup.defect||'');
-    if(!parsed.location) parsed.location=backup.location||'';
-    if(!parsed.area) parsed.area=backup.area||'';
-  }
-
-  return parsed;
 }
 
 async function batchCreateFromWatermarks(){
@@ -883,45 +951,12 @@ function parseWatermarkText(raw){
   return {location,area,defect};
 }
 async function recognizeWatermark(dataUrl){
-  if(!window.Tesseract){
-    ocrBox.style.display='block'; ocrStatus.className='sub err';
-    ocrStatus.textContent='浮水印辨識元件載入失敗，請確認網路後按「重新辨識」。'; return;
-  }
-  ocrBox.style.display='block'; ocrStatus.className='sub working';
-  ocrStatus.textContent='正在精準辨識浮水印欄位…';
+  ocrBox.style.display='block';
+  ocrStatus.className='sub working';
+  ocrStatus.textContent='AI 正在讀取浮水印…';
   try{
-    const parsed={location:'',area:'',defect:''};
-
-    ocrStatus.textContent='正在辨識施工位置…';
-    const locCrop=await cropLocationCodeForOCR(dataUrl);
-    const locResult=await Tesseract.recognize(locCrop,'chi_tra+eng');
-    parsed.location=extractAreaCode(locResult.data.text||'');
-    if(!parsed.location){
-      const block=await cropLocationBlockForOCR(dataUrl);
-      const r=await Tesseract.recognize(block,'chi_tra+eng');
-      parsed.location=parseLocationOnly(r.data.text||'').location||'';
-    }
-
-    ocrStatus.textContent='正在辨識施工區域…';
-    const areaCrop=await cropAreaNameForOCR(dataUrl);
-    const areaResult=await Tesseract.recognize(areaCrop,'chi_tra');
-    parsed.area=parseAreaNameOnly(areaResult.data.text||'');
-
-    ocrStatus.textContent='正在辨識缺失名稱…';
-    const defectCrop=await cropDefectBlockForOCR(dataUrl);
-    const defectResult=await Tesseract.recognize(defectCrop,'chi_tra');
-    parsed.defect=normalizeDefectName(defectResult.data.text||'');
-
-    if(!parsed.defect){
-      const crop=await cropWatermarkForOCR(dataUrl);
-      const result=await Tesseract.recognize(crop,'chi_tra+eng');
-      const backup=parseWatermarkText(result.data.text||'');
-      parsed.defect=normalizeDefectName(backup.defect||'');
-      if(!parsed.location) parsed.location=backup.location||'';
-      if(!parsed.area) parsed.area=backup.area||'';
-    }
-
-    let changed=[];
+    const parsed=await recognizeWatermarkData(dataUrl);
+    const changed=[];
     if(parsed.location||parsed.area){
       fArea.value=formatAreaValue(parsed.location,parsed.area);
       fArea.dispatchEvent(new Event('input',{bubbles:true}));
@@ -934,22 +969,17 @@ async function recognizeWatermark(dataUrl){
     }
     if(changed.length){
       ocrStatus.className='sub ok';
-      ocrStatus.textContent='✓ 已自動帶入：'+changed.join('、')+'。請確認後儲存。';
+      ocrStatus.textContent='✓ AI 已自動帶入：'+changed.join('、')+'。請確認後儲存。';
     }else{
       ocrStatus.className='sub err';
-      ocrStatus.textContent='這張浮水印沒有辨識到足夠清楚的欄位，請手動輸入。';
+      ocrStatus.textContent='AI 沒有辨識到有效欄位，請換原圖或手動輸入。';
     }
   }catch(err){
-    console.error(err); ocrStatus.className='sub err';
-    ocrStatus.textContent='浮水印辨識失敗，請確認網路或改用較清楚的原圖。';
+    ocrStatus.className='sub err';
+    ocrStatus.textContent='AI 辨識失敗：'+(err.message||err);
   }
 }
 
-function localToday(){
-  const d=new Date();
-  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
-}
 function fileToDataURL(file){
   return new Promise(resolve=>{
     const reader=new FileReader();
