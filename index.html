@@ -816,16 +816,16 @@ function sanitizeAIResult(obj){
   return out;
 }
 
-async function callAIVision(image, promptText){
+async function callAIVision(image, promptText, locationImage=''){
   const endpoint=getAIVisionEndpoint();
   if(!endpoint) throw new Error('尚未設定 AI 辨識服務，請先按「AI 辨識服務設定」。');
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),45000);
+  const timer=setTimeout(()=>controller.abort(),40000);
   try{
     const res=await fetch(endpoint,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({image,prompt:promptText||''}),
+      body:JSON.stringify({image,locationImage,prompt:promptText||''}),
       signal:controller.signal
     });
     const text=await res.text();
@@ -834,25 +834,49 @@ async function callAIVision(image, promptText){
     if(!res.ok) throw new Error(payload.error||`AI 服務錯誤 (${res.status})`);
     return sanitizeAIResult(payload);
   }catch(err){
-    if(err?.name==='AbortError') throw new Error('AI 辨識逾時，請確認網路後重試');
+    if(err?.name==='AbortError') throw new Error('AI 辨識逾時，請稍後重試');
+    throw err;
+  }finally{ clearTimeout(timer); }
+}
+
+async function callAIVisionBatch(items){
+  const endpoint=getAIVisionEndpoint();
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),40000);
+  try{
+    const res=await fetch(endpoint,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        images:items.map(x=>({image:x.image,locationImage:x.locationImage||''})),
+        prompt:'逐張讀取浮水印。location 必須完整保留施工區域原文，尤其棟別不可省略，例如 R1F C棟、B3F A棟、1S11。'
+      }),
+      signal:controller.signal
+    });
+    const text=await res.text();
+    let payload={};
+    try{payload=JSON.parse(text)}catch(_){throw new Error('AI 服務回傳格式錯誤');}
+    if(!res.ok) throw new Error(payload.error||`AI 服務錯誤 (${res.status})`);
+    if(!Array.isArray(payload.results)) throw new Error('AI 批次回傳格式錯誤');
+    return payload.results.map(sanitizeAIResult);
+  }catch(err){
+    if(err?.name==='AbortError') throw new Error('AI 批次辨識逾時');
     throw err;
   }finally{ clearTimeout(timer); }
 }
 
 async function recognizeWatermarkData(dataUrl){
-  const image=await prepareAIWatermarkImage(dataUrl);
-  let parsed=await callAIVision(image,'完整讀取左下角浮水印。location 必須逐字保留施工區域的樓層、棟別、戶別，例如 B3F A棟、R1F C棟、A棟 3F A02、1S11；不得只回 R1F/B3F。defect 只回黃色施工缺失。');
+  // 一次請求同時送「完整浮水印」與「施工區域特寫」，不再為棟別額外打一輪 API。
+  const [image,locationImage]=await Promise.all([
+    prepareAIWatermarkImage(dataUrl),
+    prepareAILocationOnlyImage(dataUrl)
+  ]);
+  const parsed=await callAIVision(
+    image,
+    '完整讀取浮水印。location 必須逐字保留施工區域完整原文，例如 B3F A棟、R1F C棟、A棟 3F A02、1S11。第二張圖是施工區域特寫，請用它確認棟別。defect 只回黃色施工缺失。',
+    locationImage
+  );
   if(!parsed.location && !parsed.area && !parsed.defect) throw new Error('AI 沒有辨識到有效的浮水印欄位');
-
-  // 若第一輪只得到 R1F/B3F 這類「純樓層」，再用極小的施工區域列補辨識一次。
-  // 只有缺棟別時才多打一個很小的請求，因此一般照片速度不受影響。
-  if(locationNeedsBuildingRetry(parsed.location)){
-    try{
-      const locImage=await prepareAILocationOnlyImage(dataUrl);
-      const retry=await callAIVision(locImage,'LOCATION_ONLY：這張圖只包含「施工區域」白色欄。請逐字抄寫整欄 location，例如 R1F C棟、B3F A棟、4F B棟、1S11。絕對不可省略 A棟/B棟/C棟。');
-      if(retry.location && retry.location.length>parsed.location.length) parsed.location=retry.location;
-    }catch(_){ /* 補辨識失敗時保留第一輪結果 */ }
-  }
   return parsed;
 }
 
@@ -867,7 +891,6 @@ async function batchCreateFromWatermarks(){
     status.textContent='請先選擇至少 1 張浮水印缺失照片。';
     return;
   }
-
   const p=project();
   if(!p)return;
 
@@ -875,87 +898,94 @@ async function batchCreateFromWatermarks(){
   const originalBtnText=btn.textContent;
   btn.textContent='AI 辨識中…';
   status.className='sub working';
-  status.textContent=`開始 AI 辨識，共 ${files.length} 張照片…`;
-  // 讓瀏覽器先把狀態文字畫出來，再開始較耗時的圖片處理/API 呼叫。
+  status.textContent=`正在準備 ${files.length} 張照片…`;
   await new Promise(r=>setTimeout(r,30));
-  let created=0, failed=0, finished=0;
-  const failures=[];
-  const results=new Array(files.length);
+
   const createdDate=localToday();
   const defaultDue=addDaysISO(createdDate,14);
-
-  async function processOne(i){
-    const file=files[i];
-    try{
-      const original=await fileToDataURL(file);
-      const data=await compressImage(file);
-      if(!data) throw new Error('照片讀取失敗');
-
-      const parsed=await recognizeWatermarkData(original||data);
-      if(!parsed.defect) throw new Error('無法辨識缺失項目');
-
-      results[i]={
-        id:Date.now()+i,
-        title:parsed.defect,
-        // AI location 原文清理後直接優先保存，例如 B3F A棟、R1F C棟、1S11。
-        area:formatAreaValue(parsed.location,parsed.area),
-        level:'中',
-        status:'pending',
-        category:'其他',
-        vendor:'機電工程',
-        created:createdDate,
-        due:defaultDue,
-        desc:'請依照改善期限內修繕完成',
-        defectPhotos:[data],
-        improvementPhotos:[]
-      };
-      created++;
-    }catch(err){
-      failed++;
-      failures.push(`${i+1}. ${file.name}：${err.message||'辨識失敗'}`);
-    }finally{
-      finished++;
-      status.className='sub working';
-      status.textContent=`AI 批次辨識中 ${finished} / ${files.length}（快速模式，同時處理 2 張）`;
-    }
-  }
+  const prepared=new Array(files.length);
+  const failures=[];
 
   try{
-    // 同時處理 2 張，手機端比逐張等待快很多，又不至於一次把 API 打爆。
-    let cursor=0;
-    async function worker(){
-      while(true){
-        const i=cursor++;
-        if(i>=files.length) return;
-        await processOne(i);
+    // 先並行做本機壓縮/裁切，這部分不需要等待 API。
+    await Promise.all(files.map(async(file,i)=>{
+      try{
+        const original=await fileToDataURL(file);
+        const data=await compressImage(file);
+        if(!data) throw new Error('照片讀取失敗');
+        const source=original||data;
+        const [image,locationImage]=await Promise.all([
+          prepareAIWatermarkImage(source),
+          prepareAILocationOnlyImage(source)
+        ]);
+        prepared[i]={i,file,data,image,locationImage};
+      }catch(err){
+        failures.push(`${i+1}. ${file.name}：${err.message||'照片處理失敗'}`);
       }
-    }
-    await Promise.all([worker(),worker()]);
+    }));
 
-    for(const defect of results){
-      if(defect) p.defects.push(defect);
+    const valid=prepared.filter(Boolean);
+    if(!valid.length) throw new Error('沒有可辨識的照片');
+
+    // 每批最多 4 張。7 張照片只需要 2 次 Gemini 請求，不再逐張呼叫 7～14 次。
+    const groups=[];
+    for(let i=0;i<valid.length;i+=4) groups.push(valid.slice(i,i+4));
+    let done=0;
+    const batchResults=await Promise.all(groups.map(async(group,gidx)=>{
+      status.className='sub working';
+      status.textContent=`AI 批次辨識中 ${done} / ${valid.length}（${groups.length} 批）`;
+      try{
+        const parsed=await callAIVisionBatch(group);
+        done+=group.length;
+        status.textContent=`AI 批次辨識中 ${done} / ${valid.length}（${groups.length} 批）`;
+        return {group,parsed};
+      }catch(err){
+        // 批次若偶發失敗，不讓整批全滅：退回單張一次請求，不再做第二輪棟別補辨識。
+        const parsed=[];
+        for(const item of group){
+          try{
+            parsed.push(await callAIVision(item.image,'讀取完整浮水印，location 必須保留樓層＋棟別。',item.locationImage));
+          }catch(e){
+            parsed.push(null);
+            failures.push(`${item.i+1}. ${item.file.name}：${e.message||'辨識失敗'}`);
+          }
+        }
+        done+=group.length;
+        return {group,parsed};
+      }
+    }));
+
+    let created=0;
+    for(const pack of batchResults){
+      pack.group.forEach((item,j)=>{
+        const parsed=pack.parsed[j];
+        if(!parsed || !parsed.defect){
+          if(parsed) failures.push(`${item.i+1}. ${item.file.name}：無法辨識缺失項目`);
+          return;
+        }
+        p.defects.push({
+          id:Date.now()+item.i,
+          title:parsed.defect,
+          area:formatAreaValue(parsed.location,parsed.area),
+          level:'中', status:'pending', category:'其他', vendor:'機電工程',
+          created:createdDate, due:defaultDue,
+          desc:'請依照改善期限內修繕完成',
+          defectPhotos:[item.data], improvementPhotos:[]
+        });
+        created++;
+      });
     }
 
-    save();
-    renderDefects();
-    renderProjects();
-    input.value='';
-
-    if(created){
-      status.className='sub ok';
-      status.textContent=`完成：已自動建立 ${created} 筆缺失${failed?`，${failed} 張辨識失敗`:''}。改善期限預設為起單日 +14 天。`;
-    }else{
-      status.className='sub err';
-      status.textContent='沒有成功建立缺失。';
-    }
-
-    if(failures.length){
-      alert('以下照片未成功建單：\n'+failures.join('\n'));
-    }
+    save(); renderDefects(); renderProjects(); input.value='';
+    status.className=created?'sub ok':'sub err';
+    status.textContent=created
+      ?`完成：已自動建立 ${created} 筆缺失${failures.length?`，${failures.length} 張失敗`:''}。改善期限為起單日 +14 天。`
+      :'沒有成功建立缺失。';
+    if(failures.length) alert('以下照片未成功建單：\n'+failures.join('\n'));
   }catch(err){
     status.className='sub err';
     status.textContent=`AI 辨識發生錯誤：${err?.message||String(err)}`;
-    console.error('batchCreateFromWatermarks',err);
+    console.error(err);
   }finally{
     btn.disabled=false;
     btn.textContent=originalBtnText;
