@@ -160,9 +160,10 @@ small.warn{color:var(--red);font-weight:700}
 <label>缺失說明</label><textarea id="fDesc" rows="3" placeholder="描述問題、位置、要求改善方式"></textarea>
 <label>缺失相片（可多張）</label><div class="sub">可從相簿選擇；右上角 × 可刪除。</div>
 <input id="fPhotos" type="file" accept="image/*" multiple>
-<div id="ocrBox" style="display:none;margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:#f8fbfa">
-  <div id="ocrStatus" class="sub">準備辨識浮水印…</div>
-  <button type="button" class="secondary" style="margin-top:8px" onclick="recognizeWatermarkFromLatest()">✨ 重新辨識浮水印</button>
+<div id="ocrBox" style="display:block;margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#f8fbfa">
+  <div style="font-weight:800;color:var(--brand);margin-bottom:4px">✨ 浮水印自動辨識</div>
+  <div id="ocrStatus" class="sub">上傳缺失相片後，按下方按鈕即可自動帶入樓層／區域與缺失名稱。</div>
+  <button type="button" style="width:100%;margin-top:10px" onclick="recognizeWatermarkFromLatest()">辨識最新一張缺失相片</button>
 </div>
 <div id="preview" class="photo-grid"></div>
 <label style="margin-top:18px">改善相片（可多張）</label><div class="sub">改善完成後可上傳照片；右上角 × 可刪除。</div>
@@ -361,8 +362,8 @@ function openDefect(id=null){
   fImprovePhotos.value='';
   renderPhotoPreview();
   renderImprovePhotoPreview();
-  ocrBox.style.display='none';
-  ocrStatus.className='sub';
+  ocrBox.style.display='block';
+  ocrStatus.className='sub'; ocrStatus.textContent='上傳缺失相片後，按下方按鈕即可自動帶入樓層／區域與缺失名稱。';
   modal.style.display='flex';
 }
 fPhotos.addEventListener('change',async e=>{
@@ -373,7 +374,11 @@ fPhotos.addEventListener('change',async e=>{
   }
   renderPhotoPreview();
   e.target.value='';
-  if(firstData) recognizeWatermark(firstData);
+  if(firstData){
+    ocrBox.style.display='block';
+    ocrStatus.className='sub';
+    ocrStatus.textContent='已偵測到缺失相片。按「辨識最新一張缺失相片」開始讀取浮水印。';
+  }
 });
 fImprovePhotos.addEventListener('change',async e=>{
   for(const file of [...e.target.files]){
@@ -386,7 +391,15 @@ fImprovePhotos.addEventListener('change',async e=>{
 
 
 async function recognizeWatermarkFromLatest(){
-  if(!tempPhotos.length)return alert('請先上傳缺失相片');
+  if(!tempPhotos.length){
+    ocrBox.style.display='block';
+    ocrStatus.className='sub err';
+    ocrStatus.textContent='請先上傳至少 1 張缺失相片。';
+    return;
+  }
+  ocrBox.style.display='block';
+  ocrStatus.className='sub working';
+  ocrStatus.textContent='正在準備辨識浮水印…';
   await recognizeWatermark(tempPhotos[tempPhotos.length-1]);
 }
 function cropWatermarkForOCR(dataUrl){
