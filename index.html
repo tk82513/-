@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#3f7773">
 <title>DH2 工程缺失管理</title>
-<!-- OCR build: v11-polished-location-retry -->
+<!-- OCR build: v12-polished-dashboard-table -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{--bg:#e9edee;--card:#fff;--ink:#182022;--muted:#747d80;--brand:#2f756d;--brand-deep:#245f59;--brand-soft:#e8f3f0;--red:#c44b3d;--amber:#bd842d;--green:#4c8b68;--line:#dfe5e6}
@@ -164,10 +164,57 @@ small.warn{color:var(--red);font-weight:700}
   .pill{padding:6px 7px;font-size:11px}
   #projectPanel .big{font-size:23px}
 }
+
+/* v12：依照確認示意圖重構，不只是換色 */
+:root{--bg:#e7ebed;--card:#ffffff;--brand:#19796e;--brand-deep:#11665d;--brand-soft:#e4f3ef;--line:#d7dfe1;--shadow:0 10px 28px rgba(44,61,65,.09)}
+body{background:linear-gradient(145deg,#dfe4e6 0%,#eef1f2 42%,#d9dee0 100%)}
+header{position:relative;background:transparent;padding:22px 22px 8px;backdrop-filter:none}
+main{max-width:980px;padding:8px 20px 160px}
+.card{border:1px solid rgba(205,214,216,.95);border-radius:18px;box-shadow:var(--shadow);padding:16px 18px;margin:12px 0}
+.dashboard-card{padding:0;overflow:hidden}
+.dashboard-address-row{display:flex;align-items:center;gap:10px;padding:18px 20px 0}
+.dashboard-project-icon{width:38px;height:38px;border-radius:12px;background:#eef7f4;display:grid;place-items:center;font-size:20px}
+.dashboard-address-row .location{font-size:17px;font-weight:700;color:#475357}
+.dashboard-card .stats{grid-template-columns:150px 1fr;padding:10px 20px 16px;gap:22px}
+.dashboard-card .ring{width:124px;height:124px;font-size:27px;background:conic-gradient(#7ed9ac 0deg,#e4e8e9 0)}
+.dashboard-card .ring span{width:88px;height:88px;display:flex;flex-direction:column;gap:2px;font-size:26px}
+.dashboard-card .ring small{font-size:11px;color:#788285;font-weight:700}
+.dashboard-summary{display:flex;align-items:center;gap:22px;min-width:0}
+.dashboard-card .big{font-size:52px;line-height:1;margin:0;white-space:nowrap}
+.dashboard-card .big small{font-size:15px;font-weight:700;margin-left:4px}
+.dashboard-card .pills{gap:10px;flex-wrap:wrap}
+.dashboard-card .pill{font-size:14px;padding:9px 14px}
+.dashboard-report{border-top:1px solid #e6ecec;background:linear-gradient(90deg,#eefaf6,#f9fcfb);padding:13px 16px;display:grid;grid-template-columns:1fr minmax(430px,1.45fr);align-items:center;gap:12px}
+.dashboard-report-copy b{font-size:17px}.dashboard-report-copy .sub{margin-top:4px}
+.report-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0}
+.report-actions button{height:48px;border-radius:12px;font-size:14px}
+.batch-card{padding:17px 18px}.batch-head-v12{align-items:center}.batch-head-v12 b{font-size:18px}
+.file-pick-compact{margin:0;min-width:175px;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:12px;color:#273336;font-weight:800;text-align:center;cursor:pointer}.file-pick-compact input{display:none}
+.batch-actions-v12{display:grid;grid-template-columns:minmax(0,2fr) minmax(220px,.8fr);gap:10px;margin-top:14px}.batch-actions-v12 button{height:50px;margin:0}
+#batchStartBtn{background:linear-gradient(100deg,#44b85d 0%,#0797a8 100%)}
+.toolbar{gap:10px;margin:14px 0 10px}.toolbar input{flex:1.8}.toolbar select{flex:.9}.toolbar input,.toolbar select{height:52px;border-radius:12px}
+.list-controls-v12{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 10px}.status-tabs-v12,.view-switch-v12{display:flex;gap:8px;align-items:center}.status-tabs-v12 button,.view-switch-v12 button{background:#fff;border:1px solid var(--line);color:#445156;box-shadow:none;padding:8px 11px;border-radius:10px;font-size:12px}.status-tabs-v12 button.active{background:#fff1f0;color:#b72e27;border-color:#f1b2ad}.view-switch-v12 button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+.section-title{font-size:16px;margin:12px 2px 8px}
+#list{display:block;overflow-x:auto;border:1px solid var(--line);border-radius:15px;background:#fff;box-shadow:var(--shadow)}
+.defect-table-v12{width:100%;min-width:860px;border-collapse:collapse;font-size:12px}.defect-table-v12 th{background:#edf1f2;color:#344145;text-align:left;padding:10px 9px;border-bottom:1px solid #d5dddf;white-space:nowrap}.defect-table-v12 td{padding:10px 9px;border-bottom:1px solid #edf0f1;vertical-align:middle;color:#455155}.defect-table-v12 tr:last-child td{border-bottom:0}.defect-table-v12 tbody tr{cursor:pointer}.defect-table-v12 tbody tr:active{background:#f4faf8}.defect-table-v12 .idx{font-weight:800;color:#263234}.defect-table-v12 .thumb{width:60px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #dce2e3;display:block}.defect-table-v12 .title-cell{font-size:13px;font-weight:800;color:#182022;max-width:210px}.defect-table-v12 .loc-chip{display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border-radius:8px;background:#e5f5ed;color:#216e54;font-weight:800;white-space:nowrap}.defect-table-v12 .state-chip{padding:5px 8px;border-radius:8px;font-weight:800;white-space:nowrap}.defect-table-v12 .state-chip.pending{background:#ffe8e5;color:#b72f28}.defect-table-v12 .state-chip.doing{background:#fff3dc;color:#9a6a16}.defect-table-v12 .state-chip.closed{background:#e6f4ea;color:#34714d}.defect-table-v12 .level-chip{background:#fff5db;padding:5px 8px;border-radius:8px;color:#7e641d}
+#list.card-mode-v12{border:0;background:transparent;box-shadow:none;overflow:visible;display:flex;flex-direction:column;gap:8px}#list.card-mode-v12 .item{display:grid}
+.fab{right:24px;bottom:calc(90px + env(safe-area-inset-bottom));height:58px;border-radius:20px;box-shadow:0 10px 22px rgba(17,102,93,.24)}
+@media(max-width:650px){
+  header{padding:18px 18px 5px}main{padding:6px 14px 150px}.card{border-radius:17px;padding:14px}
+  .dashboard-address-row{padding:14px 14px 0}.dashboard-address-row .location{font-size:14px}.dashboard-project-icon{width:32px;height:32px;font-size:17px}
+  .dashboard-card .stats{grid-template-columns:92px 1fr;padding:8px 14px 13px;gap:10px}.dashboard-card .ring{width:82px;height:82px}.dashboard-card .ring span{width:60px;height:60px;font-size:20px}.dashboard-card .ring small{font-size:8px}
+  .dashboard-summary{display:block}.dashboard-card .big{font-size:36px;margin-bottom:8px}.dashboard-card .big small{font-size:12px}.dashboard-card .pills{gap:5px;flex-wrap:nowrap}.dashboard-card .pill{font-size:10px;padding:6px 7px}
+  .dashboard-report{grid-template-columns:1fr;padding:11px 12px}.dashboard-report-copy .sub{font-size:11px}.report-actions{grid-template-columns:repeat(3,1fr)}.report-actions button{height:42px;font-size:11px;padding:7px 4px}
+  .batch-head-v12{display:grid;grid-template-columns:1fr auto;gap:8px}.batch-head-v12 .sub{font-size:11px;line-height:1.4}.file-pick-compact{min-width:112px;padding:10px 8px;font-size:11px}.batch-actions-v12{grid-template-columns:1fr}.batch-actions-v12 button{height:44px;font-size:12px}
+  .toolbar{display:grid;grid-template-columns:1.2fr .8fr .8fr}.toolbar input,.toolbar select{height:46px;padding:9px;font-size:12px}
+  .list-controls-v12{overflow-x:auto}.status-tabs-v12{gap:5px}.status-tabs-v12 button,.view-switch-v12 button{font-size:10px;padding:7px 8px}.view-switch-v12{margin-left:auto}
+  #list{margin:0 -1px}.defect-table-v12{min-width:760px}.defect-table-v12 th,.defect-table-v12 td{padding:8px 7px}.defect-table-v12 .thumb{width:54px;height:44px}
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
-<body data-build="2026-09-11-v11">
+<body data-build="2026-09-11-v12">
 <header>
 <div>
   <h1 id="pageTitle">我的工程</h1>
@@ -190,35 +237,44 @@ small.warn{color:var(--red);font-weight:700}
   </div>
 
 
-<section class="card" id="projectPanel">
-  <div class="stats">
-    <div class="ring" id="ring"><span id="pct">0%</span></div>
-    <div><div class="location" id="location">請先建立工程</div><div class="big" id="total">0 <small style="font-size:14px;font-weight:500">總缺失數</small></div>
-    <div class="pills"><span class="pill red" id="pending">🔴 0 待處理</span><span class="pill amber" id="doing">🟠 0 進行中</span><span class="pill green" id="closed">🟢 0 已關閉</span></div></div>
+<section class="card dashboard-card" id="projectPanel">
+  <div class="dashboard-address-row">
+    <div class="dashboard-project-icon">🏢</div>
+    <div class="location" id="location">請先建立工程</div>
   </div>
-</section>
-
-<section class="card">
-  <b>缺失報告</b>
-  <div class="sub">將目前工程的缺失、照片、狀態與品牌資訊整理成 PDF 報告。</div>
-  <div class="report-actions">
-<button onclick="generatePDF()">產生 PDF</button>
-<button onclick="generateExcel()">產生 EXCEL</button>
-<button class="secondary" onclick="copyOpenDefects()">📋 一鍵複製</button>
-</div>
+  <div class="stats">
+    <div class="ring" id="ring"><span><b id="pct">0%</b><small>改善完成率</small></span></div>
+    <div class="dashboard-summary">
+      <div class="big" id="total">0 <small>總缺失數</small></div>
+      <div class="pills"><span class="pill red" id="pending">🔴 0 待處理</span><span class="pill amber" id="doing">🟠 0 進行中</span><span class="pill green" id="closed">🟢 0 已關閉</span></div>
+    </div>
+  </div>
+  <div class="dashboard-report">
+    <div class="dashboard-report-copy">
+      <b>📋 缺失報告</b>
+      <div class="sub">將目前工程的缺失、照片、狀態與品牌資訊整理成報告。</div>
+    </div>
+    <div class="report-actions">
+      <button onclick="generatePDF()">📄 產生 PDF</button>
+      <button onclick="generateExcel()">📊 產生 EXCEL</button>
+      <button class="secondary" onclick="copyOpenDefects()">▣ 一鍵複製</button>
+    </div>
+  </div>
 </section>
 
 
 <section class="card batch-card" id="batchCard">
-  <div class="batch-head">
+  <div class="batch-head batch-head-v12">
     <div>
       <b>✨ 批次浮水印建單</b>
       <div class="sub">一次選多張缺失照片，每張照片會優先使用 AI 圖像辨識，自動建立 1 筆缺失。</div>
     </div>
+    <label class="file-pick-compact">📷 選擇檔案<input id="batchPhotos" type="file" accept="image/*" multiple></label>
   </div>
-  <input id="batchPhotos" type="file" accept="image/*" multiple>
-  <button id="batchStartBtn" type="button" style="width:100%;margin-top:8px" onclick="batchCreateFromWatermarks()">AI 辨識並自動建立全部缺失</button>
-  <button type="button" class="secondary" style="width:100%;margin-top:8px" onclick="configureAIVisionEndpoint()">⚙️ AI 辨識服務設定</button>
+  <div class="batch-actions-v12">
+    <button id="batchStartBtn" type="button" onclick="batchCreateFromWatermarks()">▣ AI 辨識並自動建立全部缺失</button>
+    <button type="button" class="secondary" onclick="configureAIVisionEndpoint()">⚙️ AI 辨識服務設定</button>
+  </div>
   <div id="batchStatus" class="sub" style="margin-top:8px"></div>
 </section>
 
@@ -237,7 +293,17 @@ small.warn{color:var(--red);font-weight:700}
 <option value="其他">其他</option>
 </select>
 </div>
-
+<div class="list-controls-v12">
+  <div class="status-tabs-v12">
+    <button type="button" id="tabPending" onclick="quickStatusFilter('pending')">🔴 待處理 <b id="tabPendingCount">0</b></button>
+    <button type="button" id="tabDoing" onclick="quickStatusFilter('doing')">🟠 進行中 <b id="tabDoingCount">0</b></button>
+    <button type="button" id="tabClosed" onclick="quickStatusFilter('closed')">🟢 已關閉 <b id="tabClosedCount">0</b></button>
+  </div>
+  <div class="view-switch-v12">
+    <button id="viewTableBtn" type="button" class="active" onclick="setDefectViewMode('table')">▦ 表格</button>
+    <button id="viewCardBtn" type="button" onclick="setDefectViewMode('card')">▦ 卡片</button>
+  </div>
+</div>
 <div class="section-title" id="defectSectionTitle">缺失</div>
 <div id="list"></div>
 
@@ -392,6 +458,18 @@ function renderProjects(){
    </button>`;
  }).join('') + `<button style="width:100%;margin-top:8px" onclick="openProject()">＋ 新增其他工程</button>`;
 }
+let defectViewMode='table';
+function quickStatusFilter(v){
+  const sel=document.getElementById('filter');
+  sel.value=sel.value===v?'all':v;
+  renderDefects();
+}
+function setDefectViewMode(v){
+  defectViewMode=v==='card'?'card':'table';
+  document.getElementById('viewTableBtn')?.classList.toggle('active',defectViewMode==='table');
+  document.getElementById('viewCardBtn')?.classList.toggle('active',defectViewMode==='card');
+  renderDefects();
+}
 function renderDefects(){
  const p=project(); if(!p)return;
 
@@ -401,65 +479,64 @@ function renderDefects(){
  const closedCount=all.filter(x=>x.status==='closed').length;
  const pct=all.length?Math.round(closedCount/all.length*100):0;
 
- document.getElementById('total').innerHTML=`${all.length} <small style="font-size:14px;font-weight:500">總缺失數</small>`;
+ document.getElementById('total').innerHTML=`${all.length} <small>總缺失數</small>`;
  document.getElementById('pending').textContent=`🔴 ${pendingCount} 待處理`;
  document.getElementById('doing').textContent=`🟠 ${doingCount} 進行中`;
  document.getElementById('closed').textContent=`🟢 ${closedCount} 已關閉`;
+ document.getElementById('tabPendingCount').textContent=pendingCount;
+ document.getElementById('tabDoingCount').textContent=doingCount;
+ document.getElementById('tabClosedCount').textContent=closedCount;
+ const activeFilter=document.getElementById('filter').value;
+ ['Pending','Doing','Closed'].forEach(k=>document.getElementById('tab'+k)?.classList.remove('active'));
+ if(activeFilter==='pending')document.getElementById('tabPending')?.classList.add('active');
+ if(activeFilter==='doing')document.getElementById('tabDoing')?.classList.add('active');
+ if(activeFilter==='closed')document.getElementById('tabClosed')?.classList.add('active');
  document.getElementById('pct').textContent=`${pct}%`;
- document.getElementById('ring').style.background=`conic-gradient(var(--brand) ${pct*3.6}deg,#e2e6e7 0deg)`;
- document.getElementById('location').textContent='📍 '+(p.address||'尚未設定地址');
+ document.getElementById('ring').style.background=`conic-gradient(#7ed9ac ${pct*3.6}deg,#e4e8e9 0deg)`;
+ document.getElementById('location').textContent=(p.address||'尚未設定地址');
  const st=document.getElementById('defectSectionTitle'); if(st) st.textContent=`缺失（${all.length}）`;
 
  const q=document.getElementById('search').value.toLowerCase();
  const f=document.getElementById('filter').value;
  const cf=document.getElementById('categoryFilter').value;
-
  const rows=all.filter(x=>{
-   const hit=((x.title||'')+' '+(x.vendor||'')+' '+(x.category||'其他')+' '+(x.desc||'')).toLowerCase().includes(q);
+   const hit=((x.title||'')+' '+(x.area||'')+' '+(x.vendor||'')+' '+(x.category||'其他')+' '+(x.desc||'')).toLowerCase().includes(q);
    return hit&&(f==='all'||x.status===f)&&(cf==='all'||(x.category||'其他')===cf);
  });
 
  const list=document.getElementById('list');
  if(!rows.length){
-   list.innerHTML=all.length
-     ? '<div class="empty">目前沒有符合篩選條件的缺失</div>'
-     : '<div class="empty">目前尚無缺失，按「新增缺失」建立第一筆。</div>';
+   list.className='';
+   list.innerHTML=all.length?'<div class="empty">目前沒有符合篩選條件的缺失</div>':'<div class="empty">目前尚無缺失，按「新增缺失」建立第一筆。</div>';
    return;
  }
-
  const today=localToday();
- list.innerHTML=rows.map((x,i)=>{
-   const defectPhotos=Array.isArray(x&&x.defectPhotos)?x.defectPhotos:(Array.isArray(x&&x.photos)?x.photos:[]);
-   const improvementPhotos=Array.isArray(x&&x.improvementPhotos)?x.improvementPhotos:[];
-   const photos=defectPhotos.length+improvementPhotos.length;
-   const overdue=x.status!=='closed'&&x.due&&x.due<today;
-   let overdueText='';
-   if(overdue){
-     const a=new Date(today+'T00:00:00'),b=new Date(x.due+'T00:00:00');
-     const days=Math.max(1,Math.floor((a-b)/86400000));
-     overdueText=`<span class="overdue-badge">逾期${days}天</span>`;
-   }
-   const photoText=photos>0?`<span class="photo-count">📷${photos}</span>`:'';
-
-   return `<div class="item" onclick="openDetail('${x.id}')">
-     <div class="num">${i+1}</div>
-     <div style="min-width:0;flex:1">
-       <div class="compact-top">
-         <h3 class="compact-title">${esc(x.title)}</h3>
-         ${photoText}
-       </div>
-       <div class="compact-badges">
-         ${x.area?`<span class="badge location-badge">📍 ${esc(x.area)}</span>`:''}
-         <span class="badge level">${esc(x.level||'中')}</span>
-         <span class="badge category">🏷️${esc(x.category||'其他')}</span>
-         <span class="badge ${x.status}">${statusText[x.status]||'待處理'}</span>
-         ${overdueText}
-       </div>
-       <div class="compact-meta">${esc(x.vendor||'未指定廠商')} · 起單 ${esc(x.created||'-')} · 期限 ${esc(x.due||'-')}</div>
-     </div>
-   </div>`;
- }).join('');
+ const makeOverdue=x=>{
+   if(x.status==='closed'||!x.due||x.due>=today)return '';
+   const a=new Date(today+'T00:00:00'),b=new Date(x.due+'T00:00:00');
+   const days=Math.max(1,Math.floor((a-b)/86400000));
+   return `逾期${days}天`;
+ };
+ if(defectViewMode==='table'){
+   list.className='';
+   list.innerHTML=`<table class="defect-table-v12"><thead><tr><th>#</th><th>照片</th><th>缺失名稱</th><th>樓層／區域</th><th>分類</th><th>狀態</th><th>起單日期</th><th>改善期限</th></tr></thead><tbody>${rows.map((x,i)=>{
+     const dp=Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]);
+     const thumb=dp[0]?`<img class="thumb" src="${esc(dp[0])}" alt="缺失照片">`:'<div class="thumb" style="display:grid;place-items:center;background:#f1f4f4">—</div>';
+     const od=makeOverdue(x);
+     return `<tr onclick="openDetail('${x.id}')"><td class="idx">${i+1}</td><td>${thumb}</td><td class="title-cell">${esc(x.title)}${od?`<div class="overdue-badge" style="margin:5px 0 0">${od}</div>`:''}</td><td>${x.area?`<span class="loc-chip">📍 ${esc(x.area)}</span>`:'<span style="color:#9aa2a4">未辨識</span>'}</td><td><span class="level-chip">${esc(x.category||'其他')}</span></td><td><span class="state-chip ${esc(x.status||'pending')}">${esc(statusText[x.status]||'待處理')}</span></td><td>${esc(x.created||'-')}</td><td>${esc(x.due||'-')}</td></tr>`;
+   }).join('')}</tbody></table>`;
+ }else{
+   list.className='card-mode-v12';
+   list.innerHTML=rows.map((x,i)=>{
+     const defectPhotos=Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]);
+     const improvementPhotos=Array.isArray(x.improvementPhotos)?x.improvementPhotos:[];
+     const photos=defectPhotos.length+improvementPhotos.length;
+     const od=makeOverdue(x);
+     return `<div class="item" onclick="openDetail('${x.id}')"><div class="num">${i+1}</div><div style="min-width:0"><div class="compact-top"><h3 class="compact-title">${esc(x.title)}</h3><span class="photo-count">${photos?`📷${photos}`:''}</span></div><div class="compact-badges">${x.area?`<span class="badge location-badge">📍 ${esc(x.area)}</span>`:''}<span class="badge category">🏷️${esc(x.category||'其他')}</span><span class="badge ${x.status}">${statusText[x.status]||'待處理'}</span>${od?`<span class="overdue-badge">${od}</span>`:''}</div><div class="compact-meta">${esc(x.vendor||'未指定廠商')} · 起單 ${esc(x.created||'-')} · 期限 ${esc(x.due||'-')}</div></div></div>`;
+   }).join('');
+ }
 }
+
 function render(){renderProjects();renderDefects()}
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function selectProject(id){
@@ -647,10 +724,10 @@ function prepareAILocationOnlyImage(dataUrl){
     img.onload=()=>{
       // 只截浮水印「施工區域」白色列，讓 AI 專心讀完整樓層＋棟別。
       const sx=0;
-      const sy=Math.floor(img.height*0.73);
-      const sw=Math.floor(img.width*0.48);
-      const sh=Math.floor(img.height*0.115);
-      const maxW=760;
+      const sy=Math.floor(img.height*0.755);
+      const sw=Math.floor(img.width*0.56);
+      const sh=Math.floor(img.height*0.155);
+      const maxW=900;
       const scale=Math.min(2.4,maxW/Math.max(1,sw));
       const c=document.createElement('canvas');
       c.width=Math.max(1,Math.floor(sw*scale));
