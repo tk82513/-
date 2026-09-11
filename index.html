@@ -52,6 +52,15 @@ small.warn{color:var(--red);font-weight:700}
   .r-photo{width:120px;height:90px;object-fit:cover;margin:3px;border:1px solid #ccc}
   @page{size:A4;margin:10mm}
 }
+
+#list .item{padding:14px;gap:12px;min-height:auto}
+#list .item h3{margin:0 0 7px;font-size:17px;line-height:1.28}
+#list .item .meta{font-size:13px;line-height:1.55}
+#list .num{width:42px;height:42px;min-width:42px;font-size:18px}
+.overdue-badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;background:#fde7e5;color:#b42318;font-weight:800;font-size:12px;margin-left:5px}
+.photo-count{font-size:12px;color:var(--muted);white-space:nowrap}
+.fab{width:auto;min-width:58px;padding:0 17px;border-radius:29px;font-weight:800}
+.fab::after{content:' 新增缺失';font-size:14px}
 </style>
 </head>
 <body>
@@ -86,7 +95,7 @@ small.warn{color:var(--red);font-weight:700}
 </section>
 
 <section class="card">
-  <b>建立客戶報告</b>
+  <b>缺失報告</b>
   <div class="sub">將目前工程的缺失、照片、狀態與品牌資訊整理成 PDF 報告。</div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
 <button onclick="generatePDF()">產生 PDF 報表</button>
@@ -226,13 +235,36 @@ function renderProjects(){
  }).join('') + `<button style="width:100%;margin-top:8px" onclick="openProject()">＋ 新增其他工程</button>`;
 }
 function renderDefects(){
- const p=project(), q=(document.getElementById('search').value||'').toLowerCase(), f=document.getElementById('filter').value, cf=document.getElementById('categoryFilter').value;
- const arr=p.defects.filter(x=>(f==='all'||x.status===f)&&(cf==='all'||(x.category||'其他')===cf)&&(`${x.title} ${x.area} ${x.vendor} ${x.desc} ${x.category||'其他'}`).toLowerCase().includes(q));
- let pending=p.defects.filter(x=>x.status==='pending').length,doing=p.defects.filter(x=>x.status==='doing').length,closed=p.defects.filter(x=>x.status==='closed').length;
- document.getElementById('pending').textContent=`🔴 ${pending} 待處理`;document.getElementById('doing').textContent=`🟠 ${doing} 進行中`;document.getElementById('closed').textContent=`🟢 ${closed} 已關閉`;
- document.getElementById('total').innerHTML=`${p.defects.length} <small style="font-size:14px;font-weight:500">總缺失數</small>`;
- let pct=p.defects.length?Math.round(closed/p.defects.length*100):0;document.getElementById('pct').textContent=pct+'%';document.getElementById('ring').style.background=`conic-gradient(var(--brand) ${pct*3.6}deg,#e2e6e7 0)`;
- document.getElementById('list').innerHTML=arr.length?arr.map((x,i)=>`<div class="item" onclick="openDetail(${x.id})"><div class="num">${i+1}</div><div><h3>${esc(x.title)}</h3><div class="pills"><span class="pill amber">${esc(x.level)}</span><span class="pill">🏷️ ${esc(x.category||'其他')}</span><span class="pill ${x.status==='pending'?'red':x.status==='closed'?'green':'amber'}">${statusText[x.status]}</span></div><div class="meta">${esc(x.area)}　${x.vendor?esc(x.vendor):'未指派'}　${x.created?'起單 '+x.created:''}　${x.due?'期限 '+x.due:''}${x.due && new Date(x.due)<new Date() && x.status!=='closed'?'　<small class="warn">逾期</small>':''}</div></div><div class="photo-count">📷 ${(x.defectPhotos||x.photos||[]).length+(x.improvementPhotos||[]).length}</div></div>`).join(''):`<div class="card empty">目前沒有符合條件的缺失</div>`;
+ const p=project(); if(!p)return;
+ const q=document.getElementById('search').value.toLowerCase();
+ const f=document.getElementById('filter').value;
+ const cf=document.getElementById('categoryFilter').value;
+ const rows=p.defects.filter(x=>{
+   const hit=(x.title+' '+x.vendor+' '+(x.category||'其他')+' '+(x.desc||'')).toLowerCase().includes(q);
+   return hit&&(f==='all'||x.status===f)&&(cf==='all'||(x.category||'其他')===cf);
+ });
+ const list=document.getElementById('list');
+ if(!rows.length){list.innerHTML='<div class="empty">目前沒有符合條件的缺失</div>';return;}
+ const today=localToday();
+ list.innerHTML=rows.map((x,i)=>{
+   const photos=(x.defectPhotos||x.photos||[]).length+(x.improvementPhotos||[]).length;
+   const overdue=x.status!=='closed'&&x.due&&x.due<today;
+   let overdueText='';
+   if(overdue){
+     const a=new Date(today+'T00:00:00'),b=new Date(x.due+'T00:00:00');
+     const days=Math.max(1,Math.floor((a-b)/86400000));
+     overdueText=`<span class="overdue-badge">逾期 ${days} 天</span>`;
+   }
+   const photoText=photos>0?`<span class="photo-count">📷 ${photos}</span>`:'';
+   return `<div class="item" onclick="openDetail('${x.id}')">
+    <div class="num">${i+1}</div>
+    <div style="min-width:0;flex:1">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><h3>${esc(x.title)}</h3>${photoText}</div>
+      <div class="badges"><span class="badge level">${esc(x.level||'中')}</span><span class="badge category">🏷️ ${esc(x.category||'其他')}</span><span class="badge ${x.status}">${statusName(x.status)}</span>${overdueText}</div>
+      <div class="meta">${esc(x.vendor||'未指定廠商')}　起單 ${esc(x.created||'-')}　期限 ${esc(x.due||'-')}</div>
+    </div>
+   </div>`;
+ }).join('');
 }
 function render(){renderProjects();renderDefects()}
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
