@@ -62,7 +62,7 @@ small.warn{color:var(--red);font-weight:700}
 .fab{width:auto;min-width:58px;padding:0 17px;border-radius:29px;font-weight:800;z-index:45}
 .fab::after{content:' 新增缺失';font-size:14px}
 
-.project-item{width:100%;border:1px solid var(--line);background:#fff;color:inherit;text-align:left}
+.project-item{width:100%;border:1px solid var(--line);background:#fff;color:inherit;text-align:left;cursor:pointer;display:flex;align-items:center}
 .project-item:active{transform:scale(.995);background:#f8fbfa}
 
 #ocrBox button{padding:8px 12px;font-size:13px}
@@ -246,28 +246,17 @@ function save(){
 function renderProjects(){
  const el=document.getElementById('projects');
  el.innerHTML=state.projects.map((p,idx)=>{
-   const done=p.defects.filter(x=>x.status==='closed').length;
-   return `<div class="item project-item" role="button" tabindex="0" data-project-index="${idx}">
+   const done=(p.defects||[]).filter(x=>x.status==='closed').length;
+   return `<button type="button" class="item project-item" onclick="selectProjectByIndex(${idx})">
      <div class="num">🏗️</div>
-     <div style="text-align:left;flex:1"><h3>${esc(p.name)}</h3><div class="meta">${esc(p.address||'尚未設定地址')}<br>缺失 ${p.defects.length} 項　完成 ${done} 項</div></div>
+     <div style="text-align:left;flex:1;min-width:0">
+       <h3>${esc(p.name)}</h3>
+       <div class="meta">${esc(p.address||'尚未設定地址')}<br>缺失 ${(p.defects||[]).length} 項　完成 ${done} 項</div>
+     </div>
      <div>›</div>
-   </div>`;
+   </button>`;
  }).join('') + `<button style="width:100%;margin-top:8px" onclick="openProject()">＋ 新增其他工程</button>`;
 }
-
-document.getElementById('projects').addEventListener('click',function(e){
-  const card=e.target.closest('[data-project-index]');
-  if(!card)return;
-  selectProjectByIndex(Number(card.dataset.projectIndex));
-});
-document.getElementById('projects').addEventListener('keydown',function(e){
-  if(e.key!=='Enter'&&e.key!==' ')return;
-  const card=e.target.closest('[data-project-index]');
-  if(!card)return;
-  e.preventDefault();
-  selectProjectByIndex(Number(card.dataset.projectIndex));
-});
-
 function renderDefects(){
  const p=project(); if(!p)return;
 
@@ -492,47 +481,48 @@ function cropDefectBlockForOCR(dataUrl){
   });
 }
 function parseDefectOnly(raw){
-  const lines=(raw||'').replace(/\r/g,'').split(/\n+/).map(cleanOCRText).filter(Boolean);
-  let out=[];
-  for(const line0 of lines){
-    let line=line0
-      .replace(/缺失\s*項目\s*:?\s*/g,'')
-      .replace(/缺失\s*:?\s*/g,'')
-      .trim();
-    if(!line)continue;
-    if(/遠雄|施工位置|施工區域|拍攝|時間|日期|20\d{2}[.\/-]\d{1,2}/.test(line))continue;
-    if(/^[A-Z]?\d+F[A-Z0-9-]*$/i.test(line.replace(/\s/g,'')))continue;
-    if(line.length>=2) out.push(line);
-  }
-  return cleanOCRText(out.slice(0,2).join('／'));
+  const original=(raw||'').replace(/\r/g,'');
+  let m=original.match(/缺\s*失\s*項\s*目\s*[:：]\s*([\s\S]*)/);
+  let source=m ? m[1] : original;
+  return source
+    .split(/\n+/)
+    .map(cleanOCRText)
+    .filter(Boolean)
+    .filter(line=>!/^(施工位置|施工區域|拍攝時間|日期)/.test(line))
+    .slice(0,3)
+    .join('／')
+    .replace(/^[:：\s]+/,'')
+    .trim();
 }
-
 function cleanOCRText(s){
   return (s||'').replace(/[：:]/g,':').replace(/[｜|]/g,' ').replace(/\s+/g,' ').trim();
 }
 function parseWatermarkText(raw){
-  const txt=(raw||'').replace(/\r/g,'');
-  const lines=txt.split(/\n+/).map(cleanOCRText).filter(Boolean);
+  const original=(raw||'').replace(/\r/g,'');
+  const lines=original.split(/\n+/).map(cleanOCRText).filter(Boolean);
   let location='', area='', defect='';
-  for(let i=0;i<lines.length;i++){
-    const line=lines[i];
-    let m=line.match(/(?:施工)?位置\s*:?\s*(.+)/); if(m) location=m[1].trim();
-    m=line.match(/(?:施工)?區域\s*:?\s*(.+)/); if(m) area=m[1].trim();
-    m=line.match(/缺失(?:項目)?\s*:?\s*(.*)/);
-    if(m){
-      defect=m[1].trim();
-      // 缺失常跨兩行，順帶抓下一行，直到拍攝時間/日期欄位。
-      for(let j=i+1;j<Math.min(lines.length,i+3);j++){
-        if(/拍攝|時間|日期|施工位置|施工區域/.test(lines[j])) break;
-        if(lines[j].length>=2) defect+=(defect?'／':'')+lines[j];
-      }
-    }
+
+  // 施工位置 / 施工區域
+  for(const line of lines){
+    let m=line.match(/施工\s*位置\s*[:：]?\s*(.+)/);
+    if(m && !location) location=cleanOCRText(m[1]);
+    m=line.match(/施工\s*區域\s*[:：]?\s*(.+)/);
+    if(m && !area) area=cleanOCRText(m[1]);
   }
-  // OCR 漏掉標籤時的保底：抓樓層格式與明顯缺失詞。
-  if(!location){
-    const m=txt.match(/([A-Za-z一-龥0-9]+棟\s*)?\d+F\s*[A-Za-z0-9-]*/i); if(m) location=cleanOCRText(m[0]);
+
+  // 缺失名稱只取「缺失項目：」後面的內容，前面的施工區域等一律不要
+  const defectMatch=original.match(/缺\s*失\s*項\s*目\s*[:：]\s*([\s\S]*?)(?=\n\s*(?:拍\s*攝\s*時\s*間|拍攝時間|$))/);
+  if(defectMatch){
+    defect=defectMatch[1]
+      .split(/\n+/)
+      .map(cleanOCRText)
+      .filter(Boolean)
+      .join('／')
+      .replace(/^[:：\s]+/,'')
+      .trim();
   }
-  return {location:cleanOCRText(location),area:cleanOCRText(area),defect:cleanOCRText(defect)};
+
+  return {location,area,defect};
 }
 async function recognizeWatermark(dataUrl){
   if(!window.Tesseract){
