@@ -247,6 +247,29 @@ main{max-width:980px;padding:8px 20px 160px}
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<style id="v23-table-fix">
+/* V23: checkbox at far right, restore useful photo/text width */
+.defect-table-v12{table-layout:fixed!important;width:100%!important;}
+.defect-table-v12 th,.defect-table-v12 td{padding:8px 7px!important;}
+.defect-table-v12 th:nth-child(1),.defect-table-v12 td:nth-child(1){width:72px!important;}
+.defect-table-v12 th:nth-child(2),.defect-table-v12 td:nth-child(2){width:auto!important;}
+.defect-table-v12 th:nth-child(3),.defect-table-v12 td:nth-child(3){width:104px!important;}
+.defect-table-v12 th:nth-child(4),.defect-table-v12 td:nth-child(4){width:72px!important;}
+.defect-table-v12 th:nth-child(5),.defect-table-v12 td:nth-child(5){width:32px!important;min-width:32px!important;max-width:32px!important;padding-left:2px!important;padding-right:2px!important;text-align:center!important;}
+.defect-table-v12 .thumb{width:62px!important;height:56px!important;}
+.defect-table-v12 .title-cell{font-size:13px!important;}
+.defect-table-v12 .title-cell .row-meta{font-size:10px!important;}
+.defect-table-v12 .defect-select{width:18px!important;height:18px!important;margin:0!important;}
+@media(max-width:600px){
+ .defect-table-v12 th,.defect-table-v12 td{padding:7px 5px!important;}
+ .defect-table-v12 th:nth-child(1),.defect-table-v12 td:nth-child(1){width:68px!important;}
+ .defect-table-v12 th:nth-child(3),.defect-table-v12 td:nth-child(3){width:98px!important;}
+ .defect-table-v12 th:nth-child(4),.defect-table-v12 td:nth-child(4){width:66px!important;}
+ .defect-table-v12 th:nth-child(5),.defect-table-v12 td:nth-child(5){width:28px!important;min-width:28px!important;max-width:28px!important;}
+ .defect-table-v12 .thumb{width:58px!important;height:52px!important;}
+}
+</style>
 </head>
 <body data-build="2026-09-11-v18">
 <header>
@@ -613,12 +636,12 @@ function renderDefects(){
  };
  if(defectViewMode==='table'){
    list.className='';
-   list.innerHTML=`<table class="defect-table-v12"><thead><tr><th class="select-col">✓</th><th>照片</th><th>缺失名稱</th><th>樓層／區域</th><th>狀態</th></tr></thead><tbody>${rows.map((x,i)=>{
+   list.innerHTML=`<table class="defect-table-v12"><thead><tr><th>照片</th><th>缺失名稱</th><th>樓層／區域</th><th>狀態</th><th class="select-col">✓</th></tr></thead><tbody>${rows.map((x,i)=>{
      const dp=Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]);
      const thumb=dp[0]?`<img class="thumb" src="${esc(dp[0])}" alt="缺失照片" onclick="event.stopPropagation();openPhotoLightbox('${x.id}',0,'defect')">`:'<div class="thumb" style="display:grid;place-items:center;background:#f1f4f4">—</div>';
      const od=makeOverdue(x);
      const checked=selectedDefectIds.has(String(x.id))?'checked':'';
-     return `<tr onclick="openDetail('${x.id}')"><td class="select-col"><input class="defect-select" data-id="${esc(x.id)}" type="checkbox" ${checked} onclick="event.stopPropagation();toggleDefectSelection('${x.id}',this.checked)"></td><td>${thumb}</td><td class="title-cell">${esc(x.title)}${od?`<div class="overdue-badge" style="margin:4px 0 0">${od}</div>`:''}<div class="row-meta">${esc(x.vendor||'機電工程')} · ${esc(x.created||'-')} → ${esc(x.due||'-')}</div></td><td>${x.area?`<span class="loc-chip">📍 ${esc(x.area)}</span>`:'<span style="color:#9aa2a4">未辨識</span>'}</td><td><span class="state-chip ${esc(x.status||'pending')}">${esc(statusText[x.status]||'待處理')}</span></td></tr>`;
+     return `<tr onclick="openDetail('${x.id}')"><td>${thumb}</td><td class="title-cell">${esc(x.title)}${od?`<div class="overdue-badge" style="margin:4px 0 0">${od}</div>`:''}<div class="row-meta">${esc(x.vendor||'機電工程')} · ${esc(x.created||'-')} → ${esc(x.due||'-')}</div></td><td>${x.area?`<span class="loc-chip">📍 ${esc(x.area)}</span>`:'<span style="color:#9aa2a4">未辨識</span>'}</td><td><span class="state-chip ${esc(x.status||'pending')}">${esc(statusText[x.status]||'待處理')}</span></td><td class="select-col"><input class="defect-select" data-id="${esc(x.id)}" type="checkbox" ${checked} onclick="event.stopPropagation();toggleDefectSelection('${x.id}',this.checked)"></td></tr>`;
    }).join('')}</tbody></table>`;
  }else{
    list.className='card-mode-v12';
@@ -1686,18 +1709,4 @@ if(!restoreProjectFromHash()) showProjectsPage();
 .defect-table-v12 .defect-select{width:18px;height:18px;margin:0}
 @media(max-width:600px){.defect-table-v12 th.select-col,.defect-table-v12 td.select-col{width:28px;min-width:28px;max-width:28px;padding:0 4px!important}.defect-table-v12 .defect-select{width:18px;height:18px}}
 </style>
-<script>
-(function(){
- const oldRender=window.renderDefects;
- if(typeof oldRender!=='function') return;
- window.renderDefects=function(){
-   oldRender.apply(this,arguments);
-   if(window.defectViewMode!=='table') return;
-   document.querySelectorAll('.defect-table-v12').forEach(table=>{
-     const head=table.querySelector('thead tr');
-     if(head){const c=head.querySelector('th.select-col'); if(c) head.appendChild(c);}
-     table.querySelectorAll('tbody tr').forEach(row=>{const c=row.querySelector('td.select-col'); if(c) row.appendChild(c);});
-   });
- };
-})();
-</script>
+
