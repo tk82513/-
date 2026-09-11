@@ -270,6 +270,20 @@ main{max-width:980px;padding:8px 20px 160px}
  .defect-table-v12 .thumb{width:58px!important;height:52px!important;}
 }
 </style>
+
+<style id="v24-checkbox-date-fix">
+/* V24: smaller bulk checkbox + full created/due dates */
+.defect-table-v12 th:nth-child(5),.defect-table-v12 td:nth-child(5){width:24px!important;min-width:24px!important;max-width:24px!important;padding-left:1px!important;padding-right:1px!important;}
+.defect-table-v12 .defect-select{width:14px!important;height:14px!important;margin:0!important;}
+.defect-table-v12 .title-cell .row-meta{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.28!important;}
+.defect-table-v12 .title-cell .row-vendor{display:block;white-space:nowrap;}
+.defect-table-v12 .title-cell .row-dates{display:block;white-space:nowrap;font-variant-numeric:tabular-nums;}
+@media(max-width:600px){
+ .defect-table-v12 th:nth-child(5),.defect-table-v12 td:nth-child(5){width:22px!important;min-width:22px!important;max-width:22px!important;}
+ .defect-table-v12 .defect-select{width:13px!important;height:13px!important;}
+ .defect-table-v12 .title-cell .row-meta{font-size:9.5px!important;}
+}
+</style>
 </head>
 <body data-build="2026-09-11-v18">
 <header>
@@ -641,7 +655,7 @@ function renderDefects(){
      const thumb=dp[0]?`<img class="thumb" src="${esc(dp[0])}" alt="缺失照片" onclick="event.stopPropagation();openPhotoLightbox('${x.id}',0,'defect')">`:'<div class="thumb" style="display:grid;place-items:center;background:#f1f4f4">—</div>';
      const od=makeOverdue(x);
      const checked=selectedDefectIds.has(String(x.id))?'checked':'';
-     return `<tr onclick="openDetail('${x.id}')"><td>${thumb}</td><td class="title-cell">${esc(x.title)}${od?`<div class="overdue-badge" style="margin:4px 0 0">${od}</div>`:''}<div class="row-meta">${esc(x.vendor||'機電工程')} · ${esc(x.created||'-')} → ${esc(x.due||'-')}</div></td><td>${x.area?`<span class="loc-chip">📍 ${esc(x.area)}</span>`:'<span style="color:#9aa2a4">未辨識</span>'}</td><td><span class="state-chip ${esc(x.status||'pending')}">${esc(statusText[x.status]||'待處理')}</span></td><td class="select-col"><input class="defect-select" data-id="${esc(x.id)}" type="checkbox" ${checked} onclick="event.stopPropagation();toggleDefectSelection('${x.id}',this.checked)"></td></tr>`;
+     return `<tr onclick="openDetail('${x.id}')"><td>${thumb}</td><td class="title-cell">${esc(x.title)}${od?`<div class="overdue-badge" style="margin:4px 0 0">${od}</div>`:''}<div class="row-meta"><span class="row-vendor">${esc(x.vendor||'機電工程')}</span><span class="row-dates">${esc(x.created||'-')} → ${esc(x.due||'-')}</span></div></td><td>${x.area?`<span class="loc-chip">📍 ${esc(x.area)}</span>`:'<span style="color:#9aa2a4">未辨識</span>'}</td><td><span class="state-chip ${esc(x.status||'pending')}">${esc(statusText[x.status]||'待處理')}</span></td><td class="select-col"><input class="defect-select" data-id="${esc(x.id)}" type="checkbox" ${checked} onclick="event.stopPropagation();toggleDefectSelection('${x.id}',this.checked)"></td></tr>`;
    }).join('')}</tbody></table>`;
  }else{
    list.className='card-mode-v12';
