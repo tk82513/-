@@ -197,7 +197,7 @@ main{max-width:980px;padding:8px 20px 160px}
 .list-controls-v12{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 10px}.status-tabs-v12,.view-switch-v12{display:flex;gap:8px;align-items:center}.status-tabs-v12 button,.view-switch-v12 button{background:#fff;border:1px solid var(--line);color:#445156;box-shadow:none;padding:8px 11px;border-radius:10px;font-size:12px}.status-tabs-v12 button.active{background:#fff1f0;color:#b72e27;border-color:#f1b2ad}.view-switch-v12 button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
 .section-title{font-size:16px;margin:12px 2px 8px}
 #list{display:block;overflow:visible;border:1px solid var(--line);border-radius:15px;background:#fff;box-shadow:var(--shadow)}
-.defect-table-v12{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}.defect-table-v12 th{background:#edf1f2;color:#344145;text-align:left;padding:9px 8px;border-bottom:1px solid #d5dddf;white-space:nowrap}.defect-table-v12 td{padding:9px 8px;border-bottom:1px solid #edf0f1;vertical-align:middle;color:#455155;overflow:hidden}.defect-table-v12 tr:last-child td{border-bottom:0}.defect-table-v12 tbody tr{cursor:pointer}.defect-table-v12 tbody tr:active{background:#f4faf8}.defect-table-v12 .thumb{width:56px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #dce2e3;display:block;cursor:zoom-in}.defect-table-v12 .title-cell{font-size:13px;font-weight:800;color:#182022}.defect-table-v12 .title-cell .row-meta{font-size:10px;font-weight:500;color:#899396;margin-top:4px;line-height:1.35;white-space:normal;overflow:visible;text-overflow:clip}.defect-table-v12 .title-cell .row-meta .meta-vendor{display:block;white-space:nowrap}.defect-table-v12 .title-cell .row-meta .meta-dates{display:block;white-space:nowrap;font-variant-numeric:tabular-nums}.defect-table-v12 .loc-chip{display:inline-flex;align-items:center;gap:4px;padding:5px 7px;border-radius:8px;background:#e5f5ed;color:#216e54;font-weight:800;white-space:normal;line-height:1.2}.defect-table-v12 .state-chip{padding:5px 7px;border-radius:8px;font-weight:800;white-space:nowrap}.defect-table-v12 .state-chip.pending{background:#ffe8e5;color:#b72f28}.defect-table-v12 .state-chip.doing{background:#fff3dc;color:#9a6a16}.defect-table-v12 .state-chip.closed{background:#e6f4ea;color:#34714d}
+.defect-table-v12{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}.defect-table-v12 th{background:#edf1f2;color:#344145;text-align:left;padding:9px 8px;border-bottom:1px solid #d5dddf;white-space:nowrap}.defect-table-v12 td{padding:9px 8px;border-bottom:1px solid #edf0f1;vertical-align:middle;color:#455155;overflow:hidden}.defect-table-v12 tr:last-child td{border-bottom:0}.defect-table-v12 tbody tr{cursor:pointer}.defect-table-v12 tbody tr:active{background:#f4faf8}.defect-table-v12 .thumb{width:56px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #dce2e3;display:block;cursor:zoom-in}.defect-table-v12 .title-cell{font-size:13px;font-weight:800;color:#182022}.defect-table-v12 .title-cell .row-meta{font-size:10px;font-weight:500;color:#899396;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.defect-table-v12 .loc-chip{display:inline-flex;align-items:center;gap:4px;padding:5px 7px;border-radius:8px;background:#e5f5ed;color:#216e54;font-weight:800;white-space:normal;line-height:1.2}.defect-table-v12 .state-chip{padding:5px 7px;border-radius:8px;font-weight:800;white-space:nowrap}.defect-table-v12 .state-chip.pending{background:#ffe8e5;color:#b72f28}.defect-table-v12 .state-chip.doing{background:#fff3dc;color:#9a6a16}.defect-table-v12 .state-chip.closed{background:#e6f4ea;color:#34714d}
 .photo-lightbox-v13{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:none;align-items:center;justify-content:center;padding:18px}.photo-lightbox-v13.open{display:flex}.photo-lightbox-v13 img{max-width:96vw;max-height:90vh;object-fit:contain;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.4)}.photo-lightbox-v13 .close{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:26px;padding:0}.photo-lightbox-v13 .caption{position:absolute;left:18px;right:70px;bottom:calc(16px + env(safe-area-inset-bottom));color:#fff;font-size:13px;text-shadow:0 1px 3px #000}
 #list.card-mode-v12{border:0;background:transparent;box-shadow:none;overflow:visible;display:flex;flex-direction:column;gap:8px}#list.card-mode-v12 .item{display:grid}
 .fab{right:24px;bottom:calc(90px + env(safe-area-inset-bottom));height:58px;border-radius:20px;box-shadow:0 10px 22px rgba(17,102,93,.24)}
@@ -618,7 +618,7 @@ function renderDefects(){
      const thumb=dp[0]?`<img class="thumb" src="${esc(dp[0])}" alt="缺失照片" onclick="event.stopPropagation();openPhotoLightbox('${x.id}',0,'defect')">`:'<div class="thumb" style="display:grid;place-items:center;background:#f1f4f4">—</div>';
      const od=makeOverdue(x);
      const checked=selectedDefectIds.has(String(x.id))?'checked':'';
-     return `<tr onclick="openDetail('${x.id}')"><td class="select-col"><input class="defect-select" data-id="${esc(x.id)}" type="checkbox" ${checked} onclick="event.stopPropagation();toggleDefectSelection('${x.id}',this.checked)"></td><td>${thumb}</td><td class="title-cell">${esc(x.title)}${od?`<div class="overdue-badge" style="margin:4px 0 0">${od}</div>`:''}<div class="row-meta"><span class="meta-vendor">${esc(x.vendor||'機電工程')}</span><span class="meta-dates">${esc(x.created||'-')} → ${esc(x.due||'-')}</span></div></td><td>${x.area?`<span class="loc-chip">📍 ${esc(x.area)}</span>`:'<span style="color:#9aa2a4">未辨識</span>'}</td><td><span class="state-chip ${esc(x.status||'pending')}">${esc(statusText[x.status]||'待處理')}</span></td></tr>`;
+     return `<tr onclick="openDetail('${x.id}')"><td class="select-col"><input class="defect-select" data-id="${esc(x.id)}" type="checkbox" ${checked} onclick="event.stopPropagation();toggleDefectSelection('${x.id}',this.checked)"></td><td>${thumb}</td><td class="title-cell">${esc(x.title)}${od?`<div class="overdue-badge" style="margin:4px 0 0">${od}</div>`:''}<div class="row-meta">${esc(x.vendor||'機電工程')} · ${esc(x.created||'-')} → ${esc(x.due||'-')}</div></td><td>${x.area?`<span class="loc-chip">📍 ${esc(x.area)}</span>`:'<span style="color:#9aa2a4">未辨識</span>'}</td><td><span class="state-chip ${esc(x.status||'pending')}">${esc(statusText[x.status]||'待處理')}</span></td></tr>`;
    }).join('')}</tbody></table>`;
  }else{
    list.className='card-mode-v12';
@@ -1680,3 +1680,24 @@ if(!restoreProjectFromHash()) showProjectsPage();
 
 <div id="printReport"></div>
 </body></html>
+<style>
+/* v22: 批次勾選移至最右側，不壓縮照片與文字 */
+.defect-table-v12 th.select-col,.defect-table-v12 td.select-col{width:30px;min-width:30px;max-width:30px;padding:0 5px!important;text-align:center}
+.defect-table-v12 .defect-select{width:18px;height:18px;margin:0}
+@media(max-width:600px){.defect-table-v12 th.select-col,.defect-table-v12 td.select-col{width:28px;min-width:28px;max-width:28px;padding:0 4px!important}.defect-table-v12 .defect-select{width:18px;height:18px}}
+</style>
+<script>
+(function(){
+ const oldRender=window.renderDefects;
+ if(typeof oldRender!=='function') return;
+ window.renderDefects=function(){
+   oldRender.apply(this,arguments);
+   if(window.defectViewMode!=='table') return;
+   document.querySelectorAll('.defect-table-v12').forEach(table=>{
+     const head=table.querySelector('thead tr');
+     if(head){const c=head.querySelector('th.select-col'); if(c) head.appendChild(c);}
+     table.querySelectorAll('tbody tr').forEach(row=>{const c=row.querySelector('td.select-col'); if(c) row.appendChild(c);});
+   });
+ };
+})();
+</script>
