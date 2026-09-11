@@ -284,6 +284,65 @@ main{max-width:980px;padding:8px 20px 160px}
  .defect-table-v12 .title-cell .row-meta{font-size:9.5px!important;}
 }
 </style>
+
+<style id="v25-checkbox-safe-fix">
+/* V25: use a custom checkbox so iOS cannot render it outside the last column */
+.defect-table-v12 th:nth-child(5),
+.defect-table-v12 td:nth-child(5){
+  width:30px!important;
+  min-width:30px!important;
+  max-width:30px!important;
+  padding:0 5px!important;
+  text-align:center!important;
+  vertical-align:middle!important;
+  overflow:visible!important;
+}
+.defect-table-v12 .defect-select{
+  -webkit-appearance:none!important;
+  appearance:none!important;
+  box-sizing:border-box!important;
+  display:inline-grid!important;
+  place-content:center!important;
+  width:18px!important;
+  height:18px!important;
+  min-width:18px!important;
+  min-height:18px!important;
+  margin:0!important;
+  padding:0!important;
+  border:1.5px solid #8d9799!important;
+  border-radius:6px!important;
+  background:#fff!important;
+  box-shadow:none!important;
+  vertical-align:middle!important;
+}
+.defect-table-v12 .defect-select:checked{
+  background:var(--brand)!important;
+  border-color:var(--brand)!important;
+}
+.defect-table-v12 .defect-select:checked::after{
+  content:'✓';
+  color:#fff;
+  font-size:13px;
+  font-weight:900;
+  line-height:1;
+}
+@media(max-width:600px){
+  .defect-table-v12 th:nth-child(5),
+  .defect-table-v12 td:nth-child(5){
+    width:28px!important;
+    min-width:28px!important;
+    max-width:28px!important;
+    padding:0 4px!important;
+  }
+  .defect-table-v12 .defect-select{
+    width:17px!important;
+    height:17px!important;
+    min-width:17px!important;
+    min-height:17px!important;
+  }
+  .defect-table-v12 .defect-select:checked::after{font-size:12px;}
+}
+</style>
 </head>
 <body data-build="2026-09-11-v18">
 <header>
@@ -1717,10 +1776,3 @@ if(!restoreProjectFromHash()) showProjectsPage();
 
 <div id="printReport"></div>
 </body></html>
-<style>
-/* v22: 批次勾選移至最右側，不壓縮照片與文字 */
-.defect-table-v12 th.select-col,.defect-table-v12 td.select-col{width:30px;min-width:30px;max-width:30px;padding:0 5px!important;text-align:center}
-.defect-table-v12 .defect-select{width:18px;height:18px;margin:0}
-@media(max-width:600px){.defect-table-v12 th.select-col,.defect-table-v12 td.select-col{width:28px;min-width:28px;max-width:28px;padding:0 4px!important}.defect-table-v12 .defect-select{width:18px;height:18px}}
-</style>
-
