@@ -603,7 +603,7 @@ function prepareAIWatermarkImage(dataUrl){
       const sy=Math.floor(img.height*0.64);
       const sw=Math.floor(img.width*0.50);
       const sh=Math.floor(img.height*0.355);
-      const maxW=1100;
+      const maxW=900;
       const scale=Math.min(2,maxW/Math.max(1,sw));
       const c=document.createElement('canvas');
       c.width=Math.max(1,Math.floor(sw*scale));
@@ -613,7 +613,7 @@ function prepareAIWatermarkImage(dataUrl){
       ctx.imageSmoothingQuality='high';
       ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);
       // 保留彩色欄位，不做灰階，讓 AI 能利用藍/白/黃欄辨識欄位。
-      resolve(c.toDataURL('image/jpeg',0.88));
+      resolve(c.toDataURL('image/jpeg',0.78));
     };
     img.onerror=()=>resolve(dataUrl);
     img.src=dataUrl;
@@ -696,7 +696,7 @@ async function recognizeWatermarkData(dataUrl){
     const res=await fetch(endpoint,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({image}),
+      body:JSON.stringify({image, prompt:'只讀左下角浮水印。location 必須完整逐字保留施工區域，尤其樓層後面的棟別不可省略，例如 B3F A棟、R1F C棟、A棟 3F A02、1S11。不要只回 R1F/B3F。defect 只回施工缺失黃色欄文字。'}),
       signal:controller.signal
     });
     const text=await res.text();
@@ -774,7 +774,7 @@ async function batchCreateFromWatermarks(){
     }finally{
       finished++;
       status.className='sub working';
-      status.textContent=`AI 批次辨識中 ${finished} / ${files.length}（同時處理最多 3 張）`;
+      status.textContent=`AI 批次辨識中 ${finished} / ${files.length}（快速模式，同時處理 2 張）`;
     }
   }
 
@@ -788,7 +788,7 @@ async function batchCreateFromWatermarks(){
         await processOne(i);
       }
     }
-    await Promise.all([worker(),worker(),worker()]);
+    await Promise.all([worker(),worker()]);
 
     for(const defect of results){
       if(defect) p.defects.push(defect);
