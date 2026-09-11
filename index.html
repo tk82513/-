@@ -247,7 +247,7 @@ function renderProjects(){
  const el=document.getElementById('projects');
  el.innerHTML=state.projects.map((p,idx)=>{
    const done=(p.defects||[]).filter(x=>x.status==='closed').length;
-   return `<button type="button" class="item project-item" onclick="selectProjectByIndex(${idx})">
+   return `<button type="button" class="item project-item" onclick="event.preventDefault();selectProjectByIndex(${idx})">
      <div class="num">🏗️</div>
      <div style="text-align:left;flex:1;min-width:0">
        <h3>${esc(p.name)}</h3>
@@ -320,13 +320,18 @@ function selectProjectByIndex(idx){
   if(!p) return;
   state.current=p.id;
   save();
+
   document.getElementById('search').value='';
   document.getElementById('filter').value='all';
   document.getElementById('categoryFilter').value='all';
-  render();
+
+  // 先切到專案頁，避免 iPhone Safari 在 click 事件中重畫工程卡片造成畫面留在原頁。
   showDetailPage();
   document.getElementById('pageTitle').textContent=p.name;
+  document.getElementById('pageSubtitle').textContent='工程缺失管理';
   renderDefects();
+
+  window.scrollTo({top:0,left:0,behavior:'instant'});
   try{ history.replaceState(null,'','#project='+encodeURIComponent(String(p.id))); }catch(e){}
 }
 
@@ -460,10 +465,11 @@ function cropDefectBlockForOCR(dataUrl){
     const img=new Image();
     img.onload=()=>{
       // 針對固定浮水印中的黃色「缺失項目」區塊加強辨識
-      const sx=Math.floor(img.width*0.01);
-      const sy=Math.floor(img.height*0.76);
-      const sw=Math.floor(img.width*0.43);
-      const sh=Math.floor(img.height*0.18);
+      // 只裁切「缺失項目：」冒號後方的內容區，避免把紅色欄位標題辨識成英文亂碼。
+      const sx=Math.floor(img.width*0.14);
+      const sy=Math.floor(img.height*0.775);
+      const sw=Math.floor(img.width*0.29);
+      const sh=Math.floor(img.height*0.145);
       const scale=3;
       const c=document.createElement('canvas'); c.width=sw*scale; c.height=sh*scale;
       const ctx=c.getContext('2d');
@@ -480,19 +486,36 @@ function cropDefectBlockForOCR(dataUrl){
     img.onerror=()=>resolve(dataUrl); img.src=dataUrl;
   });
 }
+function normalizeDefectName(raw){
+  let s=(raw||'').replace(/\r/g,'').replace(/[：]/g,':');
+
+  // 若 OCR 有抓到「缺失項目：」，只取冒號後方。
+  const marker=s.match(/缺\s*失\s*項\s*目\s*:\s*([\s\S]*)/);
+  if(marker) s=marker[1];
+
+  // 拍攝時間後方不是缺失名稱。
+  s=s.split(/拍\s*攝\s*時\s*間|拍攝時間/)[0];
+
+  // 移除可能混進來的欄位名稱。
+  s=s.replace(/施工\s*位置\s*:?[^\n]*/g,'')
+     .replace(/施工\s*區域\s*:?[^\n]*/g,'')
+     .replace(/缺\s*失\s*項\s*目\s*:?\s*/g,'');
+
+  // OCR 偶爾會在真正中文前塞進 FESAREE 這類英數雜訊。
+  const firstCJK=s.search(/[\u3400-\u9fff]/);
+  if(firstCJK>0) s=s.slice(firstCJK);
+
+  // 使用者要求缺失名稱中文字中間不要有空格。
+  s=s.replace(/\s+/g,'')
+     .replace(/^[\/／|｜一_\-—:：,，.。;；]+/,'')
+     .replace(/[\/／|｜]+$/,'')
+     .trim();
+
+  return s;
+}
+
 function parseDefectOnly(raw){
-  const original=(raw||'').replace(/\r/g,'');
-  let m=original.match(/缺\s*失\s*項\s*目\s*[:：]\s*([\s\S]*)/);
-  let source=m ? m[1] : original;
-  return source
-    .split(/\n+/)
-    .map(cleanOCRText)
-    .filter(Boolean)
-    .filter(line=>!/^(施工位置|施工區域|拍攝時間|日期)/.test(line))
-    .slice(0,3)
-    .join('／')
-    .replace(/^[:：\s]+/,'')
-    .trim();
+  return normalizeDefectName(raw);
 }
 function cleanOCRText(s){
   return (s||'').replace(/[：:]/g,':').replace(/[｜|]/g,' ').replace(/\s+/g,' ').trim();
@@ -513,13 +536,7 @@ function parseWatermarkText(raw){
   // 缺失名稱只取「缺失項目：」後面的內容，前面的施工區域等一律不要
   const defectMatch=original.match(/缺\s*失\s*項\s*目\s*[:：]\s*([\s\S]*?)(?=\n\s*(?:拍\s*攝\s*時\s*間|拍攝時間|$))/);
   if(defectMatch){
-    defect=defectMatch[1]
-      .split(/\n+/)
-      .map(cleanOCRText)
-      .filter(Boolean)
-      .join('／')
-      .replace(/^[:：\s]+/,'')
-      .trim();
+    defect=normalizeDefectName(defectMatch[0]);
   }
 
   return {location,area,defect};
@@ -541,14 +558,14 @@ async function recognizeWatermark(dataUrl){
       ocrStatus.textContent='位置已辨識，正在加強辨識缺失名稱…';
       const defectCrop=await cropDefectBlockForOCR(dataUrl);
       const defectResult=await Tesseract.recognize(defectCrop,'chi_tra+eng');
-      parsed.defect=parseDefectOnly(defectResult.data.text||'');
+      parsed.defect=normalizeDefectName(parseDefectOnly(defectResult.data.text||''));
     }
     let changed=[];
     if(parsed.location||parsed.area){
       fArea.value=[parsed.location,parsed.area].filter(Boolean).join('｜'); changed.push('樓層/區域');
     }
     if(parsed.defect){
-      fTitle.value=parsed.defect;
+      fTitle.value=normalizeDefectName(parsed.defect);
       fTitle.dispatchEvent(new Event('input',{bubbles:true}));
       changed.push('缺失名稱');
     }
