@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#3f7773">
 <title>DH2 工程缺失管理</title>
+<!-- OCR build: v4-ai-vision -->
 <style>
 :root{--bg:#f3f5f6;--card:#fff;--ink:#17191b;--muted:#7b8185;--brand:#3f7773;--red:#c34d3b;--amber:#c38a32;--green:#4f8a68;--line:#e4e7e8}
 *{box-sizing:border-box} body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC",sans-serif;color:var(--ink)}
@@ -20,12 +21,6 @@ main{max-width:760px;margin:auto;padding:8px 16px 150px}
 .section-title{font-weight:700;font-size:18px;margin:22px 4px 8px}
 .item{background:white;border:1px solid var(--line);border-radius:18px;padding:15px;margin:10px 0;display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:start}
 .num{width:40px;height:40px;border-radius:50%;background:var(--brand);color:white;display:grid;place-items:center;font-weight:700}
-.list-thumb{width:86px;height:86px;border-radius:12px;object-fit:cover;display:block;background:#eef1f1}
-.item.has-thumb{grid-template-columns:44px 86px 1fr;align-items:center}
-.compact-location{display:inline-flex;align-items:center;gap:5px;background:#e8f6ec;color:#245f4b;border-radius:999px;padding:5px 10px;font-size:13px;font-weight:800;white-space:nowrap}
-.compact-badges{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:5px 0}
-.compact-meta{font-size:13px;color:var(--muted);line-height:1.55}
-@media(max-width:520px){.item.has-thumb{grid-template-columns:38px 72px 1fr;gap:9px;padding:12px}.list-thumb{width:72px;height:72px}.num{width:36px;height:36px}.compact-title{font-size:16px!important}.compact-location{font-size:12px;padding:4px 8px}.compact-meta{font-size:12px}}
 .item h3{margin:0 0 8px;font-size:17px}.meta{font-size:13px;color:var(--muted);line-height:1.65}.photo-count{font-size:12px;color:var(--muted);white-space:nowrap}
 button{border:0;border-radius:14px;padding:12px 15px;font-weight:650;background:var(--brand);color:white;font-size:14px}button.secondary{background:#e9eeee;color:#285d59}button.danger{background:#f8e5e2;color:#a33d30}
 .fab{position:fixed;right:18px;bottom:calc(92px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;font-size:32px;padding:0;box-shadow:0 8px 24px rgba(0,0,0,.18)}
@@ -148,7 +143,7 @@ small.warn{color:var(--red);font-weight:700}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
-<body>
+<body data-build="2026-09-11-v2">
 <header>
 <div>
   <h1 id="pageTitle">我的工程</h1>
@@ -193,11 +188,12 @@ small.warn{color:var(--red);font-weight:700}
   <div class="batch-head">
     <div>
       <b>✨ 批次浮水印建單</b>
-      <div class="sub">一次選多張缺失照片，每張照片會自動辨識並建立 1 筆缺失。</div>
+      <div class="sub">一次選多張缺失照片，每張照片會優先使用 AI 圖像辨識，自動建立 1 筆缺失。</div>
     </div>
   </div>
   <input id="batchPhotos" type="file" accept="image/*" multiple>
-  <button id="batchStartBtn" type="button" style="width:100%;margin-top:8px" onclick="batchCreateFromWatermarks()">辨識並自動建立全部缺失</button>
+  <button id="batchStartBtn" type="button" style="width:100%;margin-top:8px" onclick="batchCreateFromWatermarks()">AI 辨識並自動建立全部缺失</button>
+  <button type="button" class="secondary" style="width:100%;margin-top:8px" onclick="configureAIVisionEndpoint()">⚙️ AI 辨識服務設定</button>
   <div id="batchStatus" class="sub" style="margin-top:8px"></div>
 </section>
 
@@ -250,9 +246,10 @@ small.warn{color:var(--red);font-weight:700}
 <label>缺失相片（可多張）</label><div class="sub">可從相簿選擇；右上角 × 可刪除。</div>
 <input id="fPhotos" type="file" accept="image/*" multiple>
 <div id="ocrBox" style="display:block;margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#f8fbfa">
-  <div style="font-weight:800;color:var(--brand);margin-bottom:4px">✨ 浮水印自動辨識</div>
-  <div id="ocrStatus" class="sub">上傳缺失相片後，按下方按鈕即可自動帶入樓層／區域與缺失名稱。</div>
-  <button type="button" style="width:100%;margin-top:10px" onclick="recognizeWatermarkFromLatest()">辨識最新一張缺失相片</button>
+  <div style="font-weight:800;color:var(--brand);margin-bottom:4px">✨ AI 浮水印辨識</div>
+  <div id="ocrStatus" class="sub">上傳缺失相片後，AI 會直接讀取左下角浮水印的施工位置、區域與缺失名稱。</div>
+  <button type="button" style="width:100%;margin-top:10px" onclick="recognizeWatermarkFromLatest()">AI 辨識最新一張缺失相片</button>
+  <button type="button" class="secondary" style="width:100%;margin-top:8px" onclick="configureAIVisionEndpoint()">⚙️ AI 辨識服務設定</button>
 </div>
 <div id="preview" class="photo-grid"></div>
 <label style="margin-top:18px">改善相片（可多張）</label><div class="sub">改善完成後可上傳照片；右上角 × 可刪除。</div>
@@ -322,6 +319,13 @@ let state=JSON.parse(localStorage.getItem(KEY)||'null')||{
   {id:'demo2',name:'DH1',no:'DH1-2026',address:'台南市○○區○○路',owner:'',builder:'',start:'',end:'',defects:[]}
  ]};
 let currentId=null, editId=null, tempPhotos=[], tempImprovePhotos=[], tempOCRPhotos=[];
+function localToday(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
 function normalizeDates(){
   const today=localToday();
   state.projects.forEach(p=>p.defects.forEach(d=>{if(!d.created)d.created=today;}));
@@ -390,7 +394,9 @@ function renderDefects(){
 
  const today=localToday();
  list.innerHTML=rows.map((x,i)=>{
-   const photos=(x.defectPhotos||x.photos||[]).length+(x.improvementPhotos||[]).length;
+   const defectPhotos=Array.isArray(x&&x.defectPhotos)?x.defectPhotos:(Array.isArray(x&&x.photos)?x.photos:[]);
+   const improvementPhotos=Array.isArray(x&&x.improvementPhotos)?x.improvementPhotos:[];
+   const photos=defectPhotos.length+improvementPhotos.length;
    const overdue=x.status!=='closed'&&x.due&&x.due<today;
    let overdueText='';
    if(overdue){
@@ -398,22 +404,22 @@ function renderDefects(){
      const days=Math.max(1,Math.floor((a-b)/86400000));
      overdueText=`<span class="overdue-badge">逾期${days}天</span>`;
    }
-   const defectPics=Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]);
-   const thumb=defectPics[0]||'';
-   const areaText=String(x.area||x.location||'未設定樓層區域').replace(/｜/g,' ');
+   const photoText=photos>0?`<span class="photo-count">📷${photos}</span>`:'';
 
-   return `<div class="item ${thumb?'has-thumb':''}" onclick="openDetail('${x.id}')">
+   return `<div class="item" onclick="openDetail('${x.id}')">
      <div class="num">${i+1}</div>
-     ${thumb?`<img class="list-thumb" src="${thumb}" alt="缺失照片">`:''}
      <div style="min-width:0;flex:1">
-       <div class="compact-top"><h3 class="compact-title">${esc(x.title)}</h3></div>
+       <div class="compact-top">
+         <h3 class="compact-title">${esc(x.title)}</h3>
+         ${photoText}
+       </div>
        <div class="compact-badges">
-         <span class="compact-location">📍 ${esc(areaText)}</span>
+         <span class="badge level">${esc(x.level||'中')}</span>
          <span class="badge category">🏷️${esc(x.category||'其他')}</span>
          <span class="badge ${x.status}">${statusText[x.status]||'待處理'}</span>
          ${overdueText}
        </div>
-       <div class="compact-meta">🔧 ${esc(x.vendor||'未指定廠商')} · 起單 ${esc(x.created||'-')} · 期限 ${esc(x.due||'-')}</div>
+       <div class="compact-meta">${esc(x.vendor||'未指定廠商')} · 起單 ${esc(x.created||'-')} · 期限 ${esc(x.due||'-')}</div>
      </div>
    </div>`;
  }).join('');
@@ -545,29 +551,148 @@ fImprovePhotos.addEventListener('change',async e=>{
 
 
 
+const AI_OCR_ENDPOINT_KEY='dh2_ai_ocr_endpoint_v1';
+
+function getAIVisionEndpoint(){
+  return 'https://dh2-ai-ocr.tk82513.workers.dev';
+}
+function configureAIVisionEndpoint(){
+  const current=getAIVisionEndpoint();
+  const value=prompt('AI 辨識服務已固定使用 Cloudflare Worker。',current);
+  if(value===null) return;
+  const v=value.trim().replace(/\/$/,'');
+  if(!v){
+    localStorage.removeItem(AI_OCR_ENDPOINT_KEY);
+    alert('已清除 AI 辨識服務設定。');
+    return;
+  }
+  if(!/^https:\/\//i.test(v)){
+    alert('網址必須以 https:// 開頭。');
+    return;
+  }
+  localStorage.setItem(AI_OCR_ENDPOINT_KEY,v);
+  alert('AI 辨識服務網址已儲存。');
+}
+
+function prepareAIWatermarkImage(dataUrl){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      // AI 只看左下角浮水印本體。原本裁太大，現場背景文字會干擾模型。
+      // 依目前「今日水印」固定版型裁切：約左 43% × 下 31%。
+      const sx=0;
+      const sy=Math.floor(img.height*0.69);
+      const sw=Math.floor(img.width*0.43);
+      const sh=Math.floor(img.height*0.305);
+      const maxW=1800;
+      const scale=Math.min(3,maxW/Math.max(1,sw));
+      const c=document.createElement('canvas');
+      c.width=Math.max(1,Math.floor(sw*scale));
+      c.height=Math.max(1,Math.floor(sh*scale));
+      const ctx=c.getContext('2d');
+      ctx.imageSmoothingEnabled=true;
+      ctx.imageSmoothingQuality='high';
+      ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);
+      // 保留彩色欄位，不做灰階，讓 AI 能利用藍/白/黃欄辨識欄位。
+      resolve(c.toDataURL('image/jpeg',0.96));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
+}
+
+function cleanAILocation(value){
+  let t=String(value||'')
+    .replace(/遠雄山禾/g,' ')
+    .replace(/(?:施工)?(?:位置|區域)\s*[:：]?/g,' ')
+    .replace(/[|｜,，;；]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim()
+    .toUpperCase();
+
+  // 去除模型偶爾重複輸出的相同位置，例如「R1F C棟 :: R1F C棟」。
+  const parts=t.split(/\s*(?:::|：：|／|\/)\s*/).filter(Boolean);
+  if(parts.length>1 && parts.every(x=>x===parts[0])) t=parts[0];
+
+  // 1. B3F A棟 / R1F C棟 / 4F B棟
+  let m=t.match(/\b([BR]?\d{1,2}F)\s*([A-Z])\s*棟\b/i);
+  if(m) return `${m[1].toUpperCase()} ${m[2].toUpperCase()}棟`;
+
+  // 2. A棟 3F A02 / C棟 R1F
+  m=t.match(/\b([A-Z])\s*棟\s*([BR]?\d{1,2}F)(?:\s*([A-Z]\d{1,3}))?\b/i);
+  if(m) return `${m[1].toUpperCase()}棟 ${m[2].toUpperCase()}${m[3]?` ${m[3].toUpperCase()}`:''}`;
+
+  // 3. A棟 3F A02（棟別在最前面且樓層拆成 3 F 的情況）
+  m=t.match(/\b([A-Z])\s*棟\s*([BR]?\d{1,2})\s*F(?:\s*([A-Z]\d{1,3}))?\b/i);
+  if(m) return `${m[1].toUpperCase()}棟 ${m[2].toUpperCase()}F${m[3]?` ${m[3].toUpperCase()}`:''}`;
+
+  // 4. 1S11 / 1S8 等固定區域碼。
+  m=t.match(/\b(\d{1,2})\s*S\s*(\d{1,3})\b/i);
+  if(m) return `${m[1]}S${m[2]}`;
+
+  // 5. 3F A02 / B2F A01。
+  m=t.match(/\b([BR]?\d{1,2}F)\s*([A-Z]\d{1,3})\b/i);
+  if(m) return `${m[1].toUpperCase()} ${m[2].toUpperCase()}`;
+
+  // 6. 最後才接受單一樓層，避免把「B3F A棟」提早截成 B3F。
+  m=t.match(/\b([BR]?\d{1,2}F)\b/i);
+  if(m) return m[1].toUpperCase();
+
+  return '';
+}
+
+function sanitizeAIResult(obj){
+  const out={location:'',area:'',defect:''};
+  if(!obj||typeof obj!=='object') return out;
+  out.location=cleanAILocation(obj.location||'');
+  out.area=String(obj.area||'').trim();
+  out.defect=String(obj.defect||obj.defectName||'').trim();
+
+  // 區域必須是乾淨中文房間名，AI 若回傳雜訊就直接捨棄。
+  if(out.area){
+    const room=cleanRoomName(out.area);
+    out.area=room||'';
+  }
+
+  // AI 已理解欄位，所以這裡只做輕量清理；移除常見尾端英文/標點雜訊。
+  out.defect=out.defect
+    .replace(/[|｜]+/g,'／')
+    .replace(/[=＝]+/g,'／')
+    .replace(/\s*／\s*/g,'／')
+    .replace(/／{2,}/g,'／')
+    .replace(/(?:\s+[A-Za-z]{1,4}|[A-Za-z]{1,4})$/g,'')
+    .replace(/^／|／$/g,'')
+    .trim();
+  return out;
+}
+
 async function recognizeWatermarkData(dataUrl){
-  if(typeof Tesseract==='undefined') throw new Error('OCR 模組尚未載入，請確認網路後重試');
+  const endpoint=getAIVisionEndpoint();
+  if(!endpoint) throw new Error('尚未設定 AI 辨識服務，請先按「AI 辨識服務設定」。');
 
-  const cropped=await cropWatermarkForOCR(dataUrl);
-  const result=await Tesseract.recognize(cropped,'chi_tra+eng');
-  const parsed=parseWatermarkText(result.data.text||'');
-
-  if(!parsed.location || !parsed.area){
-    const locationCrop=await cropLocationBlockForOCR(dataUrl);
-    const locationResult=await Tesseract.recognize(locationCrop,'chi_tra+eng');
-    const loc2=parseLocationOnly(locationResult.data.text||'');
-    if(!parsed.location && loc2.location) parsed.location=loc2.location;
-    if(!parsed.area && loc2.area) parsed.area=loc2.area;
+  const image=await prepareAIWatermarkImage(dataUrl);
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),45000);
+  try{
+    const res=await fetch(endpoint,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({image}),
+      signal:controller.signal
+    });
+    const text=await res.text();
+    let payload={};
+    try{payload=JSON.parse(text)}catch(_){throw new Error('AI 服務回傳格式錯誤');}
+    if(!res.ok) throw new Error(payload.error||`AI 服務錯誤 (${res.status})`);
+    const parsed=sanitizeAIResult(payload);
+    if(!parsed.location && !parsed.area && !parsed.defect) throw new Error('AI 沒有辨識到有效的浮水印欄位');
+    return parsed;
+  }catch(err){
+    if(err?.name==='AbortError') throw new Error('AI 辨識逾時，請確認網路後重試');
+    throw err;
+  }finally{
+    clearTimeout(timer);
   }
-
-  if(!parsed.defect){
-    const defectCrop=await cropDefectBlockForOCR(dataUrl);
-    const defectResult=await Tesseract.recognize(defectCrop,'chi_tra+eng');
-    parsed.defect=normalizeDefectName(parseDefectOnly(defectResult.data.text||''));
-  }
-
-  parsed.defect=normalizeDefectName(parsed.defect||'');
-  return parsed;
 }
 
 async function batchCreateFromWatermarks(){
@@ -684,152 +809,172 @@ function cropWatermarkForOCR(dataUrl){
 }
 
 
-function cropLocationBlockForOCR(dataUrl){
+function cropFixedOCR(dataUrl,x,y,w,h,scale=5,contrast=2.0){
   return new Promise(resolve=>{
     const img=new Image();
     img.onload=()=>{
-      // 浮水印左下資訊表中的「施工位置 / 施工區域」兩列
-      const sx=Math.floor(img.width*0.01);
-      const sy=Math.floor(img.height*0.77);
-      const sw=Math.floor(img.width*0.42);
-      const sh=Math.floor(img.height*0.09);
-      const scale=3;
+      const sx=Math.max(0,Math.floor(img.width*x));
+      const sy=Math.max(0,Math.floor(img.height*y));
+      const sw=Math.max(1,Math.min(img.width-sx,Math.floor(img.width*w)));
+      const sh=Math.max(1,Math.min(img.height-sy,Math.floor(img.height*h)));
       const c=document.createElement('canvas');
       c.width=sw*scale; c.height=sh*scale;
       const ctx=c.getContext('2d');
+      ctx.imageSmoothingEnabled=true;
       ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);
-
       const im=ctx.getImageData(0,0,c.width,c.height), d=im.data;
       for(let i=0;i<d.length;i+=4){
         const g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-        const v=Math.max(0,Math.min(255,(g-128)*1.65+128));
+        const v=Math.max(0,Math.min(255,(g-128)*contrast+128));
         d[i]=d[i+1]=d[i+2]=v;
       }
       ctx.putImageData(im,0,0);
-      resolve(c.toDataURL('image/jpeg',0.95));
+      resolve(c.toDataURL('image/png'));
     };
     img.onerror=()=>resolve(dataUrl);
     img.src=dataUrl;
   });
 }
 
+// 固定浮水印：藍色案名下方第一個白色列，只辨識施工位置/樓層編碼。
+function cropLocationCodeForOCR(dataUrl){
+  return cropFixedOCR(dataUrl,0.005,0.785,0.305,0.038,6,2.15);
+}
+// 固定浮水印：施工位置下一列，只辨識「客廳、廚房…」這類區域名稱。
+function cropAreaNameForOCR(dataUrl){
+  return cropFixedOCR(dataUrl,0.005,0.818,0.305,0.038,6,2.15);
+}
+// 舊函式保留相容，但範圍縮小，不再把黃色缺失欄一起丟進 OCR。
+function cropLocationBlockForOCR(dataUrl){
+  return cropFixedOCR(dataUrl,0.005,0.782,0.31,0.077,5,2.05);
+}
+
 function normalizeLocationText(s){
   return String(s||'')
+    .replace(/[：:]/g,'')
+    .replace(/施工\s*位置/g,'')
+    .replace(/施工\s*區域/g,'')
+    .replace(/位置/g,'')
+    .replace(/區域/g,'')
+    .replace(/[|｜]/g,' ')
     .replace(/\s+/g,' ')
-    .replace(/[：:]/g,':')
-    .replace(/^[^:]{0,8}(?:施工)?(?:位置|區域)\s*:?\s*/,'')
-    .replace(/\s*([|｜])\s*/g,'｜')
     .trim();
 }
-function normalizeCodeText(s){
-  return normalizeLocationText(s)
-    .replace(/[ＯO]/g,'0')
-    .replace(/[ＩIl]/g,'1')
+
+function extractAreaCode(s){
+  const t=String(s||'').toUpperCase().replace(/\s+/g,' ');
+  // 優先抓「A棟 3F A02」這種完整樓層/位置碼
+  let m=t.match(/([A-Z])\s*棟\s*(B?\d+)\s*F\s*([A-Z]?\d{1,3})?/i);
+  if(m){
+    return `${m[1].toUpperCase()}棟 ${m[2].toUpperCase()}F${m[3]?` ${m[3].toUpperCase()}`:''}`.trim();
+  }
+  // 其次抓 3F A02 / B2F A01
+  m=t.match(/\b(B?\d+)\s*F\s*([A-Z]?\d{1,3})\b/i);
+  if(m) return `${m[1].toUpperCase()}F ${m[2].toUpperCase()}`;
+  // 現場常見 1S8、2S12 等區域碼，只保留真正的編碼，清掉 OCR 前後亂字
+  m=t.match(/\b\d{1,2}\s*S\s*\d{1,3}\b/i);
+  if(m) return m[0].replace(/\s+/g,'').toUpperCase();
+  // 單純樓層 3F / B2F
+  m=t.match(/\bB?\d{1,2}\s*F\b/i);
+  if(m) return m[0].replace(/\s+/g,'').toUpperCase();
+  return '';
+}
+
+function cleanRoomName(s){
+  let t=normalizeLocationText(s)
+    .replace(/[A-Za-z0-9_=+\-]/g,' ')
+    .replace(/[^\u3400-\u9fff ]/g,' ')
     .replace(/\s+/g,'')
     .trim();
+  if(!t) return '';
+  if(/遠雄山禾|缺失|施工|拍攝|日期|油漆|面蓋|器具|軌道|衝突|高低差/.test(t)) return '';
+  // 區域名稱採嚴格策略：必須是 2~6 個純中文字，避免「還 EEG e」這類雜訊被寫入。
+  if(!/^[\u3400-\u9fff]{2,6}$/.test(t)) return '';
+  return t;
 }
-function looksLikeLocationCode(s){
-  const t=normalizeCodeText(s);
-  return /(?:[A-Z]\s*棟)?(?:B?\d{1,2}F)[A-Z0-9-]*|\d{1,2}S\d{1,3}|[A-Z]\d{1,3}/i.test(t);
+function parseAreaNameOnly(raw){
+  const lines=String(raw||'').replace(/\r/g,'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  const common=['客廳','主臥','次臥','臥室','房間','廚房','餐廳','浴室','廁所','陽台','玄關','走道','樓梯','梯廳','電梯廳','店舖','店鋪','車道','停車場','機房','管道間','工作陽台','前陽台','後陽台','書房','公共區域','公設'];
+  for(const line of lines){
+    const t=cleanRoomName(line);
+    if(t && common.includes(t)) return t;
+  }
+  for(const line of lines){
+    const t=cleanRoomName(line);
+    if(t) return t;
+  }
+  return '';
 }
+
 function parseLocationOnly(raw){
   const original=(raw||'').replace(/\r/g,'');
   const lines=original.split(/\n+/).map(x=>x.trim()).filter(Boolean);
   let location='', area='';
 
-  // 先吃有欄位標籤的結果。OCR 常把「施工位置/施工區域」前兩字漏掉，所以只要求「位置/區域」。
+  // 先吃有明確標籤的資料
   for(const line of lines){
-    let m=line.match(/(?:施工)?\s*位\s*置\s*[:：]?\s*(.+)/);
-    if(m && !location) location=normalizeLocationText(m[1]);
-    m=line.match(/(?:施工)?\s*區\s*域\s*[:：]?\s*(.+)/);
-    if(m && !area) area=normalizeLocationText(m[1]);
+    let m=line.match(/施工\s*位置\s*[:：]?\s*(.+)/);
+    if(m && !location) location=extractAreaCode(m[1]) || cleanRoomName(m[1]);
+    m=line.match(/施工\s*區域\s*[:：]?\s*(.+)/);
+    if(m && !area) area=extractAreaCode(m[1]) || cleanRoomName(m[1]);
   }
 
-  // 再用內容格式判斷樓層/位置，例如 A棟 3F A02、B1F A03、1S8。
-  if(!location){
-    for(const line of lines){
-      const t=normalizeCodeText(line);
-      const m=t.match(/(?:[A-Z]棟)?B?\d{1,2}F(?:[A-Z]棟|[A-Z0-9-]*)?|\d{1,2}S\d{1,3}/i);
-      if(m){ location=m[0].toUpperCase().replace(/(B?\d{1,2}F)([A-Z]棟)/i,'$1 $2'); break; }
+  // 再從所有行找固定格式編碼，避免標籤被 OCR 漏掉
+  const coded=[];
+  for(const line of lines){
+    const code=extractAreaCode(line);
+    if(code && !coded.includes(code)) coded.push(code);
+  }
+  if(!location && coded.length) location=coded[0];
+
+  // 若有樓層/位置碼，再找鄰近的純中文房間名，例如「客廳」
+  if(!area){
+    const codeIndex=lines.findIndex(line=>!!extractAreaCode(line));
+    const ordered=codeIndex>=0 ? [...lines.slice(codeIndex+1), ...lines.slice(0,codeIndex)] : lines;
+    for(const line of ordered){
+      const room=cleanRoomName(line);
+      if(room && room!==location){ area=room; break; }
     }
   }
 
-  // 區域通常是「客廳、房間、梯廳、陽台」這類短中文；不要把黃色缺失內容誤塞進區域。
-  if(!area){
-    const candidates=lines.map(normalizeLocationText).filter(t=>
-      /^[\u3400-\u9fffA-Za-z0-9\- ]{1,12}$/.test(t) &&
-      !looksLikeLocationCode(t) &&
-      !/遠雄山禾|施工|位置|區域|缺失|拍攝|時間|20\d{2}/.test(t)
-    );
-    if(candidates.length) area=candidates[0];
-  }
+  // 若只有一個編碼，就讓它作為唯一區域顯示，不再附加 OCR 垃圾字
+  if(location && extractAreaCode(location) && area && extractAreaCode(area)===extractAreaCode(location)) area='';
   return {location,area};
 }
 function formatAreaValue(location,area){
-  const loc=normalizeLocationText(location);
-  const ar=normalizeLocationText(area);
-  if(loc && ar && loc!==ar) return loc+'｜'+ar;
+  let loc=extractAreaCode(location) || cleanRoomName(location);
+  let ar=extractAreaCode(area) || cleanRoomName(area);
+  if(loc && ar && loc===ar) ar='';
+  if(loc && ar) return loc+'｜'+ar;
   return loc||ar||'';
 }
 
 function cropDefectBlockForOCR(dataUrl){
-  return new Promise(resolve=>{
-    const img=new Image();
-    img.onload=()=>{
-      // 針對固定浮水印中的黃色「缺失項目」區塊加強辨識
-      // 只裁切「缺失項目：」冒號後方的內容區，避免把紅色欄位標題辨識成英文亂碼。
-      const sx=Math.floor(img.width*0.02);
-      const sy=Math.floor(img.height*0.82);
-      const sw=Math.floor(img.width*0.40);
-      const sh=Math.floor(img.height*0.10);
-      const scale=3;
-      const c=document.createElement('canvas'); c.width=sw*scale; c.height=sh*scale;
-      const ctx=c.getContext('2d');
-      ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);
-      const im=ctx.getImageData(0,0,c.width,c.height), d=im.data;
-      for(let i=0;i<d.length;i+=4){
-        const g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-        const v=Math.max(0,Math.min(255,(g-128)*1.8+128));
-        d[i]=d[i+1]=d[i+2]=v;
-      }
-      ctx.putImageData(im,0,0);
-      resolve(c.toDataURL('image/jpeg',0.95));
-    };
-    img.onerror=()=>resolve(dataUrl); img.src=dataUrl;
-  });
+  // 黃色缺失欄：縮窄到左下浮水印本體，避免右側現場影像、日期列與英文雜訊。
+  return cropFixedOCR(dataUrl,0.005,0.850,0.305,0.070,6,2.20);
 }
 function normalizeDefectName(raw){
-  let s=String(raw||'').replace(/\r/g,'').replace(/[：]/g,':');
-  let body='';
+  let s=String(raw||'').replace(/\r/g,'').replace(/[：:]/g,' ');
+  s=s.replace(/遠雄山禾/g,' ')
+     .replace(/施工\s*位置|施工\s*區域|缺失\s*項目|施工\s*缺失|拍\s*攝\s*時\s*間|拍攝時間/g,' ')
+     .replace(/20\d{2}[.\/-]\d{1,2}[.\/-]\d{1,2}/g,' ')
+     .replace(/[=＝|｜]+/g,'／')
+     .replace(/[A-Za-z]+/g,' ')
+     .replace(/[^\u3400-\u9fff0-9／、，,。()（）\n ]/g,' ');
 
-  let m=s.match(/施\s*工\s*缺\s*失\s*:?\s*([\s\S]*?)(?=\n\s*(?:拍\s*攝\s*時\s*間|拍攝時間|$))/);
-  if(!m) m=s.match(/缺\s*失\s*項\s*目\s*:?\s*([\s\S]*?)(?=\n\s*(?:拍\s*攝\s*時\s*間|拍攝時間|$))/);
-  if(m) body=m[1];
+  let lines=s.split(/[\n／]+/).map(x=>x.replace(/\s+/g,'').trim()).filter(Boolean);
+  lines=lines.filter(x=>/^[\u3400-\u9fff0-9、，,。()（）]{2,}$/.test(x));
 
-  const source=body||s;
-  let lines=source.split(/\n+/).map(x=>x.trim()).filter(Boolean);
-  lines=lines.map(line=>line
-    .replace(/遠雄山禾/g,'')
-    .replace(/^(?:施工)?(?:缺失|缺失項目)\s*:?\s*/,'')
-    .replace(/(?:拍\s*攝\s*時\s*間|拍攝時間).*$/,'')
-    .replace(/^(?:施工)?(?:位置|區域)\s*:?\s*.*$/,'')
-    .trim()
-  ).filter(Boolean);
-
-  // 保留黃色缺失欄位的多行文字，不再只拿最後一行。
-  const candidates=lines.filter(line=>
-    /[\u3400-\u9fff]{2,}/.test(line) &&
-    !/遠雄山禾|施工位置|施工區域|拍攝時間|缺失項目|施工缺失/.test(line) &&
-    !/^20\d{2}[.\/-]/.test(line)
+  // 常見機電缺失 OCR 誤字校正。只校正高度明確的詞，不做無限制猜字。
+  lines=lines.map(x=>x
+    .replace(/面[音昔]油漆污染/g,'面蓋油漆污染')
+    .replace(/[樑梁]面器具高低差/g,'牆面器具高低差')
+    .replace(/店[鋪舖]器具衝突捲門軌道/g,'店舖器具衝突捲門軌道')
   );
-  if(candidates.length) s=candidates.join('／');
-  else s=source;
 
-  return s.replace(/\s+/g,'')
-          .replace(/^[\/／|｜一_\-—:：,，.。;；]+/,'')
-          .replace(/[\/／|｜]+$/,'')
-          .replace(/[說該]$/,'')
-          .trim();
+  // 去重，避免同一缺失被全圖/局部 OCR 重複讀到。
+  lines=[...new Set(lines)];
+  return lines.join('／').replace(/／{2,}/g,'／').replace(/^／|／$/g,'').trim();
 }
 function parseDefectOnly(raw){
   return normalizeDefectName(raw);
@@ -839,76 +984,47 @@ function cleanOCRText(s){
 }
 function parseWatermarkText(raw){
   const original=(raw||'').replace(/\r/g,'');
-  const lines=original.split(/\n+/).map(cleanOCRText).filter(Boolean);
   const loc=parseLocationOnly(original);
   let location=loc.location||'', area=loc.area||'', defect='';
 
-  let defectMatch=original.match(/施\s*工\s*缺\s*失\s*[:：]?\s*([\s\S]*?)(?=\n\s*(?:拍\s*攝\s*時\s*間|拍攝時間|$))/);
-  if(!defectMatch) defectMatch=original.match(/缺\s*失\s*項\s*目\s*[:：]?\s*([\s\S]*?)(?=\n\s*(?:拍\s*攝\s*時\s*間|拍攝時間|$))/);
+  let defectMatch=original.match(/施\s*工\s*缺\s*失\s*[:：]\s*([\s\S]*?)(?=\n\s*(?:拍\s*攝\s*時\s*間|拍攝時間|$))/);
+  if(!defectMatch){
+    defectMatch=original.match(/缺\s*失\s*項\s*目\s*[:：]\s*([\s\S]*?)(?=\n\s*(?:拍\s*攝\s*時\s*間|拍攝時間|$))/);
+  }
   if(defectMatch) defect=normalizeDefectName(defectMatch[0]);
 
   return {location,area,defect};
 }
 async function recognizeWatermark(dataUrl){
-  if(!window.Tesseract){
-    ocrBox.style.display='block'; ocrStatus.className='sub err';
-    ocrStatus.textContent='浮水印辨識元件載入失敗，請確認網路後按「重新辨識」。'; return;
-  }
-  ocrBox.style.display='block'; ocrStatus.className='sub working';
-  ocrStatus.textContent='正在辨識浮水印文字，第一次約需 5～20 秒…';
+  ocrBox.style.display='block';
+  ocrStatus.className='sub working';
+  ocrStatus.textContent='AI 正在讀取浮水印…';
   try{
-    const crop=await cropWatermarkForOCR(dataUrl);
-    const result=await Tesseract.recognize(crop,'chi_tra+eng',{logger:m=>{
-      if(m.status==='recognizing text') ocrStatus.textContent=`正在辨識浮水印… ${Math.round((m.progress||0)*100)}%`;
-    }});
-    const parsed=parseWatermarkText(result.data.text||'');
-
-    // 位置 / 區域若缺任一項，針對浮水印固定位置再辨識一次
-    if(!parsed.location || !parsed.area){
-      ocrStatus.textContent='正在加強辨識施工位置與施工區域…';
-      const locationCrop=await cropLocationBlockForOCR(dataUrl);
-      const locationResult=await Tesseract.recognize(locationCrop,'chi_tra+eng');
-      const loc2=parseLocationOnly(locationResult.data.text||'');
-      if(!parsed.location && loc2.location) parsed.location=loc2.location;
-      if(!parsed.area && loc2.area) parsed.area=loc2.area;
-    }
-
-    if(!parsed.defect){
-      ocrStatus.textContent='正在加強辨識缺失名稱…';
-      const defectCrop=await cropDefectBlockForOCR(dataUrl);
-      const defectResult=await Tesseract.recognize(defectCrop,'chi_tra+eng');
-      parsed.defect=normalizeDefectName(parseDefectOnly(defectResult.data.text||''));
-    }
-
-    let changed=[];
+    const parsed=await recognizeWatermarkData(dataUrl);
+    const changed=[];
     if(parsed.location||parsed.area){
       fArea.value=formatAreaValue(parsed.location,parsed.area);
       fArea.dispatchEvent(new Event('input',{bubbles:true}));
       changed.push('樓層/區域');
     }
     if(parsed.defect){
-      fTitle.value=normalizeDefectName(parsed.defect);
+      fTitle.value=parsed.defect;
       fTitle.dispatchEvent(new Event('input',{bubbles:true}));
       changed.push('缺失名稱');
     }
     if(changed.length){
       ocrStatus.className='sub ok';
-      ocrStatus.textContent='✓ 已自動帶入：'+changed.join('、')+'。請快速確認文字是否正確。';
+      ocrStatus.textContent='✓ AI 已自動帶入：'+changed.join('、')+'。請確認後儲存。';
     }else{
       ocrStatus.className='sub err';
-      ocrStatus.textContent='沒有辨識到固定格式文字，可按「重新辨識」或手動輸入。';
+      ocrStatus.textContent='AI 沒有辨識到有效欄位，請換原圖或手動輸入。';
     }
   }catch(err){
-    console.error(err); ocrStatus.className='sub err';
-    ocrStatus.textContent='浮水印辨識失敗，請確認網路或改用較清楚的原圖。';
+    ocrStatus.className='sub err';
+    ocrStatus.textContent='AI 辨識失敗：'+(err.message||err);
   }
 }
 
-function localToday(){
-  const d=new Date();
-  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
-}
 function fileToDataURL(file){
   return new Promise(resolve=>{
     const reader=new FileReader();
@@ -965,7 +1081,7 @@ function saveDefect(){
     defectPhotos:[...tempPhotos],
     improvementPhotos:[...tempImprovePhotos]
   };
-  if(editId) p.defects=p.defects.map(a=>a.id===editId?x:a); else p.defects.push(x);
+  if(editId) p.defects=p.defects.map(a=>String(a.id)===String(editId)?x:a); else p.defects.push(x);
   if(!save()){
     p.defects=JSON.parse(backup);
     return;
@@ -1056,8 +1172,10 @@ function generatePDF(){
   const closed=p.defects.filter(x=>x.status==='closed').length;
   const overdue=p.defects.filter(x=>x.due && new Date(x.due)<new Date() && x.status!=='closed').length;
   const rows=p.defects.map((x,i)=>{
-    const dphotos=(x.defectPhotos||x.photos||[]).map(ph=>`<img class="r-photo" src="${ph}">`).join('');
-    const iphotos=(x.improvementPhotos||[]).map(ph=>`<img class="r-photo" src="${ph}">`).join('');
+    const dArr=Array.isArray(x&&x.defectPhotos)?x.defectPhotos:(Array.isArray(x&&x.photos)?x.photos:[]);
+    const iArr=Array.isArray(x&&x.improvementPhotos)?x.improvementPhotos:[];
+    const dphotos=dArr.map(ph=>`<img class="r-photo" src="${ph}">`).join('');
+    const iphotos=iArr.map(ph=>`<img class="r-photo" src="${ph}">`).join('');
     const photos=`缺失相片：${dphotos||'無'}<br>改善相片：${iphotos||'無'}`;
     return `<tr>
       <td>${i+1}</td>
