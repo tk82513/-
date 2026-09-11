@@ -195,8 +195,9 @@ main{max-width:980px;padding:8px 20px 160px}
 .toolbar{gap:10px;margin:14px 0 10px}.toolbar input{flex:1.8}.toolbar select{flex:.9}.toolbar input,.toolbar select{height:52px;border-radius:12px}
 .list-controls-v12{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 10px}.status-tabs-v12,.view-switch-v12{display:flex;gap:8px;align-items:center}.status-tabs-v12 button,.view-switch-v12 button{background:#fff;border:1px solid var(--line);color:#445156;box-shadow:none;padding:8px 11px;border-radius:10px;font-size:12px}.status-tabs-v12 button.active{background:#fff1f0;color:#b72e27;border-color:#f1b2ad}.view-switch-v12 button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
 .section-title{font-size:16px;margin:12px 2px 8px}
-#list{display:block;overflow-x:auto;border:1px solid var(--line);border-radius:15px;background:#fff;box-shadow:var(--shadow)}
-.defect-table-v12{width:100%;min-width:860px;border-collapse:collapse;font-size:12px}.defect-table-v12 th{background:#edf1f2;color:#344145;text-align:left;padding:10px 9px;border-bottom:1px solid #d5dddf;white-space:nowrap}.defect-table-v12 td{padding:10px 9px;border-bottom:1px solid #edf0f1;vertical-align:middle;color:#455155}.defect-table-v12 tr:last-child td{border-bottom:0}.defect-table-v12 tbody tr{cursor:pointer}.defect-table-v12 tbody tr:active{background:#f4faf8}.defect-table-v12 .idx{font-weight:800;color:#263234}.defect-table-v12 .thumb{width:60px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #dce2e3;display:block}.defect-table-v12 .title-cell{font-size:13px;font-weight:800;color:#182022;max-width:210px}.defect-table-v12 .loc-chip{display:inline-flex;align-items:center;gap:4px;padding:5px 8px;border-radius:8px;background:#e5f5ed;color:#216e54;font-weight:800;white-space:nowrap}.defect-table-v12 .state-chip{padding:5px 8px;border-radius:8px;font-weight:800;white-space:nowrap}.defect-table-v12 .state-chip.pending{background:#ffe8e5;color:#b72f28}.defect-table-v12 .state-chip.doing{background:#fff3dc;color:#9a6a16}.defect-table-v12 .state-chip.closed{background:#e6f4ea;color:#34714d}.defect-table-v12 .level-chip{background:#fff5db;padding:5px 8px;border-radius:8px;color:#7e641d}
+#list{display:block;overflow:visible;border:1px solid var(--line);border-radius:15px;background:#fff;box-shadow:var(--shadow)}
+.defect-table-v12{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}.defect-table-v12 th{background:#edf1f2;color:#344145;text-align:left;padding:9px 8px;border-bottom:1px solid #d5dddf;white-space:nowrap}.defect-table-v12 td{padding:9px 8px;border-bottom:1px solid #edf0f1;vertical-align:middle;color:#455155;overflow:hidden}.defect-table-v12 tr:last-child td{border-bottom:0}.defect-table-v12 tbody tr{cursor:pointer}.defect-table-v12 tbody tr:active{background:#f4faf8}.defect-table-v12 .thumb{width:56px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #dce2e3;display:block;cursor:zoom-in}.defect-table-v12 .title-cell{font-size:13px;font-weight:800;color:#182022}.defect-table-v12 .title-cell .row-meta{font-size:10px;font-weight:500;color:#899396;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.defect-table-v12 .loc-chip{display:inline-flex;align-items:center;gap:4px;padding:5px 7px;border-radius:8px;background:#e5f5ed;color:#216e54;font-weight:800;white-space:normal;line-height:1.2}.defect-table-v12 .state-chip{padding:5px 7px;border-radius:8px;font-weight:800;white-space:nowrap}.defect-table-v12 .state-chip.pending{background:#ffe8e5;color:#b72f28}.defect-table-v12 .state-chip.doing{background:#fff3dc;color:#9a6a16}.defect-table-v12 .state-chip.closed{background:#e6f4ea;color:#34714d}
+.photo-lightbox-v13{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:none;align-items:center;justify-content:center;padding:18px}.photo-lightbox-v13.open{display:flex}.photo-lightbox-v13 img{max-width:96vw;max-height:90vh;object-fit:contain;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.4)}.photo-lightbox-v13 .close{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:26px;padding:0}.photo-lightbox-v13 .caption{position:absolute;left:18px;right:70px;bottom:calc(16px + env(safe-area-inset-bottom));color:#fff;font-size:13px;text-shadow:0 1px 3px #000}
 #list.card-mode-v12{border:0;background:transparent;box-shadow:none;overflow:visible;display:flex;flex-direction:column;gap:8px}#list.card-mode-v12 .item{display:grid}
 .fab{right:24px;bottom:calc(90px + env(safe-area-inset-bottom));height:58px;border-radius:20px;box-shadow:0 10px 22px rgba(17,102,93,.24)}
 @media(max-width:650px){
@@ -208,13 +209,13 @@ main{max-width:980px;padding:8px 20px 160px}
   .batch-head-v12{display:grid;grid-template-columns:1fr auto;gap:8px}.batch-head-v12 .sub{font-size:11px;line-height:1.4}.file-pick-compact{min-width:112px;padding:10px 8px;font-size:11px}.batch-actions-v12{grid-template-columns:1fr}.batch-actions-v12 button{height:44px;font-size:12px}
   .toolbar{display:grid;grid-template-columns:1.2fr .8fr .8fr}.toolbar input,.toolbar select{height:46px;padding:9px;font-size:12px}
   .list-controls-v12{overflow-x:auto}.status-tabs-v12{gap:5px}.status-tabs-v12 button,.view-switch-v12 button{font-size:10px;padding:7px 8px}.view-switch-v12{margin-left:auto}
-  #list{margin:0 -1px}.defect-table-v12{min-width:760px}.defect-table-v12 th,.defect-table-v12 td{padding:8px 7px}.defect-table-v12 .thumb{width:54px;height:44px}
+  #list{margin:0 -1px}.defect-table-v12{min-width:0}.defect-table-v12 th,.defect-table-v12 td{padding:7px 6px}.defect-table-v12 .thumb{width:48px;height:44px}.defect-table-v12 th:nth-child(1),.defect-table-v12 td:nth-child(1){width:54px}.defect-table-v12 th:nth-child(2),.defect-table-v12 td:nth-child(2){width:auto}.defect-table-v12 th:nth-child(3),.defect-table-v12 td:nth-child(3){width:104px}.defect-table-v12 th:nth-child(4),.defect-table-v12 td:nth-child(4){width:68px}.defect-table-v12 .loc-chip{font-size:10px;padding:5px 5px}.defect-table-v12 .state-chip{font-size:10px;padding:5px 5px}
 }
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
-<body data-build="2026-09-11-v12">
+<body data-build="2026-09-11-v13">
 <header>
 <div>
   <h1 id="pageTitle">我的工程</h1>
@@ -519,11 +520,11 @@ function renderDefects(){
  };
  if(defectViewMode==='table'){
    list.className='';
-   list.innerHTML=`<table class="defect-table-v12"><thead><tr><th>#</th><th>照片</th><th>缺失名稱</th><th>樓層／區域</th><th>分類</th><th>狀態</th><th>起單日期</th><th>改善期限</th></tr></thead><tbody>${rows.map((x,i)=>{
+   list.innerHTML=`<table class="defect-table-v12"><thead><tr><th>照片</th><th>缺失名稱</th><th>樓層／區域</th><th>狀態</th></tr></thead><tbody>${rows.map((x,i)=>{
      const dp=Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]);
-     const thumb=dp[0]?`<img class="thumb" src="${esc(dp[0])}" alt="缺失照片">`:'<div class="thumb" style="display:grid;place-items:center;background:#f1f4f4">—</div>';
+     const thumb=dp[0]?`<img class="thumb" src="${esc(dp[0])}" alt="缺失照片" onclick="event.stopPropagation();openPhotoLightbox('${x.id}',0,'defect')">`:'<div class="thumb" style="display:grid;place-items:center;background:#f1f4f4">—</div>';
      const od=makeOverdue(x);
-     return `<tr onclick="openDetail('${x.id}')"><td class="idx">${i+1}</td><td>${thumb}</td><td class="title-cell">${esc(x.title)}${od?`<div class="overdue-badge" style="margin:5px 0 0">${od}</div>`:''}</td><td>${x.area?`<span class="loc-chip">📍 ${esc(x.area)}</span>`:'<span style="color:#9aa2a4">未辨識</span>'}</td><td><span class="level-chip">${esc(x.category||'其他')}</span></td><td><span class="state-chip ${esc(x.status||'pending')}">${esc(statusText[x.status]||'待處理')}</span></td><td>${esc(x.created||'-')}</td><td>${esc(x.due||'-')}</td></tr>`;
+     return `<tr onclick="openDetail('${x.id}')"><td>${thumb}</td><td class="title-cell">${esc(x.title)}${od?`<div class="overdue-badge" style="margin:4px 0 0">${od}</div>`:''}<div class="row-meta">${esc(x.vendor||'機電工程')} · ${esc(x.created||'-')} → ${esc(x.due||'-')}</div></td><td>${x.area?`<span class="loc-chip">📍 ${esc(x.area)}</span>`:'<span style="color:#9aa2a4">未辨識</span>'}</td><td><span class="state-chip ${esc(x.status||'pending')}">${esc(statusText[x.status]||'待處理')}</span></td></tr>`;
    }).join('')}</tbody></table>`;
  }else{
    list.className='card-mode-v12';
@@ -848,8 +849,8 @@ async function recognizeWatermarkData(dataUrl){
   if(locationNeedsBuildingRetry(parsed.location)){
     try{
       const locImage=await prepareAILocationOnlyImage(dataUrl);
-      const retry=await callAIVision(locImage,'這張圖只包含施工區域欄。請把 location 原文完整讀出，樓層後面的 A棟/B棟/C棟不得省略。看不清楚就留空，不要猜。');
-      if(retry.location && /棟/.test(retry.location)) parsed.location=retry.location;
+      const retry=await callAIVision(locImage,'LOCATION_ONLY：這張圖只包含「施工區域」白色欄。請逐字抄寫整欄 location，例如 R1F C棟、B3F A棟、4F B棟、1S11。絕對不可省略 A棟/B棟/C棟。');
+      if(retry.location && retry.location.length>parsed.location.length) parsed.location=retry.location;
     }catch(_){ /* 補辨識失敗時保留第一輪結果 */ }
   }
   return parsed;
@@ -1289,6 +1290,22 @@ function saveDefect(){
   alert(editId?'缺失已更新':'缺失已儲存');
 }
 function closeModal(){modal.style.display='none'}
+function openPhotoLightbox(id,index=0,type='defect'){
+  const p=project();
+  const x=p&&Array.isArray(p.defects)?p.defects.find(a=>String(a.id)===String(id)):null;
+  if(!x)return;
+  const arr=type==='improve'?(Array.isArray(x.improvementPhotos)?x.improvementPhotos:[]):(Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]));
+  const src=arr[index]; if(!src)return;
+  const box=document.getElementById('photoLightboxV13');
+  document.getElementById('photoLightboxImgV13').src=src;
+  document.getElementById('photoLightboxCaptionV13').textContent=`${x.title||'缺失照片'} · ${index+1}/${arr.length}`;
+  box.classList.add('open');
+}
+function closePhotoLightbox(){
+  const box=document.getElementById('photoLightboxV13');
+  if(box) box.classList.remove('open');
+}
+
 function openDetail(id){
   currentId=id;
   const p=project();
@@ -1309,9 +1326,9 @@ function openDetail(id){
       📝 ${esc(x.desc||'請依照改善期限內修繕完成')}
     </div>
     <div class="section-title">缺失相片 ${defectPhotos.length} 張</div>
-    <div class="photo-grid">${defectPhotos.map(p=>`<img src="${p}">`).join('')}</div>
+    <div class="photo-grid">${defectPhotos.map((p,i)=>`<img src="${p}" style="cursor:zoom-in" onclick="event.stopPropagation();openPhotoLightbox('${x.id}',${i},'defect')">`).join('')}</div>
     <div class="section-title">改善相片 ${improvementPhotos.length} 張</div>
-    <div class="photo-grid">${improvementPhotos.map(p=>`<img src="${p}">`).join('')}</div>
+    <div class="photo-grid">${improvementPhotos.map((p,i)=>`<img src="${p}" style="cursor:zoom-in" onclick="event.stopPropagation();openPhotoLightbox('${x.id}',${i},'improve')">`).join('')}</div>
     <div class="actions"><button class="secondary" onclick="openDefect(currentId);closeDetail()">編輯</button><button class="danger" onclick="deleteDefect()">刪除</button></div>`;
   detailModal.style.display='flex';
 }
@@ -1511,6 +1528,13 @@ if(!restoreProjectFromHash()) showProjectsPage();
 <button class="secondary" onclick="closeStatusModal()">取消</button>
 </div>
 </div></div>
+
+
+<div id="photoLightboxV13" class="photo-lightbox-v13" onclick="closePhotoLightbox()">
+  <button class="close" type="button" onclick="event.stopPropagation();closePhotoLightbox()">×</button>
+  <img id="photoLightboxImgV13" src="" alt="放大照片" onclick="event.stopPropagation()">
+  <div id="photoLightboxCaptionV13" class="caption"></div>
+</div>
 
 <div id="printReport"></div>
 </body></html>
