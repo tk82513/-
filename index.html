@@ -5,24 +5,27 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#3f7773">
 <title>DH2 工程缺失管理</title>
+<!-- OCR build: v19 project-name-address-edit -->
+<!-- OCR build: v12-polished-dashboard-table -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-:root{--bg:#f3f5f6;--card:#fff;--ink:#17191b;--muted:#7b8185;--brand:#3f7773;--red:#c34d3b;--amber:#c38a32;--green:#4f8a68;--line:#e4e7e8}
+:root{--bg:#e9edee;--card:#fff;--ink:#182022;--muted:#747d80;--brand:#2f756d;--brand-deep:#245f59;--brand-soft:#e8f3f0;--red:#c44b3d;--amber:#bd842d;--green:#4c8b68;--line:#dfe5e6}
 *{box-sizing:border-box} body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC",sans-serif;color:var(--ink)}
-header{position:sticky;top:0;z-index:5;background:rgba(243,245,246,.94);backdrop-filter:blur(12px);padding:16px 18px 10px;display:flex;align-items:center;justify-content:space-between}
+header{position:sticky;top:0;z-index:5;background:rgba(233,237,238,.92);backdrop-filter:blur(16px);padding:16px 18px 10px;display:flex;align-items:center;justify-content:space-between}
 h1{font-size:23px;margin:0}.sub{color:var(--muted);font-size:13px;margin-top:3px}
 main{max-width:760px;margin:auto;padding:8px 16px 150px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin:12px 0;box-shadow:0 2px 8px rgba(0,0,0,.03)}
-.stats{display:grid;grid-template-columns:110px 1fr;gap:18px;align-items:center}
-.ring{width:104px;height:104px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--brand) 0deg,#e2e6e7 0);font-size:20px;font-weight:700}
-.ring span{background:white;width:76px;height:76px;border-radius:50%;display:grid;place-items:center}
+.card{background:rgba(255,255,255,.97);border:1px solid rgba(211,219,220,.95);border-radius:22px;padding:17px;margin:11px 0;box-shadow:0 8px 24px rgba(43,60,62,.055)}
+.stats{display:grid;grid-template-columns:92px 1fr;gap:14px;align-items:center}
+.ring{width:88px;height:88px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--brand) 0deg,#e2e6e7 0);font-size:20px;font-weight:700}
+.ring span{background:white;width:64px;height:64px;border-radius:50%;display:grid;place-items:center}
 .location{font-size:15px;color:var(--muted)} .big{font-size:28px;font-weight:700;margin:2px 0 8px}
-.pills{display:flex;gap:8px;flex-wrap:wrap}.pill{padding:8px 12px;border-radius:999px;font-size:13px;background:#eef1f1}.pill.red{background:#fae9e6;color:#a33d30}.pill.amber{background:#fbf2df;color:#986a22}.pill.green{background:#e6f2ea;color:#3f7656}
+.pills{display:flex;gap:6px;flex-wrap:nowrap;align-items:center}.pill{padding:7px 9px;border-radius:999px;font-size:12px;white-space:nowrap;background:#eef1f1}.pill.red{background:#fae9e6;color:#a33d30}.pill.amber{background:#fbf2df;color:#986a22}.pill.green{background:#e6f2ea;color:#3f7656}
 .section-title{font-weight:700;font-size:18px;margin:22px 4px 8px}
 .item{background:white;border:1px solid var(--line);border-radius:18px;padding:15px;margin:10px 0;display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:start}
 .num{width:40px;height:40px;border-radius:50%;background:var(--brand);color:white;display:grid;place-items:center;font-weight:700}
 .item h3{margin:0 0 8px;font-size:17px}.meta{font-size:13px;color:var(--muted);line-height:1.65}.photo-count{font-size:12px;color:var(--muted);white-space:nowrap}
-button{border:0;border-radius:14px;padding:12px 15px;font-weight:650;background:var(--brand);color:white;font-size:14px}button.secondary{background:#e9eeee;color:#285d59}button.danger{background:#f8e5e2;color:#a33d30}
-.fab{position:fixed;right:22px;bottom:22px;width:60px;height:60px;border-radius:50%;font-size:32px;padding:0;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+button{border:0;border-radius:14px;padding:12px 15px;font-weight:700;background:var(--brand);color:white;font-size:14px;box-shadow:0 5px 14px rgba(47,117,109,.10)}button.secondary{background:#eef3f2;color:var(--brand-deep);box-shadow:none}button.danger{background:#f8e5e2;color:#a33d30}
+.fab{position:fixed;right:18px;bottom:calc(92px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;font-size:32px;padding:0;box-shadow:0 8px 24px rgba(0,0,0,.18)}
 input,select,textarea{width:100%;border:1px solid #dfe3e4;border-radius:13px;padding:12px;font:inherit;background:white}
 label{font-size:13px;color:#666;display:block;margin:12px 0 6px}
 .toolbar{display:flex;gap:8px;margin:10px 0}.toolbar>*{flex:1}
@@ -37,7 +40,7 @@ label{font-size:13px;color:#666;display:block;margin:12px 0 6px}
 .bottom-nav button{background:transparent;color:var(--muted);padding:8px;font-size:13px}
 .bottom-nav button.active{color:var(--brand);font-weight:800}
 .project-back{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.project-back button{background:#e9eeee;color:#285d59}
+.project-back button{background:#eef3f2;color:var(--brand-deep);box-shadow:none}
 small.warn{color:var(--red);font-weight:700}
 
 #printReport{display:none}
@@ -52,13 +55,319 @@ small.warn{color:var(--red);font-weight:700}
   .r-photo{width:120px;height:90px;object-fit:cover;margin:3px;border:1px solid #ccc}
   @page{size:A4;margin:10mm}
 }
+
+#list .item{padding:14px;gap:12px;min-height:auto}
+#list .item h3{margin:0 0 7px;font-size:17px;line-height:1.28}
+#list .item .meta{font-size:13px;line-height:1.55}
+#list .num{width:42px;height:42px;min-width:42px;font-size:18px}
+.overdue-badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;background:#fde7e5;color:#b42318;font-weight:800;font-size:12px;margin-left:5px}
+.photo-count{font-size:12px;color:var(--muted);white-space:nowrap}
+.fab{width:auto;min-width:58px;padding:0 17px;border-radius:29px;font-weight:800;z-index:45}
+.fab::after{content:' 新增缺失';font-size:14px}
+
+.project-item{width:100%;border:1px solid var(--line);background:#fff;color:inherit;text-align:left;cursor:pointer;display:flex;align-items:center}
+.project-item:active{transform:scale(.995);background:#f8fbfa}
+
+#ocrBox button{padding:8px 12px;font-size:13px}
+#ocrStatus.working{color:#7a5a00;font-weight:700}
+#ocrStatus.ok{color:#176c56;font-weight:700}
+#ocrStatus.err{color:#b42318;font-weight:700}
+
+/* v20：高密度缺失列表 */
+.batch-card{padding:14px 16px}
+.batch-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+#batchPhotos{margin-top:10px}
+#batchStatus.working{color:#7a5a00;font-weight:700}
+#batchStatus.ok{color:#24734f;font-weight:700}
+#batchStatus.err{color:#b42318;font-weight:700}
+.report-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.report-actions button{width:100%;padding:11px 6px;font-size:14px;white-space:nowrap}
+@media (max-width:430px){.report-actions button{font-size:13px;padding:10px 4px}}
+
+#list{display:flex;flex-direction:column;gap:7px}
+#list .item{
+  padding:9px 11px;
+  gap:9px;
+  border-radius:15px;
+  min-height:0;
+  align-items:center;
+}
+#list .num{
+  width:34px;
+  height:34px;
+  min-width:34px;
+  font-size:15px;
+}
+#list .item h3{
+  margin:0;
+  font-size:15px;
+  line-height:1.18;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+#list .compact-top{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+}
+#list .compact-title{min-width:0;flex:1}
+#list .compact-badges{
+  display:flex;
+  gap:4px;
+  align-items:center;
+  flex-wrap:nowrap;
+  margin-top:5px;
+  overflow:hidden;
+}
+#list .badge{
+  padding:3px 7px;
+  font-size:11px;
+  white-space:nowrap;
+}
+#list .compact-meta{
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.25;
+  margin-top:5px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+#list .photo-count{
+  font-size:11px;
+  min-width:max-content;
+}
+#list .overdue-badge{
+  padding:3px 7px;
+  font-size:10px;
+}
+.section-title{margin:14px 4px 8px}
+
+
+/* v11：精緻灰底＋低飽和青綠 */
+#projectPanel{background:linear-gradient(180deg,#ffffff 0%,#fbfcfc 100%)}
+#projectPanel .big{font-size:25px;margin-bottom:7px}
+.report-actions button:first-child,.report-actions button:nth-child(2){background:linear-gradient(135deg,var(--brand),var(--brand-deep))}
+.batch-card{background:linear-gradient(180deg,#ffffff 0%,#f8fbfa 100%)}
+#batchStartBtn{background:linear-gradient(100deg,#3f9b67 0%,#148a98 100%);box-shadow:0 7px 18px rgba(31,126,119,.18)}
+.toolbar{background:transparent;border-radius:16px}
+.toolbar input,.toolbar select{background:rgba(255,255,255,.94);border-color:#d9e0e1;box-shadow:0 3px 10px rgba(52,67,68,.035)}
+#list .item{background:rgba(255,255,255,.98);border-color:#dbe2e3;box-shadow:0 5px 14px rgba(40,56,58,.045)}
+#list .num{background:linear-gradient(145deg,#3d877f,#2f6e68)}
+#list .badge.location-badge{background:#e7f4ee;color:#2b7157;font-weight:800}
+.bottom-nav{background:rgba(255,255,255,.94);backdrop-filter:blur(16px)}
+.fab{background:linear-gradient(145deg,#3d877f,#2c6f68)}
+@media(max-width:430px){
+  .stats{grid-template-columns:82px 1fr;gap:10px}
+  .ring{width:78px;height:78px;font-size:17px}.ring span{width:57px;height:57px}
+  .pill{padding:6px 7px;font-size:11px}
+  #projectPanel .big{font-size:23px}
+}
+
+/* v12：依照確認示意圖重構，不只是換色 */
+:root{--bg:#e7ebed;--card:#ffffff;--brand:#19796e;--brand-deep:#11665d;--brand-soft:#e4f3ef;--line:#d7dfe1;--shadow:0 10px 28px rgba(44,61,65,.09)}
+body{background:linear-gradient(145deg,#dfe4e6 0%,#eef1f2 42%,#d9dee0 100%)}
+header{position:relative;background:transparent;padding:22px 22px 8px;backdrop-filter:none}
+main{max-width:980px;padding:8px 20px 160px}
+.card{border:1px solid rgba(205,214,216,.95);border-radius:18px;box-shadow:var(--shadow);padding:16px 18px;margin:12px 0}
+.dashboard-card{padding:0;overflow:hidden}
+.dashboard-address-row{display:flex;align-items:center;gap:10px;padding:18px 20px 0}
+.dashboard-project-icon{width:38px;height:38px;border-radius:12px;background:#eef7f4;display:grid;place-items:center;font-size:20px}
+.dashboard-address-row .location{font-size:17px;font-weight:700;color:#475357}
+.dashboard-card .stats{grid-template-columns:150px 1fr;padding:10px 20px 16px;gap:22px}
+.dashboard-card .ring{width:124px;height:124px;font-size:27px;background:conic-gradient(#7ed9ac 0deg,#e4e8e9 0)}
+.dashboard-card .ring span{width:88px;height:88px;display:flex;flex-direction:column;gap:2px;font-size:26px}
+.dashboard-card .ring small{font-size:11px;color:#788285;font-weight:700}
+.dashboard-summary{display:flex;align-items:center;gap:22px;min-width:0}
+.dashboard-card .big{font-size:52px;line-height:1;margin:0;white-space:nowrap}
+.dashboard-card .big small{font-size:15px;font-weight:700;margin-left:4px}
+.dashboard-card .pills{gap:10px;flex-wrap:wrap}
+.dashboard-card .pill{font-size:14px;padding:9px 14px}
+.dashboard-report{border-top:1px solid #e6ecec;background:linear-gradient(90deg,#eefaf6,#f9fcfb);padding:13px 16px;display:grid;grid-template-columns:1fr minmax(430px,1.45fr);align-items:center;gap:12px}
+.dashboard-report-copy b{font-size:17px}.dashboard-report-copy .sub{margin-top:4px}
+.report-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0}
+.report-actions button{height:48px;border-radius:12px;font-size:14px}
+.batch-card{padding:17px 18px}.batch-head-v12{align-items:center}.batch-head-v12 b{font-size:18px}
+.file-pick-compact{margin:0;min-width:175px;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:12px;color:#273336;font-weight:800;text-align:center;cursor:pointer}.file-pick-compact input{display:none}
+.batch-actions-v12{display:grid;grid-template-columns:minmax(0,2fr) minmax(220px,.8fr);gap:10px;margin-top:14px}.batch-actions-v12 button{height:50px;margin:0}
+#batchStartBtn{background:linear-gradient(100deg,#44b85d 0%,#0797a8 100%)}
+.toolbar{gap:10px;margin:14px 0 10px}.toolbar input{flex:1.8}.toolbar select{flex:.9}.toolbar input,.toolbar select{height:52px;border-radius:12px}
+.list-controls-v12{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 10px}.status-tabs-v12,.view-switch-v12{display:flex;gap:8px;align-items:center}.status-tabs-v12 button,.view-switch-v12 button{background:#fff;border:1px solid var(--line);color:#445156;box-shadow:none;padding:8px 11px;border-radius:10px;font-size:12px}.status-tabs-v12 button.active{background:#fff1f0;color:#b72e27;border-color:#f1b2ad}.view-switch-v12 button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+.section-title{font-size:16px;margin:12px 2px 8px}
+#list{display:block;overflow:visible;border:1px solid var(--line);border-radius:15px;background:#fff;box-shadow:var(--shadow)}
+.defect-table-v12{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}.defect-table-v12 th{background:#edf1f2;color:#344145;text-align:left;padding:9px 8px;border-bottom:1px solid #d5dddf;white-space:nowrap}.defect-table-v12 td{padding:9px 8px;border-bottom:1px solid #edf0f1;vertical-align:middle;color:#455155;overflow:hidden}.defect-table-v12 tr:last-child td{border-bottom:0}.defect-table-v12 tbody tr{cursor:pointer}.defect-table-v12 tbody tr:active{background:#f4faf8}.defect-table-v12 .thumb{width:56px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #dce2e3;display:block;cursor:zoom-in}.defect-table-v12 .title-cell{font-size:13px;font-weight:800;color:#182022}.defect-table-v12 .title-cell .row-meta{font-size:10px;font-weight:500;color:#899396;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.defect-table-v12 .loc-chip{display:inline-flex;align-items:center;gap:4px;padding:5px 7px;border-radius:8px;background:#e5f5ed;color:#216e54;font-weight:800;white-space:normal;line-height:1.2}.defect-table-v12 .state-chip{padding:5px 7px;border-radius:8px;font-weight:800;white-space:nowrap}.defect-table-v12 .state-chip.pending{background:#ffe8e5;color:#b72f28}.defect-table-v12 .state-chip.doing{background:#fff3dc;color:#9a6a16}.defect-table-v12 .state-chip.closed{background:#e6f4ea;color:#34714d}
+.photo-lightbox-v13{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:none;align-items:center;justify-content:center;padding:18px}.photo-lightbox-v13.open{display:flex}.photo-lightbox-v13 img{max-width:96vw;max-height:90vh;object-fit:contain;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.4)}.photo-lightbox-v13 .close{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:26px;padding:0}.photo-lightbox-v13 .caption{position:absolute;left:18px;right:70px;bottom:calc(16px + env(safe-area-inset-bottom));color:#fff;font-size:13px;text-shadow:0 1px 3px #000}
+#list.card-mode-v12{border:0;background:transparent;box-shadow:none;overflow:visible;display:flex;flex-direction:column;gap:8px}#list.card-mode-v12 .item{display:grid}
+.fab{right:24px;bottom:calc(90px + env(safe-area-inset-bottom));height:58px;border-radius:20px;box-shadow:0 10px 22px rgba(17,102,93,.24)}
+@media(max-width:650px){
+  header{padding:18px 18px 5px}main{padding:6px 14px 150px}.card{border-radius:17px;padding:14px}
+  .dashboard-address-row{padding:14px 14px 0}.dashboard-address-row .location{font-size:14px}.dashboard-project-icon{width:32px;height:32px;font-size:17px}
+  .dashboard-card .stats{grid-template-columns:92px 1fr;padding:8px 14px 13px;gap:10px}.dashboard-card .ring{width:82px;height:82px}.dashboard-card .ring span{width:60px;height:60px;font-size:20px}.dashboard-card .ring small{font-size:8px}
+  .dashboard-summary{display:block}.dashboard-card .big{font-size:36px;margin-bottom:8px}.dashboard-card .big small{font-size:12px}.dashboard-card .pills{gap:5px;flex-wrap:nowrap}.dashboard-card .pill{font-size:10px;padding:6px 7px}
+  .dashboard-report{grid-template-columns:1fr;padding:11px 12px}.dashboard-report-copy .sub{font-size:11px}.report-actions{grid-template-columns:repeat(3,1fr)}.report-actions button{height:42px;font-size:11px;padding:7px 4px}
+  .batch-head-v12{display:grid;grid-template-columns:1fr auto;gap:8px}.batch-head-v12 .sub{font-size:11px;line-height:1.4}.file-pick-compact{min-width:112px;padding:10px 8px;font-size:11px}.batch-actions-v12{grid-template-columns:1fr}.batch-actions-v12 button{height:44px;font-size:12px}
+  .toolbar{display:grid;grid-template-columns:1.2fr .8fr .8fr}.toolbar input,.toolbar select{height:46px;padding:9px;font-size:12px}
+  .list-controls-v12{overflow-x:auto}.status-tabs-v12{gap:5px}.status-tabs-v12 button,.view-switch-v12 button{font-size:10px;padding:7px 8px}.view-switch-v12{margin-left:auto}
+  #list{margin:0 -1px}.defect-table-v12{min-width:0}.defect-table-v12 th,.defect-table-v12 td{padding:7px 6px}.defect-table-v12 .thumb{width:48px;height:44px}.defect-table-v12 th:nth-child(1),.defect-table-v12 td:nth-child(1){width:54px}.defect-table-v12 th:nth-child(2),.defect-table-v12 td:nth-child(2){width:auto}.defect-table-v12 th:nth-child(3),.defect-table-v12 td:nth-child(3){width:104px}.defect-table-v12 th:nth-child(4),.defect-table-v12 td:nth-child(4){width:68px}.defect-table-v12 .loc-chip{font-size:10px;padding:5px 5px}.defect-table-v12 .state-chip{font-size:10px;padding:5px 5px}
+}
+
+/* v18：工程名稱移入摘要卡＋地址可編輯 */
+.dashboard-project-info{display:flex;align-items:flex-start;gap:11px;min-width:0;flex:1}
+.dashboard-project-text{min-width:0;flex:1}
+.dashboard-project-name{font-size:24px;font-weight:850;line-height:1.1;color:#182022;margin:0 0 4px}
+.dashboard-project-subtitle{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:8px}
+.dashboard-address-line{display:flex;align-items:center;gap:7px;min-width:0}
+.dashboard-address-line .location{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.address-edit-btn{flex:0 0 auto;width:32px;height:32px;padding:0;border-radius:10px;background:#eef3f2;color:var(--brand-deep);box-shadow:none;font-size:15px;display:grid;place-items:center}
+.address-edit-btn:active{transform:scale(.96)}
+#detailPage .project-back{margin-top:2px}
+@media(max-width:650px){
+  .dashboard-project-name{font-size:21px}
+  .dashboard-project-subtitle{font-size:11px;margin-bottom:6px}
+  .dashboard-address-row{align-items:flex-start}
+  .dashboard-address-line .location{font-size:13px}
+  .address-edit-btn{width:30px;height:30px;font-size:14px}
+}
+
+
+/* v20：缺失批量操作 */
+.bulk-actions-v20{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 10px;padding:8px 10px;background:rgba(255,255,255,.78);border:1px solid var(--line);border-radius:14px}
+.bulk-actions-v20 .bulk-count{font-size:12px;font-weight:800;color:#526064;min-width:58px}
+.bulk-actions-v20 button,.bulk-actions-v20 select{padding:8px 10px;border-radius:10px;font-size:12px}
+.bulk-actions-v20 button{background:#eef4f3;color:#245f59;border:1px solid #d8e4e2;box-shadow:none}
+.bulk-actions-v20 button.danger{background:#fff0ee;color:#b23b31;border-color:#f0c7c2}
+.bulk-actions-v20 select{width:auto;min-width:108px;background:#fff}
+.defect-table-v12 th.select-col,.defect-table-v12 td.select-col{width:40px;text-align:center;padding-left:8px;padding-right:4px}
+.defect-select{width:20px;height:20px;accent-color:var(--brand);cursor:pointer}
+.card-select-v20{display:flex;align-items:center;justify-content:center}
+.card-select-v20 .defect-select{width:22px;height:22px}
+@media(max-width:600px){.bulk-actions-v20{gap:6px;padding:7px 8px}.bulk-actions-v20 button,.bulk-actions-v20 select{font-size:11px;padding:7px 8px}.bulk-actions-v20 .bulk-count{font-size:11px}.defect-table-v12 th.select-col,.defect-table-v12 td.select-col{width:34px}}
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<style id="v23-table-fix">
+/* V23: checkbox at far right, restore useful photo/text width */
+.defect-table-v12{table-layout:fixed!important;width:100%!important;}
+.defect-table-v12 th,.defect-table-v12 td{padding:8px 7px!important;}
+.defect-table-v12 th:nth-child(1),.defect-table-v12 td:nth-child(1){width:72px!important;}
+.defect-table-v12 th:nth-child(2),.defect-table-v12 td:nth-child(2){width:auto!important;}
+.defect-table-v12 th:nth-child(3),.defect-table-v12 td:nth-child(3){width:104px!important;}
+.defect-table-v12 th:nth-child(4),.defect-table-v12 td:nth-child(4){width:72px!important;}
+.defect-table-v12 th:nth-child(5),.defect-table-v12 td:nth-child(5){width:32px!important;min-width:32px!important;max-width:32px!important;padding-left:2px!important;padding-right:2px!important;text-align:center!important;}
+.defect-table-v12 .thumb{width:62px!important;height:56px!important;}
+.defect-table-v12 .title-cell{font-size:13px!important;}
+.defect-table-v12 .title-cell .row-meta{font-size:10px!important;}
+.defect-table-v12 .defect-select{width:18px!important;height:18px!important;margin:0!important;}
+@media(max-width:600px){
+ .defect-table-v12 th,.defect-table-v12 td{padding:7px 5px!important;}
+ .defect-table-v12 th:nth-child(1),.defect-table-v12 td:nth-child(1){width:68px!important;}
+ .defect-table-v12 th:nth-child(3),.defect-table-v12 td:nth-child(3){width:98px!important;}
+ .defect-table-v12 th:nth-child(4),.defect-table-v12 td:nth-child(4){width:66px!important;}
+ .defect-table-v12 th:nth-child(5),.defect-table-v12 td:nth-child(5){width:28px!important;min-width:28px!important;max-width:28px!important;}
+ .defect-table-v12 .thumb{width:58px!important;height:52px!important;}
+}
+</style>
+
+<style id="v24-checkbox-date-fix">
+/* V24: smaller bulk checkbox + full created/due dates */
+.defect-table-v12 th:nth-child(5),.defect-table-v12 td:nth-child(5){width:24px!important;min-width:24px!important;max-width:24px!important;padding-left:1px!important;padding-right:1px!important;}
+.defect-table-v12 .defect-select{width:14px!important;height:14px!important;margin:0!important;}
+.defect-table-v12 .title-cell .row-meta{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.28!important;}
+.defect-table-v12 .title-cell .row-vendor{display:block;white-space:nowrap;}
+.defect-table-v12 .title-cell .row-dates{display:block;white-space:nowrap;font-variant-numeric:tabular-nums;}
+@media(max-width:600px){
+ .defect-table-v12 th:nth-child(5),.defect-table-v12 td:nth-child(5){width:22px!important;min-width:22px!important;max-width:22px!important;}
+ .defect-table-v12 .defect-select{width:13px!important;height:13px!important;}
+ .defect-table-v12 .title-cell .row-meta{font-size:9.5px!important;}
+}
+</style>
+
+<style id="v25-checkbox-safe-fix">
+/* V25: use a custom checkbox so iOS cannot render it outside the last column */
+.defect-table-v12 th:nth-child(5),
+.defect-table-v12 td:nth-child(5){
+  width:30px!important;
+  min-width:30px!important;
+  max-width:30px!important;
+  padding:0 5px!important;
+  text-align:center!important;
+  vertical-align:middle!important;
+  overflow:visible!important;
+}
+.defect-table-v12 .defect-select{
+  -webkit-appearance:none!important;
+  appearance:none!important;
+  box-sizing:border-box!important;
+  display:inline-grid!important;
+  place-content:center!important;
+  width:18px!important;
+  height:18px!important;
+  min-width:18px!important;
+  min-height:18px!important;
+  margin:0!important;
+  padding:0!important;
+  border:1.5px solid #8d9799!important;
+  border-radius:6px!important;
+  background:#fff!important;
+  box-shadow:none!important;
+  vertical-align:middle!important;
+}
+.defect-table-v12 .defect-select:checked{
+  background:var(--brand)!important;
+  border-color:var(--brand)!important;
+}
+.defect-table-v12 .defect-select:checked::after{
+  content:'✓';
+  color:#fff;
+  font-size:13px;
+  font-weight:900;
+  line-height:1;
+}
+@media(max-width:600px){
+  .defect-table-v12 th:nth-child(5),
+  .defect-table-v12 td:nth-child(5){
+    width:28px!important;
+    min-width:28px!important;
+    max-width:28px!important;
+    padding:0 4px!important;
+  }
+  .defect-table-v12 .defect-select{
+    width:17px!important;
+    height:17px!important;
+    min-width:17px!important;
+    min-height:17px!important;
+  }
+  .defect-table-v12 .defect-select:checked::after{font-size:12px;}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+#teamManagerV27 .member{align-items:center}
+#teamManagerV27 .member-name{min-width:130px}
+#teamManagerV27 .member .sub{margin-top:3px;font-size:12px;opacity:.78}
+#teamManagerV27 .member button.danger{background:#fff1f0!important;color:#b42318!important;border:1px solid #f1b5b0!important}
+@media(max-width:600px){
+ #teamManagerV27 .member{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
+ #teamManagerV27 .member-name{grid-column:1/-1!important}
+ #teamManagerV27 .member input{min-width:0!important;width:100%!important}
+ #teamManagerV27 .member button{width:100%!important}
+}
+</style>
+<style>
+.toolbar{flex-wrap:wrap}
+#titleFilterV331,#areaFilterV331{min-width:160px}
+@media(max-width:600px){#titleFilterV331,#areaFilterV331{flex:1 1 calc(50% - 6px);min-width:0}}
 </style>
 </head>
-<body>
+<body data-build="2026-09-11-v18">
 <header>
 <div>
   <h1 id="pageTitle">我的工程</h1>
-  <div class="sub" id="pageSubtitle">多專案工程缺失管理</div>
+  <div class="sub" id="pageSubtitle">多專案工程缺失管理 · v23</div>
 </div>
 <button class="secondary" id="headerAction" onclick="openProject()">＋ 新增工程</button>
 </header>
@@ -72,26 +381,54 @@ small.warn{color:var(--red);font-weight:700}
 </div>
 
 <div id="detailPage" class="page">
-  <div class="project-back">
-    <button onclick="showProjectsPage()">‹ 返回工程</button>
+<section class="card dashboard-card" id="projectPanel">
+  <div class="dashboard-address-row">
+    <div class="dashboard-project-info">
+      <div class="dashboard-project-icon">🏢</div>
+      <div class="dashboard-project-text">
+        <div class="dashboard-project-name" id="dashboardProjectName">工程</div>
+        <div class="dashboard-project-subtitle">工程缺失管理</div>
+        <div class="dashboard-address-line">
+          <div class="location" id="location">請先建立工程</div>
+          <button type="button" class="address-edit-btn" onclick="editProjectInfo()" aria-label="編輯工程名稱與地址" title="編輯工程名稱與地址">✎</button>
+        </div>
+      </div>
+    </div>
   </div>
-
-
-<section class="card" id="projectPanel">
   <div class="stats">
-    <div class="ring" id="ring"><span id="pct">0%</span></div>
-    <div><div class="location" id="location">請先建立工程</div><div class="big" id="total">0 <small style="font-size:14px;font-weight:500">總缺失數</small></div>
-    <div class="pills"><span class="pill red" id="pending">🔴 0 待處理</span><span class="pill amber" id="doing">🟠 0 進行中</span><span class="pill green" id="closed">🟢 0 已關閉</span></div></div>
+    <div class="ring" id="ring"><span><b id="pct">0%</b><small>改善完成率</small></span></div>
+    <div class="dashboard-summary">
+      <div class="big" id="total">0 <small>總缺失數</small></div>
+      <div class="pills"><span class="pill red" id="pending">🔴 0 待處理</span><span class="pill amber" id="doing">🟠 0 進行中</span><span class="pill green" id="closed">🟢 0 已關閉</span></div>
+    </div>
+  </div>
+  <div class="dashboard-report">
+    <div class="dashboard-report-copy">
+      <b>📋 缺失報告</b>
+      <div class="sub">將目前工程的缺失、照片、狀態與品牌資訊整理成報告。</div>
+    </div>
+    <div class="report-actions">
+      <button onclick="generatePDF()">📄 產生 PDF</button>
+      <button onclick="generateExcel()">📊 產生 EXCEL</button>
+      <button class="secondary" onclick="copyOpenDefects()">▣ 一鍵複製</button>
+    </div>
   </div>
 </section>
 
-<section class="card">
-  <b>建立客戶報告</b>
-  <div class="sub">將目前工程的缺失、照片、狀態與品牌資訊整理成 PDF 報告。</div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-<button onclick="generatePDF()">產生 PDF 報表</button>
-<button class="secondary" onclick="copyOpenDefects()">📋 一鍵複製未改善缺失</button>
-</div>
+
+<section class="card batch-card" id="batchCard">
+  <div class="batch-head batch-head-v12">
+    <div>
+      <b>✨ 批次浮水印建單</b>
+      <div class="sub">一次選多張缺失照片，每張照片會優先使用 AI 圖像辨識，自動建立 1 筆缺失。</div>
+    </div>
+    <label class="file-pick-compact">📷 選擇檔案<input id="batchPhotos" type="file" accept="image/*" multiple></label>
+  </div>
+  <div class="batch-actions-v12">
+    <button id="batchStartBtn" type="button" onclick="batchCreateFromWatermarks()">▣ AI 辨識並自動建立全部缺失</button>
+    <button type="button" class="secondary" onclick="configureAIVisionEndpoint()">⚙️ AI 辨識服務設定</button>
+  </div>
+  <div id="batchStatus" class="sub" style="margin-top:8px"></div>
 </section>
 
 <div class="toolbar">
@@ -108,9 +445,32 @@ small.warn{color:var(--red);font-weight:700}
 <option value="建築">建築</option>
 <option value="其他">其他</option>
 </select>
+<select id="titleFilterV331" onchange="renderDefects()"><option value="all">全部缺失名稱</option></select>
+<select id="areaFilterV331" onchange="renderDefects()"><option value="all">全部樓層／區域</option></select>
 </div>
-
-<div class="section-title">缺失</div>
+<div class="list-controls-v12">
+  <div class="status-tabs-v12">
+    <button type="button" id="tabPending" onclick="quickStatusFilter('pending')">🔴 待處理 <b id="tabPendingCount">0</b></button>
+    <button type="button" id="tabDoing" onclick="quickStatusFilter('doing')">🟠 進行中 <b id="tabDoingCount">0</b></button>
+    <button type="button" id="tabClosed" onclick="quickStatusFilter('closed')">🟢 已關閉 <b id="tabClosedCount">0</b></button>
+  </div>
+  <div class="view-switch-v12">
+    <button id="viewTableBtn" type="button" class="active" onclick="setDefectViewMode('table')">▦ 表格</button>
+    <button id="viewCardBtn" type="button" onclick="setDefectViewMode('card')">▦ 卡片</button>
+  </div>
+</div>
+<div class="bulk-actions-v20" id="bulkActions">
+  <span class="bulk-count" id="bulkCount">已選 0 筆</span>
+  <button type="button" onclick="toggleSelectAllVisible()">全選/取消</button>
+  <select id="bulkStatus">
+    <option value="pending">待處理</option>
+    <option value="doing">進行中</option>
+    <option value="closed">已關閉</option>
+  </select>
+  <button type="button" onclick="applyBulkStatus()">批量改狀態</button>
+  <button type="button" class="danger" onclick="bulkDeleteDefects()">批量刪除</button>
+</div>
+<div class="section-title" id="defectSectionTitle">缺失</div>
 <div id="list"></div>
 
 </div>
@@ -142,6 +502,12 @@ small.warn{color:var(--red);font-weight:700}
 <label>缺失說明</label><textarea id="fDesc" rows="3" placeholder="描述問題、位置、要求改善方式"></textarea>
 <label>缺失相片（可多張）</label><div class="sub">可從相簿選擇；右上角 × 可刪除。</div>
 <input id="fPhotos" type="file" accept="image/*" multiple>
+<div id="ocrBox" style="display:block;margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#f8fbfa">
+  <div style="font-weight:800;color:var(--brand);margin-bottom:4px">✨ AI 浮水印辨識</div>
+  <div id="ocrStatus" class="sub">上傳缺失相片後，AI 會直接讀取左下角浮水印的施工位置、區域與缺失名稱。</div>
+  <button type="button" style="width:100%;margin-top:10px" onclick="recognizeWatermarkFromLatest()">AI 辨識最新一張缺失相片</button>
+  <button type="button" class="secondary" style="width:100%;margin-top:8px" onclick="configureAIVisionEndpoint()">⚙️ AI 辨識服務設定</button>
+</div>
 <div id="preview" class="photo-grid"></div>
 <label style="margin-top:18px">改善相片（可多張）</label><div class="sub">改善完成後可上傳照片；右上角 × 可刪除。</div>
 <input id="fImprovePhotos" type="file" accept="image/*" multiple>
@@ -166,6 +532,13 @@ small.warn{color:var(--red);font-weight:700}
 </div></div>
 
 <script>
+
+window.addEventListener('error',function(e){
+  const box=document.createElement('div');
+  box.style.cssText='position:fixed;left:10px;right:10px;top:10px;z-index:99999;background:#fff3f2;color:#b42318;border:1px solid #f0b7b2;border-radius:12px;padding:10px;font-size:12px';
+  box.textContent='程式載入錯誤：'+(e.message||'未知錯誤');
+  document.body.appendChild(box);
+});
 window.addEventListener('error', function(e){
   console.error(e.error || e.message);
 });
@@ -179,6 +552,8 @@ const fPhotos = $('fPhotos');
 const fImprovePhotos = $('fImprovePhotos');
 const fTitle = $('fTitle');
 const fArea = $('fArea');
+const ocrBox=$('ocrBox');
+const ocrStatus=$('ocrStatus');
 const fVendor = $('fVendor');
 const fCreated = $('fCreated');
 const fDue = $('fDue');
@@ -200,7 +575,23 @@ let state=JSON.parse(localStorage.getItem(KEY)||'null')||{
    ]},
   {id:'demo2',name:'DH1',no:'DH1-2026',address:'台南市○○區○○路',owner:'',builder:'',start:'',end:'',defects:[]}
  ]};
-let currentId=null, editId=null, tempPhotos=[], tempImprovePhotos=[];
+let currentId=null, editId=null, tempPhotos=[], tempImprovePhotos=[], tempOCRPhotos=[];
+function localToday(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function addDaysISO(dateStr,days=14){
+  const m=String(dateStr||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const d=m?new Date(Number(m[1]),Number(m[2])-1,Number(m[3])):new Date();
+  d.setDate(d.getDate()+days);
+  const y=d.getFullYear();
+  const mo=String(d.getMonth()+1).padStart(2,'0');
+  const da=String(d.getDate()).padStart(2,'0');
+  return `${y}-${mo}-${da}`;
+}
 function normalizeDates(){
   const today=localToday();
   state.projects.forEach(p=>p.defects.forEach(d=>{if(!d.created)d.created=today;}));
@@ -208,7 +599,8 @@ function normalizeDates(){
 }
 
 const statusText={pending:'待處理',doing:'進行中',closed:'已關閉'};
-function project(){return state.projects.find(p=>p.id===state.current)||state.projects[0]}
+function statusName(s){return statusText[s]||'待處理'}
+function project(){return state.projects.find(p=>String(p.id)===String(state.current))||state.projects[0]}
 function save(){
   try{
     localStorage.setItem(KEY,JSON.stringify(state));
@@ -220,33 +612,198 @@ function save(){
 }
 function renderProjects(){
  const el=document.getElementById('projects');
- el.innerHTML=state.projects.map(p=>{
-   const done=p.defects.filter(x=>x.status==='closed').length;
-   return `<div class="item" onclick="selectProject('${p.id}')"><div class="num">🏗️</div><div><h3>${esc(p.name)}</h3><div class="meta">${esc(p.address||'尚未設定地址')}<br>缺失 ${p.defects.length} 項　完成 ${done} 項</div></div><div>›</div></div>`;
+ el.innerHTML=state.projects.map((p,idx)=>{
+   const done=(p.defects||[]).filter(x=>x.status==='closed').length;
+   return `<button type="button" class="item project-item" onclick="event.preventDefault();selectProjectByIndex(${idx})">
+     <div class="num">🏗️</div>
+     <div style="text-align:left;flex:1;min-width:0">
+       <h3>${esc(p.name)}</h3>
+       <div class="meta">${esc(p.address||'尚未設定地址')}<br>缺失 ${(p.defects||[]).length} 項　完成 ${done} 項</div>
+     </div>
+     <div>›</div>
+   </button>`;
  }).join('') + `<button style="width:100%;margin-top:8px" onclick="openProject()">＋ 新增其他工程</button>`;
 }
-function renderDefects(){
- const p=project(), q=(document.getElementById('search').value||'').toLowerCase(), f=document.getElementById('filter').value, cf=document.getElementById('categoryFilter').value;
- const arr=p.defects.filter(x=>(f==='all'||x.status===f)&&(cf==='all'||(x.category||'其他')===cf)&&(`${x.title} ${x.area} ${x.vendor} ${x.desc} ${x.category||'其他'}`).toLowerCase().includes(q));
- let pending=p.defects.filter(x=>x.status==='pending').length,doing=p.defects.filter(x=>x.status==='doing').length,closed=p.defects.filter(x=>x.status==='closed').length;
- document.getElementById('pending').textContent=`🔴 ${pending} 待處理`;document.getElementById('doing').textContent=`🟠 ${doing} 進行中`;document.getElementById('closed').textContent=`🟢 ${closed} 已關閉`;
- document.getElementById('total').innerHTML=`${p.defects.length} <small style="font-size:14px;font-weight:500">總缺失數</small>`;
- let pct=p.defects.length?Math.round(closed/p.defects.length*100):0;document.getElementById('pct').textContent=pct+'%';document.getElementById('ring').style.background=`conic-gradient(var(--brand) ${pct*3.6}deg,#e2e6e7 0)`;
- document.getElementById('list').innerHTML=arr.length?arr.map((x,i)=>`<div class="item" onclick="openDetail(${x.id})"><div class="num">${i+1}</div><div><h3>${esc(x.title)}</h3><div class="pills"><span class="pill amber">${esc(x.level)}</span><span class="pill">🏷️ ${esc(x.category||'其他')}</span><span class="pill ${x.status==='pending'?'red':x.status==='closed'?'green':'amber'}">${statusText[x.status]}</span></div><div class="meta">${esc(x.area)}　${x.vendor?esc(x.vendor):'未指派'}　${x.created?'起單 '+x.created:''}　${x.due?'期限 '+x.due:''}${x.due && new Date(x.due)<new Date() && x.status!=='closed'?'　<small class="warn">逾期</small>':''}</div></div><div class="photo-count">📷 ${(x.defectPhotos||x.photos||[]).length+(x.improvementPhotos||[]).length}</div></div>`).join(''):`<div class="card empty">目前沒有符合條件的缺失</div>`;
+let defectViewMode='table';
+let selectedDefectIds=new Set();
+let visibleDefectIds=[];
+function updateBulkUI(){
+  const el=document.getElementById('bulkCount');
+  if(el) el.textContent=`已選 ${selectedDefectIds.size} 筆`;
 }
+function toggleDefectSelection(id,checked){
+  const key=String(id);
+  if(checked) selectedDefectIds.add(key); else selectedDefectIds.delete(key);
+  updateBulkUI();
+  document.querySelectorAll(`.defect-select[data-id="${CSS.escape(key)}"]`).forEach(cb=>cb.checked=checked);
+}
+function toggleSelectAllVisible(){
+  const ids=(visibleDefectIds||[]).map(String);
+  if(!ids.length)return;
+  const allSelected=ids.every(id=>selectedDefectIds.has(id));
+  ids.forEach(id=>{ if(allSelected) selectedDefectIds.delete(id); else selectedDefectIds.add(id); });
+  renderDefects();
+}
+function applyBulkStatus(){
+  if(!selectedDefectIds.size){alert('請先勾選缺失');return;}
+  const status=document.getElementById('bulkStatus')?.value||'pending';
+  const p=project(); if(!p)return;
+  let changed=0;
+  p.defects.forEach(x=>{if(selectedDefectIds.has(String(x.id))){x.status=status;changed++;}});
+  if(!changed)return;
+  save();
+  selectedDefectIds.clear();
+  render();
+  alert(`已批量更新 ${changed} 筆缺失狀態為「${statusText[status]||status}」`);
+}
+function bulkDeleteDefects(){
+  if(!selectedDefectIds.size){alert('請先勾選要刪除的缺失');return;}
+  const count=selectedDefectIds.size;
+  if(!confirm(`確定要刪除已選取的 ${count} 筆缺失嗎？\n刪除後無法復原。`))return;
+  const p=project(); if(!p)return;
+  p.defects=p.defects.filter(x=>!selectedDefectIds.has(String(x.id)));
+  selectedDefectIds.clear();
+  save();
+  render();
+}
+
+function quickStatusFilter(v){
+  const sel=document.getElementById('filter');
+  sel.value=sel.value===v?'all':v;
+  renderDefects();
+}
+function setDefectViewMode(v){
+  defectViewMode=v==='card'?'card':'table';
+  document.getElementById('viewTableBtn')?.classList.toggle('active',defectViewMode==='table');
+  document.getElementById('viewCardBtn')?.classList.toggle('active',defectViewMode==='card');
+  renderDefects();
+}
+function renderDefects(){
+ const p=project(); if(!p)return;
+
+ const all=p.defects||[];
+ const pendingCount=all.filter(x=>x.status==='pending').length;
+ const doingCount=all.filter(x=>x.status==='doing').length;
+ const closedCount=all.filter(x=>x.status==='closed').length;
+ const pct=all.length?Math.round(closedCount/all.length*100):0;
+
+ document.getElementById('total').innerHTML=`${all.length} <small>總缺失數</small>`;
+ document.getElementById('pending').textContent=`🔴 ${pendingCount} 待處理`;
+ document.getElementById('doing').textContent=`🟠 ${doingCount} 進行中`;
+ document.getElementById('closed').textContent=`🟢 ${closedCount} 已關閉`;
+ document.getElementById('tabPendingCount').textContent=pendingCount;
+ document.getElementById('tabDoingCount').textContent=doingCount;
+ document.getElementById('tabClosedCount').textContent=closedCount;
+ const activeFilter=document.getElementById('filter').value;
+ ['Pending','Doing','Closed'].forEach(k=>document.getElementById('tab'+k)?.classList.remove('active'));
+ if(activeFilter==='pending')document.getElementById('tabPending')?.classList.add('active');
+ if(activeFilter==='doing')document.getElementById('tabDoing')?.classList.add('active');
+ if(activeFilter==='closed')document.getElementById('tabClosed')?.classList.add('active');
+ document.getElementById('pct').textContent=`${pct}%`;
+ document.getElementById('ring').style.background=`conic-gradient(#7ed9ac ${pct*3.6}deg,#e4e8e9 0deg)`;
+ document.getElementById('location').textContent=(p.address||'尚未設定地址');
+ const dpn=document.getElementById('dashboardProjectName'); if(dpn) dpn.textContent=p.name||'工程';
+ const st=document.getElementById('defectSectionTitle'); if(st) st.textContent=`缺失（${all.length}）`;
+
+ const titleSel=document.getElementById('titleFilterV331'),areaSel=document.getElementById('areaFilterV331');
+ const keepTitle=titleSel?.value||'all',keepArea=areaSel?.value||'all';
+ const titles=[...new Set(all.map(x=>(x.title||'').trim()).filter(Boolean))];
+ const areas=[...new Set(all.map(x=>(x.area||'').trim()).filter(Boolean))];
+ if(titleSel){titleSel.replaceChildren(new Option('全部缺失名稱','all'),...titles.map(v=>new Option(v,v)));titleSel.value=titles.includes(keepTitle)?keepTitle:'all';}
+ if(areaSel){areaSel.replaceChildren(new Option('全部樓層／區域','all'),...areas.map(v=>new Option(v,v)));areaSel.value=areas.includes(keepArea)?keepArea:'all';}
+ const q=document.getElementById('search').value.toLowerCase();
+ const f=document.getElementById('filter').value;
+ const cf=document.getElementById('categoryFilter').value;
+ const tf=titleSel?.value||'all',af=areaSel?.value||'all';
+ const rows=all.filter(x=>{
+   const hit=((x.title||'')+' '+(x.area||'')+' '+(x.vendor||'')+' '+(x.category||'其他')+' '+(x.desc||'')).toLowerCase().includes(q);
+   return hit&&(f==='all'||x.status===f)&&(cf==='all'||(x.category||'其他')===cf)
+     &&(tf==='all'||(x.title||'').trim()===tf)&&(af==='all'||(x.area||'').trim()===af);
+ });
+ visibleDefectIds=rows.map(x=>String(x.id));
+ updateBulkUI();
+
+ const list=document.getElementById('list');
+ if(!rows.length){
+   list.className='';
+   list.innerHTML=all.length?'<div class="empty">目前沒有符合篩選條件的缺失</div>':'<div class="empty">目前尚無缺失，按「新增缺失」建立第一筆。</div>';
+   return;
+ }
+ const today=localToday();
+ const makeOverdue=x=>{
+   if(x.status==='closed'||!x.due||x.due>=today)return '';
+   const a=new Date(today+'T00:00:00'),b=new Date(x.due+'T00:00:00');
+   const days=Math.max(1,Math.floor((a-b)/86400000));
+   return `逾期${days}天`;
+ };
+ if(defectViewMode==='table'){
+   list.className='';
+   list.innerHTML=`<table class="defect-table-v12"><thead><tr><th>照片</th><th>缺失名稱</th><th>樓層／區域</th><th>狀態</th><th class="select-col">✓</th></tr></thead><tbody>${rows.map((x,i)=>{
+     const dp=Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]);
+     const thumb=dp[0]?`<img class="thumb" src="${esc(dp[0])}" alt="缺失照片" onclick="event.stopPropagation();openPhotoLightbox('${x.id}',0,'defect')">`:'<div class="thumb" style="display:grid;place-items:center;background:#f1f4f4">—</div>';
+     const od=makeOverdue(x);
+     const checked=selectedDefectIds.has(String(x.id))?'checked':'';
+     return `<tr onclick="openDetail('${x.id}')"><td>${thumb}</td><td class="title-cell">${esc(x.title)}${od?`<div class="overdue-badge" style="margin:4px 0 0">${od}</div>`:''}<div class="row-meta"><span class="row-vendor">${esc(x.vendor||'機電工程')}</span><span class="row-dates">${esc(x.created||'-')} → ${esc(x.due||'-')}</span></div></td><td>${x.area?`<span class="loc-chip">📍 ${esc(x.area)}</span>`:'<span style="color:#9aa2a4">未辨識</span>'}</td><td><span class="state-chip ${esc(x.status||'pending')}">${esc(statusText[x.status]||'待處理')}</span></td><td class="select-col"><input class="defect-select" data-id="${esc(x.id)}" type="checkbox" ${checked} onclick="event.stopPropagation();toggleDefectSelection('${x.id}',this.checked)"></td></tr>`;
+   }).join('')}</tbody></table>`;
+ }else{
+   list.className='card-mode-v12';
+   list.innerHTML=rows.map((x,i)=>{
+     const defectPhotos=Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]);
+     const improvementPhotos=Array.isArray(x.improvementPhotos)?x.improvementPhotos:[];
+     const photos=defectPhotos.length+improvementPhotos.length;
+     const od=makeOverdue(x);
+     const checked=selectedDefectIds.has(String(x.id))?'checked':'';
+     return `<div class="item" onclick="openDetail('${x.id}')"><div class="card-select-v20"><input class="defect-select" data-id="${esc(x.id)}" type="checkbox" ${checked} onclick="event.stopPropagation();toggleDefectSelection('${x.id}',this.checked)"></div><div class="num">${i+1}</div><div style="min-width:0"><div class="compact-top"><h3 class="compact-title">${esc(x.title)}</h3><span class="photo-count">${photos?`📷${photos}`:''}</span></div><div class="compact-badges">${x.area?`<span class="badge location-badge">📍 ${esc(x.area)}</span>`:''}<span class="badge category">🏷️${esc(x.category||'其他')}</span><span class="badge ${x.status}">${statusText[x.status]||'待處理'}</span>${od?`<span class="overdue-badge">${od}</span>`:''}</div><div class="compact-meta">${esc(x.vendor||'未指定廠商')} · 起單 ${esc(x.created||'-')} · 期限 ${esc(x.due||'-')}</div></div></div>`;
+   }).join('');
+ }
+}
+
 function render(){renderProjects();renderDefects()}
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function selectProject(id){
-  state.current=id;
+  const idx=state.projects.findIndex(p=>String(p.id)===String(id));
+  if(idx>=0) selectProjectByIndex(idx);
+}
+function selectProjectByIndex(idx){
+  const p=state.projects[idx];
+  if(!p) return;
+  state.current=p.id;
+  selectedDefectIds.clear();
   save();
+
   document.getElementById('search').value='';
   document.getElementById('filter').value='all';
   document.getElementById('categoryFilter').value='all';
+  const tf331=document.getElementById('titleFilterV331');if(tf331)tf331.value='all';
+  const af331=document.getElementById('areaFilterV331');if(af331)af331.value='all';
+
+  // 先切到專案頁，避免 iPhone Safari 在 click 事件中重畫工程卡片造成畫面留在原頁。
+  showDetailPage();
+  document.getElementById('pageTitle').textContent=p.name;
+  document.getElementById('pageSubtitle').textContent='工程缺失管理';
+  renderDefects();
+
+  window.scrollTo({top:0,left:0,behavior:'instant'});
+  try{ history.replaceState(null,'','#project='+encodeURIComponent(String(p.id))); }catch(e){}
+}
+
+
+function restoreProjectFromHash(){
+  const m=location.hash.match(/^#project=(.+)$/);
+  if(!m)return false;
+  const id=decodeURIComponent(m[1]);
+  const idx=state.projects.findIndex(p=>String(p.id)===String(id));
+  if(idx<0)return false;
+  state.current=state.projects[idx].id;
+  save();
   render();
   showDetailPage();
+  return true;
 }
 
 function showProjectsPage(){
+  const hdr=document.querySelector('header'); if(hdr) hdr.style.display='flex';
+  try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
   document.getElementById('projectsPage').classList.add('active');
   document.getElementById('detailPage').classList.remove('active');
   document.getElementById('pageTitle').textContent='我的工程';
@@ -260,6 +817,7 @@ function showProjectsPage(){
 function showDetailPage(){
   const p=project();
   if(!p){ showProjectsPage(); return; }
+  const hdr=document.querySelector('header'); if(hdr) hdr.style.display='none';
   document.getElementById('projectsPage').classList.remove('active');
   document.getElementById('detailPage').classList.add('active');
   document.getElementById('pageTitle').textContent=p.name;
@@ -268,7 +826,36 @@ function showDetailPage(){
   const fab=document.querySelector('.fab'); if(fab) fab.style.display='';
   document.getElementById('navProjects').classList.remove('active');
   document.getElementById('navDefects').classList.add('active');
-  document.getElementById('location').textContent='📍 '+(p.address||'尚未設定地址');
+  const dpn=document.getElementById('dashboardProjectName'); if(dpn) dpn.textContent=p.name||'工程';
+  document.getElementById('location').textContent=(p.address||'尚未設定地址');
+  renderDefects();
+}
+
+function editProjectInfo(){
+  const p=project();
+  if(!p) return;
+
+  const nextName=prompt('編輯工程名稱',p.name||'');
+  if(nextName===null) return;
+  const name=String(nextName).trim();
+  if(!name){ alert('工程名稱不可空白'); return; }
+
+  const nextAddress=prompt('編輯工程地址',p.address||'');
+  if(nextAddress===null) return;
+
+  p.name=name;
+  p.address=String(nextAddress).trim();
+
+  if(!save()) return;
+
+  const dpn=document.getElementById('dashboardProjectName');
+  if(dpn) dpn.textContent=p.name;
+  const loc=document.getElementById('location');
+  if(loc) loc.textContent=p.address||'尚未設定地址';
+  const pageTitle=document.getElementById('pageTitle');
+  if(pageTitle) pageTitle.textContent=p.name;
+
+  renderProjects();
   renderDefects();
 }
 
@@ -278,29 +865,52 @@ function saveProject(){let name=document.getElementById('pName').value.trim();if
 function openDefect(id=null){
   editId=id;
   document.getElementById('modalTitle').textContent=id?'編輯缺失':'新增缺失';
-  let x=id?project().defects.find(a=>a.id===id):{};
-  tempPhotos=[...(x.defectPhotos||x.photos||[])];
+  let x=id?project().defects.find(a=>String(a.id)===String(id)):{};
+  if(!x){
+    alert('找不到這筆缺失，請重新整理後再試。');
+    return;
+  }
+  tempPhotos=[...(Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]))];
+  tempOCRPhotos=[...tempPhotos];
   tempImprovePhotos=[...(x.improvementPhotos||[])];
   fTitle.value=x.title||'';
   fArea.value=x.area||'';
   fVendor.value=x.vendor||'機電工程';
   fCreated.value=x.created||localToday();
-  fDue.value=x.due||'';
+  fDue.value=x.due||(id?'':addDaysISO(fCreated.value,14));
   fDesc.value=x.desc||'請依照改善期限內修繕完成';
   fLevel.value=x.level||'中';fCategory.value=x.category||'其他';
   fPhotos.value='';
   fImprovePhotos.value='';
   renderPhotoPreview();
   renderImprovePhotoPreview();
+  ocrBox.style.display='block';
+  ocrStatus.className='sub'; ocrStatus.textContent='上傳缺失相片後，按下方按鈕即可自動帶入樓層／區域與缺失名稱。';
   modal.style.display='flex';
 }
+// 新增缺失時，起單日期變更就同步預設改善期限為 +14 天；編輯既有缺失不強制覆蓋人工期限。
+fCreated.addEventListener('change',()=>{
+  if(!editId) fDue.value=addDaysISO(fCreated.value||localToday(),14);
+});
 fPhotos.addEventListener('change',async e=>{
+  let firstOCRData=null;
   for(const file of [...e.target.files]){
+    // OCR 一律優先讀原圖，避免先壓縮後把浮水印小字壓糊。
+    const original=await fileToDataURL(file);
     const data=await compressImage(file);
-    if(data) tempPhotos.push(data);
+    if(data){
+      tempPhotos.push(data);
+      tempOCRPhotos.push(original||data);
+      if(!firstOCRData) firstOCRData=original||data;
+    }
   }
   renderPhotoPreview();
   e.target.value='';
+  if(firstOCRData){
+    ocrBox.style.display='block';
+    ocrStatus.className='sub';
+    ocrStatus.textContent='已偵測到缺失相片。按「辨識最新一張缺失相片」開始讀取浮水印。';
+  }
 });
 fImprovePhotos.addEventListener('change',async e=>{
   for(const file of [...e.target.files]){
@@ -311,10 +921,585 @@ fImprovePhotos.addEventListener('change',async e=>{
   e.target.value='';
 });
 
-function localToday(){
-  const d=new Date();
-  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
+
+
+const AI_OCR_ENDPOINT_KEY='dh2_ai_ocr_endpoint_v1';
+
+function getAIVisionEndpoint(){
+  return 'https://dh2-ai-ocr.tk82513.workers.dev';
+}
+function configureAIVisionEndpoint(){
+  const current=getAIVisionEndpoint();
+  const value=prompt('AI 辨識服務已固定使用 Cloudflare Worker。',current);
+  if(value===null) return;
+  const v=value.trim().replace(/\/$/,'');
+  if(!v){
+    localStorage.removeItem(AI_OCR_ENDPOINT_KEY);
+    alert('已清除 AI 辨識服務設定。');
+    return;
+  }
+  if(!/^https:\/\//i.test(v)){
+    alert('網址必須以 https:// 開頭。');
+    return;
+  }
+  localStorage.setItem(AI_OCR_ENDPOINT_KEY,v);
+  alert('AI 辨識服務網址已儲存。');
+}
+
+function prepareAIWatermarkImage(dataUrl){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      // AI 只看左下角浮水印區。往上、往右多保留一點，避免把「樓層 / 棟別」那一列裁掉。
+      // 同時把傳送寬度控制在約 1100px，降低上傳量，加快批次辨識。
+      const sx=0;
+      const sy=Math.floor(img.height*0.64);
+      const sw=Math.floor(img.width*0.50);
+      const sh=Math.floor(img.height*0.355);
+      const maxW=900;
+      const scale=Math.min(2,maxW/Math.max(1,sw));
+      const c=document.createElement('canvas');
+      c.width=Math.max(1,Math.floor(sw*scale));
+      c.height=Math.max(1,Math.floor(sh*scale));
+      const ctx=c.getContext('2d');
+      ctx.imageSmoothingEnabled=true;
+      ctx.imageSmoothingQuality='high';
+      ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);
+      // 保留彩色欄位，不做灰階，讓 AI 能利用藍/白/黃欄辨識欄位。
+      resolve(c.toDataURL('image/jpeg',0.78));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
+}
+
+function prepareAILocationOnlyImage(dataUrl){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      // 只截左下角「施工區域」白色列，並保留樓層後方的 A/B/C棟。
+      const sx=0;
+      const sy=Math.floor(img.height*0.80);
+      const sw=Math.floor(img.width*0.68);
+      const sh=Math.floor(img.height*0.105);
+      const targetW=1400;
+      const scale=Math.max(1,Math.min(4,targetW/Math.max(1,sw)));
+      const c=document.createElement('canvas');
+      c.width=Math.max(1,Math.floor(sw*scale));
+      c.height=Math.max(1,Math.floor(sh*scale));
+      const ctx=c.getContext('2d');
+      ctx.imageSmoothingEnabled=true;
+      ctx.imageSmoothingQuality='high';
+      ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);
+
+      // 輕微增強對比，不做灰階，避免把「C棟」筆畫吃掉。
+      try{
+        const im=ctx.getImageData(0,0,c.width,c.height);
+        const d=im.data;
+        for(let i=0;i<d.length;i+=4){
+          d[i]=Math.max(0,Math.min(255,(d[i]-128)*1.18+128));
+          d[i+1]=Math.max(0,Math.min(255,(d[i+1]-128)*1.18+128));
+          d[i+2]=Math.max(0,Math.min(255,(d[i+2]-128)*1.18+128));
+        }
+        ctx.putImageData(im,0,0);
+      }catch(_){ }
+
+      resolve(c.toDataURL('image/jpeg',0.92));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
+}
+
+function locationNeedsBuildingRetry(loc){
+  const t=String(loc||'').trim().toUpperCase();
+  // 1S11 這類區域碼不需要棟別；只有純樓層 R1F/B3F/4F 才補做精準辨識。
+  if(/^\d{1,2}S\d{1,3}$/.test(t)) return false;
+  return /^(?:B|R)?\d{1,2}F$/.test(t);
+}
+
+function cleanAILocation(value){
+  // v16：施工區域不再猜「樓層 / 棟別 / 戶別」。
+  // 使用者要的是浮水印「施工區域：」冒號後面的文字原樣保留。
+  // 例如：13A2、3A1、1C7陽台、R1F C棟、B3F A棟、1S11 都直接顯示。
+  let t=String(value||'').replace(/\r/g,'').trim();
+  if(!t) return '';
+
+  // 若 AI 把整個欄名一起回傳，只拿「施工區域：」後面的內容。
+  const labeled=t.match(/施\s*工\s*區\s*域\s*[:：]\s*([\s\S]*?)(?=\n\s*(?:施\s*工\s*缺\s*失|拍\s*攝\s*時\s*間)|$)/i);
+  if(labeled) t=labeled[1];
+
+  // 清除常見前綴，但絕不解析內容格式。
+  t=t
+    .replace(/遠雄山禾/g,' ')
+    .replace(/^\s*(?:施工)?(?:區域|位置)\s*[:：]?\s*/i,'')
+    .replace(/\n+/g,' ')
+    .replace(/\s+/g,' ')
+    .replace(/^[|｜,，;；:：]+|[|｜,，;；:：]+$/g,'')
+    .trim();
+
+  return t;
+}
+
+function sanitizeAIResult(obj){
+  const out={location:'',area:'',defect:''};
+  if(!obj||typeof obj!=='object') return out;
+  out.location=cleanAILocation(obj.location||'');
+  out.area=String(obj.area||'').trim();
+  out.defect=String(obj.defect||obj.defectName||'').trim();
+
+  // 區域必須是乾淨中文房間名，AI 若回傳雜訊就直接捨棄。
+  if(out.area){
+    const room=cleanRoomName(out.area);
+    out.area=room||'';
+  }
+
+  // AI 已理解欄位，所以這裡只做輕量清理；移除常見尾端英文/標點雜訊。
+  out.defect=out.defect
+    .replace(/[|｜]+/g,'／')
+    .replace(/[=＝]+/g,'／')
+    .replace(/\s*／\s*/g,'／')
+    .replace(/／{2,}/g,'／')
+    .replace(/(?:\s+[A-Za-z]{1,4}|[A-Za-z]{1,4})$/g,'')
+    .replace(/^／|／$/g,'')
+    .trim();
+  return out;
+}
+
+async function callAIVision(image, promptText, locationImage=''){
+  const endpoint=getAIVisionEndpoint();
+  if(!endpoint) throw new Error('尚未設定 AI 辨識服務，請先按「AI 辨識服務設定」。');
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),40000);
+  try{
+    const res=await fetch(endpoint,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({image,locationImage,prompt:promptText||''}),
+      signal:controller.signal
+    });
+    const text=await res.text();
+    let payload={};
+    try{payload=JSON.parse(text)}catch(_){throw new Error('AI 服務回傳格式錯誤');}
+    if(!res.ok) throw new Error(payload.error||`AI 服務錯誤 (${res.status})`);
+    return sanitizeAIResult(payload);
+  }catch(err){
+    if(err?.name==='AbortError') throw new Error('AI 辨識逾時，請稍後重試');
+    throw err;
+  }finally{ clearTimeout(timer); }
+}
+
+async function callAIVisionBatch(items){
+  const endpoint=getAIVisionEndpoint();
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),40000);
+  try{
+    const res=await fetch(endpoint,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        images:items.map(x=>({image:x.image,locationImage:x.locationImage||''})),
+        prompt:`第二張圖片是浮水印「施工區域：」那一列的放大特寫。location 請直接回傳冒號後面的全部文字，逐字保留，不要分析格式、不要拆樓層、不要刪字、不要只取其中一部分。範例：施工區域：13A2 -> location=13A2；施工區域：3A1 -> location=3A1；施工區域：1C7陽台 -> location=1C7陽台；施工區域：R1F C棟 -> location=R1F C棟；施工區域：B3F A棟 -> location=B3F A棟；施工區域：1S11 -> location=1S11。無論冒號後寫什麼，都照浮水印原文回傳。`
+      }),
+      signal:controller.signal
+    });
+    const text=await res.text();
+    let payload={};
+    try{payload=JSON.parse(text)}catch(_){throw new Error('AI 服務回傳格式錯誤');}
+    if(!res.ok) throw new Error(payload.error||`AI 服務錯誤 (${res.status})`);
+    if(!Array.isArray(payload.results)) throw new Error('AI 批次回傳格式錯誤');
+    return payload.results.map(sanitizeAIResult);
+  }catch(err){
+    if(err?.name==='AbortError') throw new Error('AI 批次辨識逾時');
+    throw err;
+  }finally{ clearTimeout(timer); }
+}
+
+async function recognizeWatermarkData(dataUrl){
+  // 一次請求同時送「完整浮水印」與「施工區域特寫」，不再為棟別額外打一輪 API。
+  const [image,locationImage]=await Promise.all([
+    prepareAIWatermarkImage(dataUrl),
+    prepareAILocationOnlyImage(dataUrl)
+  ]);
+  const parsed=await callAIVision(
+    image,
+    `完整讀取浮水印。第二張圖是「施工區域：」白色列特寫。location 只做一件事：把「施工區域：」冒號後面的全部文字原樣抄回來，不判斷格式、不刪字、不拆欄位。13A2 就回 13A2；3A1 就回 3A1；1C7陽台 就回 1C7陽台；R1F C棟 就回 R1F C棟。defect 只回黃色施工缺失。`,
+    locationImage
+  );
+  if(!parsed.location && !parsed.area && !parsed.defect) throw new Error('AI 沒有辨識到有效的浮水印欄位');
+  return parsed;
+}
+
+async function batchCreateFromWatermarks(){
+  const input=document.getElementById('batchPhotos');
+  const status=document.getElementById('batchStatus');
+  const btn=document.getElementById('batchStartBtn');
+  const files=[...(input.files||[])];
+
+  if(!files.length){
+    status.className='sub err';
+    status.textContent='請先選擇至少 1 張浮水印缺失照片。';
+    return;
+  }
+  const p=project();
+  if(!p)return;
+
+  btn.disabled=true;
+  const originalBtnText=btn.textContent;
+  btn.textContent='AI 辨識中…';
+  status.className='sub working';
+  status.textContent=`正在準備 ${files.length} 張照片…`;
+  await new Promise(r=>setTimeout(r,30));
+
+  const createdDate=localToday();
+  const defaultDue=addDaysISO(createdDate,14);
+  const prepared=new Array(files.length);
+  const failures=[];
+
+  try{
+    // 先並行做本機壓縮/裁切，這部分不需要等待 API。
+    await Promise.all(files.map(async(file,i)=>{
+      try{
+        const original=await fileToDataURL(file);
+        const data=await compressImage(file);
+        if(!data) throw new Error('照片讀取失敗');
+        const source=original||data;
+        const [image,locationImage]=await Promise.all([
+          prepareAIWatermarkImage(source),
+          prepareAILocationOnlyImage(source)
+        ]);
+        prepared[i]={i,file,data,image,locationImage};
+      }catch(err){
+        failures.push(`${i+1}. ${file.name}：${err.message||'照片處理失敗'}`);
+      }
+    }));
+
+    const valid=prepared.filter(Boolean);
+    if(!valid.length) throw new Error('沒有可辨識的照片');
+
+    // 每批最多 4 張。7 張照片只需要 2 次 Gemini 請求，不再逐張呼叫 7～14 次。
+    const groups=[];
+    for(let i=0;i<valid.length;i+=4) groups.push(valid.slice(i,i+4));
+    let done=0;
+    const batchResults=await Promise.all(groups.map(async(group,gidx)=>{
+      status.className='sub working';
+      status.textContent=`AI 批次辨識中 ${done} / ${valid.length}（${groups.length} 批）`;
+      try{
+        const parsed=await callAIVisionBatch(group);
+        done+=group.length;
+        status.textContent=`AI 批次辨識中 ${done} / ${valid.length}（${groups.length} 批）`;
+        return {group,parsed};
+      }catch(err){
+        // 批次若偶發失敗，不讓整批全滅：退回單張一次請求，不再做第二輪棟別補辨識。
+        const parsed=[];
+        for(const item of group){
+          try{
+            parsed.push(await callAIVision(item.image,'讀取完整浮水印。location 必須逐字抄錄「施工區域：」冒號後面的全部文字，不要分析格式或刪除任何字。',item.locationImage));
+          }catch(e){
+            parsed.push(null);
+            failures.push(`${item.i+1}. ${item.file.name}：${e.message||'辨識失敗'}`);
+          }
+        }
+        done+=group.length;
+        return {group,parsed};
+      }
+    }));
+
+    let created=0;
+    for(const pack of batchResults){
+      pack.group.forEach((item,j)=>{
+        const parsed=pack.parsed[j];
+        if(!parsed || !parsed.defect){
+          if(parsed) failures.push(`${item.i+1}. ${item.file.name}：無法辨識缺失項目`);
+          return;
+        }
+        p.defects.push({
+          id:Date.now()+item.i,
+          title:parsed.defect,
+          area:formatAreaValue(parsed.location,parsed.area),
+          level:'中', status:'pending', category:'其他', vendor:'機電工程',
+          created:createdDate, due:defaultDue,
+          desc:'請依照改善期限內修繕完成',
+          defectPhotos:[item.data], improvementPhotos:[]
+        });
+        created++;
+      });
+    }
+
+    save(); renderDefects(); renderProjects(); input.value='';
+    status.className=created?'sub ok':'sub err';
+    status.textContent=created
+      ?`完成：已自動建立 ${created} 筆缺失${failures.length?`，${failures.length} 張失敗`:''}。改善期限為起單日 +14 天。`
+      :'沒有成功建立缺失。';
+    if(failures.length) alert('以下照片未成功建單：\n'+failures.join('\n'));
+  }catch(err){
+    status.className='sub err';
+    status.textContent=`AI 辨識發生錯誤：${err?.message||String(err)}`;
+    console.error(err);
+  }finally{
+    btn.disabled=false;
+    btn.textContent=originalBtnText;
+  }
+}
+
+async function recognizeWatermarkFromLatest(){
+  if(!tempPhotos.length){
+    ocrBox.style.display='block';
+    ocrStatus.className='sub err';
+    ocrStatus.textContent='請先上傳至少 1 張缺失相片。';
+    return;
+  }
+  ocrBox.style.display='block';
+  ocrStatus.className='sub working';
+  ocrStatus.textContent='正在準備辨識浮水印…';
+  await recognizeWatermark(tempOCRPhotos[tempOCRPhotos.length-1]||tempPhotos[tempPhotos.length-1]);
+}
+function cropWatermarkForOCR(dataUrl){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      // 浮水印通常位於左下，裁切左側 60% × 下方 48%，並放大增強辨識率。
+      const sx=0, sy=Math.floor(img.height*0.50), sw=Math.floor(img.width*0.62), sh=Math.floor(img.height*0.48);
+      const scale=2;
+      const c=document.createElement('canvas'); c.width=sw*scale; c.height=sh*scale;
+      const ctx=c.getContext('2d');
+      ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);
+      // 灰階+對比，讓浮水印字更容易被 OCR 抓到。
+      const im=ctx.getImageData(0,0,c.width,c.height), d=im.data;
+      for(let i=0;i<d.length;i+=4){
+        const g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+        const v=Math.max(0,Math.min(255,(g-128)*1.55+128));
+        d[i]=d[i+1]=d[i+2]=v;
+      }
+      ctx.putImageData(im,0,0);
+      resolve(c.toDataURL('image/jpeg',0.92));
+    };
+    img.onerror=()=>resolve(dataUrl); img.src=dataUrl;
+  });
+}
+
+
+function cropFixedOCR(dataUrl,x,y,w,h,scale=5,contrast=2.0){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const sx=Math.max(0,Math.floor(img.width*x));
+      const sy=Math.max(0,Math.floor(img.height*y));
+      const sw=Math.max(1,Math.min(img.width-sx,Math.floor(img.width*w)));
+      const sh=Math.max(1,Math.min(img.height-sy,Math.floor(img.height*h)));
+      const c=document.createElement('canvas');
+      c.width=sw*scale; c.height=sh*scale;
+      const ctx=c.getContext('2d');
+      ctx.imageSmoothingEnabled=true;
+      ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);
+      const im=ctx.getImageData(0,0,c.width,c.height), d=im.data;
+      for(let i=0;i<d.length;i+=4){
+        const g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+        const v=Math.max(0,Math.min(255,(g-128)*contrast+128));
+        d[i]=d[i+1]=d[i+2]=v;
+      }
+      ctx.putImageData(im,0,0);
+      resolve(c.toDataURL('image/png'));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
+}
+
+// 固定浮水印：藍色案名下方第一個白色列，只辨識施工位置/樓層編碼。
+function cropLocationCodeForOCR(dataUrl){
+  return cropFixedOCR(dataUrl,0.005,0.785,0.305,0.038,6,2.15);
+}
+// 固定浮水印：施工位置下一列，只辨識「客廳、廚房…」這類區域名稱。
+function cropAreaNameForOCR(dataUrl){
+  return cropFixedOCR(dataUrl,0.005,0.818,0.305,0.038,6,2.15);
+}
+// 舊函式保留相容，但範圍縮小，不再把黃色缺失欄一起丟進 OCR。
+function cropLocationBlockForOCR(dataUrl){
+  return cropFixedOCR(dataUrl,0.005,0.782,0.31,0.077,5,2.05);
+}
+
+function normalizeLocationText(s){
+  return String(s||'')
+    .replace(/[：:]/g,'')
+    .replace(/施工\s*位置/g,'')
+    .replace(/施工\s*區域/g,'')
+    .replace(/位置/g,'')
+    .replace(/區域/g,'')
+    .replace(/[|｜]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function extractAreaCode(s){
+  const t=String(s||'').toUpperCase().replace(/\s+/g,' ');
+  // 優先抓「A棟 3F A02」這種完整樓層/位置碼
+  let m=t.match(/([A-Z])\s*棟\s*(B?\d+)\s*F\s*([A-Z]?\d{1,3})?/i);
+  if(m){
+    return `${m[1].toUpperCase()}棟 ${m[2].toUpperCase()}F${m[3]?` ${m[3].toUpperCase()}`:''}`.trim();
+  }
+  // 其次抓 3F A02 / B2F A01
+  m=t.match(/\b(B?\d+)\s*F\s*([A-Z]?\d{1,3})\b/i);
+  if(m) return `${m[1].toUpperCase()}F ${m[2].toUpperCase()}`;
+  // 現場常見 1S8、2S12 等區域碼，只保留真正的編碼，清掉 OCR 前後亂字
+  m=t.match(/\b\d{1,2}\s*S\s*\d{1,3}\b/i);
+  if(m) return m[0].replace(/\s+/g,'').toUpperCase();
+  // 單純樓層 3F / B2F
+  m=t.match(/\bB?\d{1,2}\s*F\b/i);
+  if(m) return m[0].replace(/\s+/g,'').toUpperCase();
+  return '';
+}
+
+function cleanRoomName(s){
+  let t=normalizeLocationText(s)
+    .replace(/[A-Za-z0-9_=+\-]/g,' ')
+    .replace(/[^\u3400-\u9fff ]/g,' ')
+    .replace(/\s+/g,'')
+    .trim();
+  if(!t) return '';
+  if(/遠雄山禾|缺失|施工|拍攝|日期|油漆|面蓋|器具|軌道|衝突|高低差/.test(t)) return '';
+  // 區域名稱採嚴格策略：必須是 2~6 個純中文字，避免「還 EEG e」這類雜訊被寫入。
+  if(!/^[\u3400-\u9fff]{2,6}$/.test(t)) return '';
+  return t;
+}
+function parseAreaNameOnly(raw){
+  const lines=String(raw||'').replace(/\r/g,'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  const common=['客廳','主臥','次臥','臥室','房間','廚房','餐廳','浴室','廁所','陽台','玄關','走道','樓梯','梯廳','電梯廳','店舖','店鋪','車道','停車場','機房','管道間','工作陽台','前陽台','後陽台','書房','公共區域','公設'];
+  for(const line of lines){
+    const t=cleanRoomName(line);
+    if(t && common.includes(t)) return t;
+  }
+  for(const line of lines){
+    const t=cleanRoomName(line);
+    if(t) return t;
+  }
+  return '';
+}
+
+function parseLocationOnly(raw){
+  const original=(raw||'').replace(/\r/g,'');
+  const lines=original.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  let location='', area='';
+
+  // 先吃有明確標籤的資料
+  for(const line of lines){
+    let m=line.match(/施工\s*位置\s*[:：]?\s*(.+)/);
+    if(m && !location) location=extractAreaCode(m[1]) || cleanRoomName(m[1]);
+    m=line.match(/施工\s*區域\s*[:：]?\s*(.+)/);
+    if(m && !area) area=extractAreaCode(m[1]) || cleanRoomName(m[1]);
+  }
+
+  // 再從所有行找固定格式編碼，避免標籤被 OCR 漏掉
+  const coded=[];
+  for(const line of lines){
+    const code=extractAreaCode(line);
+    if(code && !coded.includes(code)) coded.push(code);
+  }
+  if(!location && coded.length) location=coded[0];
+
+  // 若有樓層/位置碼，再找鄰近的純中文房間名，例如「客廳」
+  if(!area){
+    const codeIndex=lines.findIndex(line=>!!extractAreaCode(line));
+    const ordered=codeIndex>=0 ? [...lines.slice(codeIndex+1), ...lines.slice(0,codeIndex)] : lines;
+    for(const line of ordered){
+      const room=cleanRoomName(line);
+      if(room && room!==location){ area=room; break; }
+    }
+  }
+
+  // 若只有一個編碼，就讓它作為唯一區域顯示，不再附加 OCR 垃圾字
+  if(location && extractAreaCode(location) && area && extractAreaCode(area)===extractAreaCode(location)) area='';
+  return {location,area};
+}
+function formatAreaValue(location,area){
+  // v17：樓層／區域欄只顯示「施工區域：」冒號後的原文。
+  // 不再拼接 area，也不再補棟別/戶別，避免產生多餘文字。
+  return cleanAILocation(location) || '';
+}
+
+function cropDefectBlockForOCR(dataUrl){
+  // 黃色缺失欄：縮窄到左下浮水印本體，避免右側現場影像、日期列與英文雜訊。
+  return cropFixedOCR(dataUrl,0.005,0.850,0.305,0.070,6,2.20);
+}
+function normalizeDefectName(raw){
+  let s=String(raw||'').replace(/\r/g,'').replace(/[：:]/g,' ');
+  s=s.replace(/遠雄山禾/g,' ')
+     .replace(/施工\s*位置|施工\s*區域|缺失\s*項目|施工\s*缺失|拍\s*攝\s*時\s*間|拍攝時間/g,' ')
+     .replace(/20\d{2}[.\/-]\d{1,2}[.\/-]\d{1,2}/g,' ')
+     .replace(/[=＝|｜]+/g,'／')
+     .replace(/[A-Za-z]+/g,' ')
+     .replace(/[^\u3400-\u9fff0-9／、，,。()（）\n ]/g,' ');
+
+  let lines=s.split(/[\n／]+/).map(x=>x.replace(/\s+/g,'').trim()).filter(Boolean);
+  lines=lines.filter(x=>/^[\u3400-\u9fff0-9、，,。()（）]{2,}$/.test(x));
+
+  // 常見機電缺失 OCR 誤字校正。只校正高度明確的詞，不做無限制猜字。
+  lines=lines.map(x=>x
+    .replace(/面[音昔]油漆污染/g,'面蓋油漆污染')
+    .replace(/[樑梁]面器具高低差/g,'牆面器具高低差')
+    .replace(/店[鋪舖]器具衝突捲門軌道/g,'店舖器具衝突捲門軌道')
+  );
+
+  // 去重，避免同一缺失被全圖/局部 OCR 重複讀到。
+  lines=[...new Set(lines)];
+  return lines.join('／').replace(/／{2,}/g,'／').replace(/^／|／$/g,'').trim();
+}
+function parseDefectOnly(raw){
+  return normalizeDefectName(raw);
+}
+function cleanOCRText(s){
+  return (s||'').replace(/[：:]/g,':').replace(/[｜|]/g,' ').replace(/\s+/g,' ').trim();
+}
+function parseWatermarkText(raw){
+  const original=(raw||'').replace(/\r/g,'');
+  const loc=parseLocationOnly(original);
+  let location=loc.location||'', area=loc.area||'', defect='';
+
+  let defectMatch=original.match(/施\s*工\s*缺\s*失\s*[:：]\s*([\s\S]*?)(?=\n\s*(?:拍\s*攝\s*時\s*間|拍攝時間|$))/);
+  if(!defectMatch){
+    defectMatch=original.match(/缺\s*失\s*項\s*目\s*[:：]\s*([\s\S]*?)(?=\n\s*(?:拍\s*攝\s*時\s*間|拍攝時間|$))/);
+  }
+  if(defectMatch) defect=normalizeDefectName(defectMatch[0]);
+
+  return {location,area,defect};
+}
+async function recognizeWatermark(dataUrl){
+  ocrBox.style.display='block';
+  ocrStatus.className='sub working';
+  ocrStatus.textContent='AI 正在讀取浮水印…';
+  try{
+    const parsed=await recognizeWatermarkData(dataUrl);
+    const changed=[];
+    if(parsed.location||parsed.area){
+      fArea.value=formatAreaValue(parsed.location,parsed.area);
+      fArea.dispatchEvent(new Event('input',{bubbles:true}));
+      changed.push('樓層/區域');
+    }
+    if(parsed.defect){
+      fTitle.value=parsed.defect;
+      fTitle.dispatchEvent(new Event('input',{bubbles:true}));
+      changed.push('缺失名稱');
+    }
+    if(changed.length){
+      ocrStatus.className='sub ok';
+      ocrStatus.textContent='✓ AI 已自動帶入：'+changed.join('、')+'。請確認後儲存。';
+    }else{
+      ocrStatus.className='sub err';
+      ocrStatus.textContent='AI 沒有辨識到有效欄位，請換原圖或手動輸入。';
+    }
+  }catch(err){
+    ocrStatus.className='sub err';
+    ocrStatus.textContent='AI 辨識失敗：'+(err.message||err);
+  }
+}
+
+function fileToDataURL(file){
+  return new Promise(resolve=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result||null);
+    reader.onerror=()=>resolve(null);
+    reader.readAsDataURL(file);
+  });
 }
 function compressImage(file){
   return new Promise(resolve=>{
@@ -340,7 +1525,7 @@ function renderPhotoPreview(){
     <div class="photo-wrap"><img src="${p}">
     <button type="button" class="photo-delete" onclick="removePhoto(${i});event.stopPropagation()">×</button></div>`).join('');
 }
-function removePhoto(i){tempPhotos.splice(i,1);renderPhotoPreview();}
+function removePhoto(i){tempPhotos.splice(i,1);tempOCRPhotos.splice(i,1);renderPhotoPreview();}
 function renderImprovePhotoPreview(){
   improvePreview.innerHTML=tempImprovePhotos.map((p,i)=>`
     <div class="photo-wrap"><img src="${p}">
@@ -352,7 +1537,7 @@ function saveDefect(){
   let title=document.getElementById('fTitle').value.trim();
   if(!title){alert('請輸入缺失名稱');return;}
   let p=project();
-  let old=editId?p.defects.find(a=>a.id===editId):null;
+  let old=editId?p.defects.find(a=>String(a.id)===String(editId)):null;
   let backup=JSON.stringify(p.defects);
   let x={
     id:editId||Date.now(), title, area:fArea.value, level:fLevel.value,
@@ -364,7 +1549,7 @@ function saveDefect(){
     defectPhotos:[...tempPhotos],
     improvementPhotos:[...tempImprovePhotos]
   };
-  if(editId) p.defects=p.defects.map(a=>a.id===editId?x:a); else p.defects.push(x);
+  if(editId) p.defects=p.defects.map(a=>String(a.id)===String(editId)?x:a); else p.defects.push(x);
   if(!save()){
     p.defects=JSON.parse(backup);
     return;
@@ -374,10 +1559,32 @@ function saveDefect(){
   alert(editId?'缺失已更新':'缺失已儲存');
 }
 function closeModal(){modal.style.display='none'}
+function openPhotoLightbox(id,index=0,type='defect'){
+  const p=project();
+  const x=p&&Array.isArray(p.defects)?p.defects.find(a=>String(a.id)===String(id)):null;
+  if(!x)return;
+  const arr=type==='improve'?(Array.isArray(x.improvementPhotos)?x.improvementPhotos:[]):(Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]));
+  const src=arr[index]; if(!src)return;
+  const box=document.getElementById('photoLightboxV13');
+  document.getElementById('photoLightboxImgV13').src=src;
+  document.getElementById('photoLightboxCaptionV13').textContent=`${x.title||'缺失照片'} · ${index+1}/${arr.length}`;
+  box.classList.add('open');
+}
+function closePhotoLightbox(){
+  const box=document.getElementById('photoLightboxV13');
+  if(box) box.classList.remove('open');
+}
+
 function openDetail(id){
   currentId=id;
-  let x=project().defects.find(a=>a.id===id);
-  const defectPhotos=x.defectPhotos||x.photos||[];
+  const p=project();
+  let x=p&&Array.isArray(p.defects)?p.defects.find(a=>String(a.id)===String(id)):null;
+  if(!x){
+    console.warn('找不到缺失資料',id);
+    alert('找不到這筆缺失，請重新整理後再試。');
+    return;
+  }
+  const defectPhotos=Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]);
   const improvementPhotos=x.improvementPhotos||[];
   dTitle.textContent=x.title;
   dBody.innerHTML=`
@@ -388,15 +1595,15 @@ function openDetail(id){
       📝 ${esc(x.desc||'請依照改善期限內修繕完成')}
     </div>
     <div class="section-title">缺失相片 ${defectPhotos.length} 張</div>
-    <div class="photo-grid">${defectPhotos.map(p=>`<img src="${p}">`).join('')}</div>
+    <div class="photo-grid">${defectPhotos.map((p,i)=>`<img src="${p}" style="cursor:zoom-in" onclick="event.stopPropagation();openPhotoLightbox('${x.id}',${i},'defect')">`).join('')}</div>
     <div class="section-title">改善相片 ${improvementPhotos.length} 張</div>
-    <div class="photo-grid">${improvementPhotos.map(p=>`<img src="${p}">`).join('')}</div>
-    <div class="actions"><button class="secondary" onclick="openDefect(${x.id});closeDetail()">編輯</button><button class="danger" onclick="deleteDefect()">刪除</button></div>`;
+    <div class="photo-grid">${improvementPhotos.map((p,i)=>`<img src="${p}" style="cursor:zoom-in" onclick="event.stopPropagation();openPhotoLightbox('${x.id}',${i},'improve')">`).join('')}</div>
+    <div class="actions"><button class="secondary" onclick="openDefect(currentId);closeDetail()">編輯</button><button class="danger" onclick="deleteDefect()">刪除</button></div>`;
   detailModal.style.display='flex';
 }
 function closeDetail(){detailModal.style.display='none'}
 function cycleStatus(){document.getElementById('statusModal').style.display='flex'}
-function deleteDefect(){if(confirm('確定刪除這筆缺失？')){let p=project();p.defects=p.defects.filter(x=>x.id!==currentId);save();closeDetail();render()}}
+function deleteDefect(){if(confirm('確定刪除這筆缺失？')){let p=project();p.defects=p.defects.filter(x=>String(x.id)!==String(currentId));save();closeDetail();render()}}
 
 
 
@@ -442,6 +1649,72 @@ async function copyOpenDefects(){
   }
 }
 
+function generateExcel(){
+  const p=project();
+  if(!p){ alert('請先選擇工程。'); return; }
+  if(typeof XLSX==='undefined'){
+    alert('EXCEL 元件載入失敗，請確認網路後再試。');
+    return;
+  }
+
+  const defects=Array.isArray(p.defects)?p.defects:[];
+  const info=[
+    ['DH2 工程缺失管理'],
+    ['工程名稱',p.name||''],
+    ['工程案號',p.no||''],
+    ['工程地址',p.address||''],
+    ['業主／建設公司',p.owner||''],
+    ['營造公司',p.builder||''],
+    ['報表日期',localToday()],
+    [],
+    ['統計','數量'],
+    ['總缺失',defects.length],
+    ['待處理',defects.filter(x=>x.status==='pending').length],
+    ['進行中',defects.filter(x=>x.status==='doing').length],
+    ['已關閉',defects.filter(x=>x.status==='closed').length]
+  ];
+
+  const headers=['序號','缺失名稱','樓層／區域','分類','工程別','等級','狀態','起單日期','改善期限','缺失說明','缺失照片數','改善照片數'];
+  const rows=defects.map((x,i)=>{
+    const dArr=Array.isArray(x&&x.defectPhotos)?x.defectPhotos:(Array.isArray(x&&x.photos)?x.photos:[]);
+    const iArr=Array.isArray(x&&x.improvementPhotos)?x.improvementPhotos:[];
+    return [
+      i+1,
+      x.title||'',
+      x.area||'',
+      x.category||'其他',
+      x.vendor||'',
+      x.level||'中',
+      statusText[x.status]||x.status||'',
+      x.created||'',
+      x.due||'',
+      x.desc||'',
+      dArr.length,
+      iArr.length
+    ];
+  });
+
+  const wb=XLSX.utils.book_new();
+  const wsInfo=XLSX.utils.aoa_to_sheet(info);
+  const wsDefects=XLSX.utils.aoa_to_sheet([headers,...rows]);
+
+  wsInfo['!cols']=[{wch:20},{wch:42}];
+  wsDefects['!cols']=[
+    {wch:7},{wch:30},{wch:20},{wch:12},{wch:14},{wch:9},{wch:11},
+    {wch:13},{wch:13},{wch:36},{wch:12},{wch:12}
+  ];
+  wsDefects['!autofilter']={ref:`A1:L${Math.max(1,rows.length+1)}`};
+  wsDefects['!freeze']={xSplit:0,ySplit:1};
+
+  XLSX.utils.book_append_sheet(wb,wsInfo,'工程資訊');
+  XLSX.utils.book_append_sheet(wb,wsDefects,'缺失明細');
+
+  const safeName=String(p.name||'DH2工程缺失')
+    .replace(/[\\/:*?"<>|]/g,'_')
+    .trim() || 'DH2工程缺失';
+  XLSX.writeFile(wb,`${safeName}_缺失報表_${localToday()}.xlsx`);
+}
+
 function generatePDF(){
   const p=project();
   const pending=p.defects.filter(x=>x.status==='pending').length;
@@ -449,8 +1722,10 @@ function generatePDF(){
   const closed=p.defects.filter(x=>x.status==='closed').length;
   const overdue=p.defects.filter(x=>x.due && new Date(x.due)<new Date() && x.status!=='closed').length;
   const rows=p.defects.map((x,i)=>{
-    const dphotos=(x.defectPhotos||x.photos||[]).map(ph=>`<img class="r-photo" src="${ph}">`).join('');
-    const iphotos=(x.improvementPhotos||[]).map(ph=>`<img class="r-photo" src="${ph}">`).join('');
+    const dArr=Array.isArray(x&&x.defectPhotos)?x.defectPhotos:(Array.isArray(x&&x.photos)?x.photos:[]);
+    const iArr=Array.isArray(x&&x.improvementPhotos)?x.improvementPhotos:[];
+    const dphotos=dArr.map(ph=>`<img class="r-photo" src="${ph}">`).join('');
+    const iphotos=iArr.map(ph=>`<img class="r-photo" src="${ph}">`).join('');
     const photos=`缺失相片：${dphotos||'無'}<br>改善相片：${iphotos||'無'}`;
     return `<tr>
       <td>${i+1}</td>
@@ -484,7 +1759,7 @@ function generatePDF(){
 }
 
 function setStatus(status){
-  let x=project().defects.find(a=>a.id===currentId);
+  let x=project().defects.find(a=>String(a.id)===String(currentId));
   if(!x) return;
   x.status=status;
   save();
@@ -496,9 +1771,20 @@ function closeStatusModal(){
   document.getElementById('statusModal').style.display='none';
 }
 
+
+const batchPhotos=document.getElementById('batchPhotos');
+if(batchPhotos){
+  batchPhotos.addEventListener('change',e=>{
+    const n=e.target.files?e.target.files.length:0;
+    const s=document.getElementById('batchStatus');
+    s.className='sub';
+    s.textContent=n?`已選擇 ${n} 張照片，按「AI 辨識並自動建立全部缺失」。`:'';
+  });
+}
+
 normalizeDates();
 render();
-showProjectsPage();
+if(!restoreProjectFromHash()) showProjectsPage();
 </script>
 
 <div class="modal" id="statusModal"><div class="sheet">
@@ -512,5 +1798,357 @@ showProjectsPage();
 </div>
 </div></div>
 
+
+<div id="photoLightboxV13" class="photo-lightbox-v13" onclick="closePhotoLightbox()">
+  <button class="close" type="button" onclick="event.stopPropagation();closePhotoLightbox()">×</button>
+  <img id="photoLightboxImgV13" src="" alt="放大照片" onclick="event.stopPropagation()">
+  <div id="photoLightboxCaptionV13" class="caption"></div>
+</div>
+
 <div id="printReport"></div>
+
+<style>
+#cloudPanelV27{margin:10px 12px 0;padding:12px;border:1px solid #dfe7e7;border-radius:14px;background:#fff}
+#cloudPanelV27 .cloud-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+#cloudPanelV27 input,#cloudPanelV27 select{max-width:260px}
+#cloudPanelV27 .cloud-badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef7f2;font-size:12px}
+#teamManagerV27{display:none;margin-top:10px;border-top:1px solid #e7ecec;padding-top:10px}
+#teamManagerV27 .member{display:grid;grid-template-columns:1.3fr .8fr 1fr auto;gap:6px;align-items:center;margin:6px 0}
+@media(max-width:650px){#teamManagerV27 .member{grid-template-columns:1fr 1fr}.member .member-name{grid-column:1/-1}}
+.vendor-v27-hide{display:none!important}
+</style>
+<section id="cloudPanelV27">
+  <div><b>☁️ DH2 團隊雲端 · V33.1</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
+  <div id="cloudStatusV27" class="sub" style="margin-top:4px">請先登入以讀取雲端資料</div>
+  <div id="cloudLoginV27">
+    <div class="cloud-row">
+      <input id="cloudEmailV27" type="text" autocomplete="username" placeholder="帳號">
+      <input id="cloudPasswordV27" type="password" placeholder="密碼至少 6 碼">
+      
+    </div>
+    <div class="cloud-row">
+      <button type="button" onclick="cloudSignInV27()">登入</button>
+      <button type="button" class="secondary" disabled title="請由管理員建立帳號">帳號由管理員建立</button>
+    </div>
+  </div>
+  <div id="cloudUserV27" style="display:none">
+    <div class="cloud-row">
+      <button type="button" class="secondary" onclick="cloudForceReloadV27()">重新同步</button>
+      <button type="button" class="secondary" id="cloudImportBtnV27" onclick="cloudImportLocalV27()">上傳本機資料到雲端</button>
+      <button type="button" class="secondary" id="teamManageBtnV27" onclick="toggleTeamManagerV27()" style="display:none">成員管理</button>
+      <button type="button" class="secondary" onclick="cloudSignOutV27()">登出</button>
+    </div>
+  </div>
+  <div id="teamManagerV27"></div>
+</section>
+<script>
+const DH2_SUPABASE_URL='https://gtfqhcmdikygnusvftxy.supabase.co';
+const DH2_SUPABASE_KEY='sb_publishable_Cs7RfmIw9Wg1pH3H-Lm7BA_Fa_CxH_h';
+const dh2Cloud=window.supabase.createClient(DH2_SUPABASE_URL,DH2_SUPABASE_KEY);
+let cloudProfileV27=null, cloudSyncingV27=false, cloudLoadedV27=false, cloudTimerV27=null, cloudChannelV27=null;
+const originalSaveV27=save;
+/* V28: keep one immutable snapshot of pre-cloud browser data for one-time manual import only. */
+const localImportSnapshotV28 = JSON.parse(JSON.stringify(state || {current:null,projects:[]}));
+
+
+function setCloudStatusV27(t){const e=document.getElementById('cloudStatusV27');if(e)e.textContent=t}
+function dataUrlToBlobV27(dataUrl){const [h,b64]=dataUrl.split(',');const mime=(h.match(/data:([^;]+)/)||[])[1]||'image/jpeg';const bin=atob(b64),arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:mime})}
+function uuidV27(){return crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==='x'?r:(r&3|8);return v.toString(16)})}
+function roleNameV27(r){return r==='admin'?'管理員':r==='vendor'?'廠商':'團隊成員'}
+
+async function cloudRefreshAuthV27(){
+ const {data:{session}}=await dh2Cloud.auth.getSession();
+ const login=document.getElementById('cloudLoginV27'), user=document.getElementById('cloudUserV27'), badge=document.getElementById('cloudRoleBadgeV27');
+ if(!session){
+  cloudProfileV27=null; cloudLoadedV27=false;
+  login.style.display='block'; user.style.display='none'; badge.textContent='尚未登入';
+  state={current:null,projects:[]}; render(); showProjectsPage();
+  setCloudStatusV27('請登入。同一帳號／團隊帳號登入後，所有裝置都以 Supabase 雲端為唯一資料來源。');
+  applyRoleUIV27(); return;
+}
+ const {data:p,error}=await dh2Cloud.from('profiles').select('id,username,display_name,role,vendor_name').eq('id',session.user.id).maybeSingle();
+ if(error){setCloudStatusV27('登入成功，但讀取權限失敗：'+error.message);return;}
+ cloudProfileV27=p||{id:session.user.id,display_name:session.user.email,role:'editor',vendor_name:null};
+ login.style.display='none';user.style.display='block';badge.textContent=roleNameV27(cloudProfileV27.role)+(cloudProfileV27.vendor_name?' · '+cloudProfileV27.vendor_name:'');
+ document.getElementById('teamManageBtnV27').style.display=cloudProfileV27.role==='admin'?'':'none';
+ applyRoleUIV27();
+ await cloudLoadAllV27();
+ startRealtimeV27();
+}
+
+async function cloudSignUpV27(){
+ const email=document.getElementById('cloudEmailV27').value.trim(), password=document.getElementById('cloudPasswordV27').value, display_name=document.getElementById('cloudNameV27').value.trim()||email.split('@')[0];
+ if(!email||password.length<6)return alert('請輸入 Email，密碼至少 6 碼。');
+ const {data,error}=await dh2Cloud.auth.signUp({email,password,options:{data:{display_name}}});
+ if(error)return alert('建立帳號失敗：'+error.message);
+ alert(data.session?'帳號已建立並登入。':'帳號已建立。若有收到驗證信，請先完成 Email 驗證再登入。');
+ await cloudRefreshAuthV27();
+}
+async function cloudSignInV27(){
+ const account=document.getElementById('cloudEmailV27').value.trim().toLowerCase(), password=document.getElementById('cloudPasswordV27').value;
+ if(!account||!password)return alert('請輸入帳號與密碼。');
+ const email=account.includes('@')?account:`${account}@dh2.local`;
+ const {error}=await dh2Cloud.auth.signInWithPassword({email,password});
+ if(error)return alert('登入失敗：帳號或密碼錯誤');
+ await cloudRefreshAuthV27();
+}
+async function cloudSignOutV27(){if(cloudChannelV27)await dh2Cloud.removeChannel(cloudChannelV27);await dh2Cloud.auth.signOut();await cloudRefreshAuthV27();}
+
+function applyRoleUIV27(){
+ const vendor=cloudProfileV27?.role==='vendor';
+ const fab=document.querySelector('.fab');if(fab)fab.classList.toggle('vendor-v27-hide',vendor);
+ const bulk=document.getElementById('bulkActions');if(bulk)bulk.classList.toggle('vendor-v27-hide',vendor);
+ const imp=document.getElementById('cloudImportBtnV27');if(imp)imp.style.display=vendor?'none':'';
+}
+
+async function signedPhotoUrlV27(path){
+ const {data,error}=await dh2Cloud.storage.from('defect-photos').createSignedUrl(path,3600);
+ return error?'':data.signedUrl;
+}
+async function cloudLoadAllV27(){
+ if(!cloudProfileV27)return;
+ setCloudStatusV27('正在同步雲端資料…');
+ const [{data:projects,error:pe},{data:defects,error:de},{data:photos,error:phe}]=await Promise.all([
+  dh2Cloud.from('projects').select('*').order('created_at'),
+  dh2Cloud.from('defects').select('*').order('created_date'),
+  dh2Cloud.from('defect_photos').select('*').order('created_at')
+ ]);
+ if(pe||de||phe){setCloudStatusV27('同步失敗：'+(pe||de||phe).message);return;}
+ if(!projects?.length){
+  state={current:null,projects:[]};
+  originalSaveV27();
+  cloudLoadedV27=true;
+  render(); showProjectsPage();
+  setCloudStatusV27('雲端目前沒有工程資料。若這台裝置有舊資料，可由管理員按「上傳本機資料到雲端」一次性匯入。');
+  return;
+}
+ const photoMap={};
+ for(const ph of photos||[]){
+   const url=await signedPhotoUrlV27(ph.storage_path); if(!url)continue;
+   (photoMap[ph.defect_id]??=[]).push({type:ph.photo_type,url});
+ }
+ const next={current:projects[0].id,projects:projects.map(p=>({
+   id:p.id,cloudId:p.id,name:p.name,no:p.no||'',address:p.address||'',owner:p.owner||'',builder:p.builder||'',start:'',end:'',
+   defects:(defects||[]).filter(d=>d.project_id===p.id).map(d=>({
+     id:d.id,cloudId:d.id,title:d.title,area:d.area||'',level:d.severity||'中',status:d.status||'pending',category:d.category||'其他',vendor:d.vendor||'',created:d.created_date||'',due:d.due_date||'',desc:d.description||'',improvementReply:d.improvement_reply||'',
+     defectPhotos:(photoMap[d.id]||[]).filter(x=>x.type==='defect').map(x=>x.url),
+     improvementPhotos:(photoMap[d.id]||[]).filter(x=>x.type==='improvement').map(x=>x.url)
+   }))
+ }))};
+ state=next;originalSaveV27();cloudLoadedV27=true;render();showDetailPage();
+ setCloudStatusV27(`雲端同步完成 · ${next.projects.length} 個工程 · ${(defects||[]).length} 筆缺失`);
+}
+
+async function uploadPhotoV27(projectId,defectId,type,dataUrl){
+ if(!String(dataUrl).startsWith('data:'))return null;
+ const ext=(dataUrl.match(/^data:image\/([^;]+)/)||[])[1]?.replace('jpeg','jpg')||'jpg';
+ const path=`${projectId}/${defectId}/${type}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+ const {error}=await dh2Cloud.storage.from('defect-photos').upload(path,dataUrlToBlobV27(dataUrl),{contentType:'image/'+(ext==='jpg'?'jpeg':ext),upsert:false});
+ if(error)throw error;
+ const {error:ie}=await dh2Cloud.from('defect_photos').insert({defect_id:defectId,photo_type:type==='improvement'?'improvement':'defect',storage_path:path});
+ if(ie)throw ie;
+ return path;
+}
+
+async function cloudImportLocalV27(){
+ if(!cloudProfileV27||cloudProfileV27.role==='vendor')return;
+ const {count}=await dh2Cloud.from('projects').select('*',{count:'exact',head:true});
+ if(count>0&&!confirm('雲端已經有工程資料。仍要把目前本機資料加入雲端嗎？'))return;
+ if(!confirm('確定將目前這支手機瀏覽器內的工程、缺失及照片上傳到 Supabase 雲端？'))return;
+ if(!localImportSnapshotV28?.projects?.length)return alert('這台裝置沒有可匯入的舊本機資料。');
+ const cloudStateBeforeImport=state;
+ state=JSON.parse(JSON.stringify(localImportSnapshotV28));
+ try{
+   await cloudSyncAllV27(true);
+ }finally{
+   state=cloudStateBeforeImport;
+ }
+ await cloudLoadAllV27();
+ alert('舊本機資料已一次性匯入雲端。之後所有裝置都只讀寫 Supabase。');
+}
+
+async function cloudSyncAllV27(force=false){
+ if(cloudSyncingV27||!cloudProfileV27||cloudProfileV27.role==='vendor')return;
+ if(!force && !cloudLoadedV27)return;
+ cloudSyncingV27=true;setCloudStatusV27(force?'正在匯入舊本機資料…':'正在上傳變更…');
+ try{
+  for(const p of state.projects){
+    p.cloudId=p.cloudId||(/^[0-9a-f-]{36}$/i.test(String(p.id))?String(p.id):uuidV27());
+    const {error:pe}=await dh2Cloud.from('projects').upsert({id:p.cloudId,name:p.name||'工程',no:p.no||null,address:p.address||null,owner:p.owner||null,builder:p.builder||null});if(pe)throw pe;
+    for(const x of p.defects||[]){
+      x.cloudId=x.cloudId||(/^[0-9a-f-]{36}$/i.test(String(x.id))?String(x.id):uuidV27());
+      const payload={id:x.cloudId,project_id:p.cloudId,title:x.title||'未命名缺失',area:x.area||null,severity:x.level||'中',category:x.category||'其他',vendor:x.vendor||null,status:x.status||'pending',created_date:x.created||localToday(),due_date:x.due||null,description:x.desc||null,improvement_reply:x.improvementReply||null};
+      const {error:de}=await dh2Cloud.from('defects').upsert(payload);if(de)throw de;
+      for(const ph of (x.defectPhotos||x.photos||[]))if(String(ph).startsWith('data:'))await uploadPhotoV27(p.cloudId,x.cloudId,'defect',ph);
+      for(const ph of (x.improvementPhotos||[]))if(String(ph).startsWith('data:'))await uploadPhotoV27(p.cloudId,x.cloudId,'improvement',ph);
+    }
+  }
+  originalSaveV27();setCloudStatusV27('雲端已更新');
+ }catch(e){console.error(e);setCloudStatusV27('雲端更新失敗：'+e.message);if(force)alert('上傳失敗：'+e.message)}finally{cloudSyncingV27=false;}
+}
+
+save=function(){
+ const ok=originalSaveV27();
+ if(ok&&cloudLoadedV27&&cloudProfileV27&&cloudProfileV27.role!=='vendor'){
+   clearTimeout(cloudTimerV27);
+   cloudTimerV27=setTimeout(()=>cloudSyncAllV27(false),700);
+ }
+ return ok;
+};
+
+function startRealtimeV27(){
+ if(cloudChannelV27)dh2Cloud.removeChannel(cloudChannelV27);
+ cloudChannelV27=dh2Cloud.channel('dh2-live-v27')
+  .on('postgres_changes',{event:'*',schema:'public',table:'defects'},()=>{if(!cloudSyncingV27)setTimeout(cloudLoadAllV27,500)})
+  .on('postgres_changes',{event:'*',schema:'public',table:'defect_photos'},()=>{if(!cloudSyncingV27)setTimeout(cloudLoadAllV27,500)})
+  .on('postgres_changes',{event:'*',schema:'public',table:'projects'},()=>{if(!cloudSyncingV27)setTimeout(cloudLoadAllV27,500)})
+  .subscribe();
+}
+async function cloudForceReloadV27(){await cloudLoadAllV27();}
+
+async function vendorUpdateV27(id){
+ const x=project()?.defects?.find(a=>String(a.id)===String(id));if(!x)return;
+ const status=document.getElementById('vendorStatusV27').value, improvement_reply=document.getElementById('vendorReplyV27').value.trim();
+ const {error}=await dh2Cloud.from('defects').update({status,improvement_reply,updated_at:new Date().toISOString()}).eq('id',x.cloudId||x.id);
+ if(error)return alert('更新失敗：'+error.message);
+ if(tempImprovePhotos?.length){for(const ph of tempImprovePhotos)if(String(ph).startsWith('data:'))try{await uploadPhotoV27(project().cloudId||project().id,x.cloudId||x.id,'improvement',ph)}catch(e){alert('改善照片上傳失敗：'+e.message);break;}}
+ closeModal();await cloudLoadAllV27();alert('改善狀態已更新。');
+}
+
+const originalOpenDetailV27=openDetail;
+openDetail=function(id){originalOpenDetailV27(id);if(cloudProfileV27?.role==='vendor'){
+ const p=project(),x=p?.defects?.find(a=>String(a.id)===String(id));if(!x)return;
+ const actions=dBody.querySelector('.actions');if(actions)actions.innerHTML=`<button type="button" onclick="openVendorImproveV27('${x.id}')">更新改善狀態／照片</button>`;
+}};
+function openVendorImproveV27(id){
+ const x=project()?.defects?.find(a=>String(a.id)===String(id));if(!x)return;currentId=id;editId=id;tempImprovePhotos=[];
+ document.getElementById('modalTitle').textContent='廠商改善回覆';
+ modal.style.display='flex';
+ [...modal.querySelectorAll('label,input,select,textarea,.ocr-actions,#preview,#ocrBox')].forEach(el=>el.style.display='none');
+ improvePreview.style.display='grid'; fImprovePhotos.parentElement.style.display='block'; fImprovePhotos.style.display='block';
+ let box=document.getElementById('vendorBoxV27');if(!box){box=document.createElement('div');box.id='vendorBoxV27';box.innerHTML=`<label>改善狀態</label><select id="vendorStatusV27"><option value="pending">待處理</option><option value="doing">進行中</option><option value="closed">已關閉</option></select><label>改善回覆</label><textarea id="vendorReplyV27" rows="4"></textarea><div class="actions"><button type="button" onclick="vendorUpdateV27(currentId)">儲存改善資料</button><button type="button" class="secondary" onclick="location.reload()">取消</button></div>`;modal.querySelector('.modal-card')?.appendChild(box)}
+ box.style.display='block';document.getElementById('vendorStatusV27').value=x.status||'pending';document.getElementById('vendorReplyV27').value=x.improvementReply||'';
+}
+
+async function adminCreateAccountV29(){
+ if(cloudProfileV27?.role!=='admin')return alert('只有管理員可以建立帳號。');
+ const username=document.getElementById('newMemberEmailV29').value.trim().toLowerCase();
+ const password=document.getElementById('newMemberPasswordV29').value;
+ const display_name=document.getElementById('newMemberNameV29').value.trim();
+ const role=document.getElementById('newMemberRoleV29').value;
+ const vendor_name='';
+ if(!/^[a-z0-9._-]{3,30}$/.test(username))return alert('帳號限 3～30 碼英文字母、數字，可使用 . _ -');
+ if(password.length<6)return alert('密碼至少 6 碼。');
+ const btn=document.getElementById('createMemberBtnV29');btn.disabled=true;btn.textContent='建立中…';
+ try{
+   const internalEmail=`${username}@dh2.local`;
+   const {data,error}=await dh2Cloud.functions.invoke('admin-create-user',{body:{email:internalEmail,password,display_name,role,vendor_name}});
+   if(error)throw error;if(data?.error)throw new Error(data.error);
+   const {error:ue}=await dh2Cloud.from('profiles').update({username}).eq('id',data.id);
+   if(ue)throw ue;
+   alert(`帳號建立完成：${username}\n對方直接用「帳號＋密碼」登入即可。`);
+   await renderTeamManagerV29();
+ }catch(e){
+   const msg=e?.message||String(e);
+   alert('建立帳號失敗：'+(msg.includes('already')?'這個帳號已存在':msg));
+ } finally {btn.disabled=false;btn.textContent='＋ 建立帳號'}
+}
+function toggleVendorFieldV29(){document.getElementById('vendorWrapV29').style.display=document.getElementById('newMemberRoleV29').value==='vendor'?'block':'none'}
+async function deleteMemberV31(id,name){
+ if(cloudProfileV27?.role!=='admin')return alert('只有管理員可以刪除成員。');
+ if(!confirm(`確定刪除成員「${name}」？\n\n刪除後此帳號將無法再登入。`))return;
+ try{
+   const {data,error}=await dh2Cloud.functions.invoke('admin-delete-user',{body:{user_id:id}});
+   if(error)throw error;if(data?.error)throw new Error(data.error);
+   alert('成員已刪除。');
+   await renderTeamManagerV29();
+ }catch(e){alert('刪除成員失敗：'+(e?.message||e));}
+}
+async function renderTeamManagerV29(){
+ const box=document.getElementById('teamManagerV27');
+ const {data,error}=await dh2Cloud.from('profiles').select('id,username,display_name,role,vendor_name').order('created_at');if(error)return alert(error.message);
+ box.innerHTML=`<b>成員管理</b><div class="sub">帳號由管理員統一建立。選擇「廠商」後即可讀取缺失並進行改善操作。</div>
+ <div style="padding:10px;margin:10px 0;border:1px solid #dce7e5;border-radius:12px">
+ <div class="cloud-grid"><input id="newMemberEmailV29" type="text" autocomplete="off" placeholder="登入帳號，例如 water01"><input id="newMemberPasswordV29" type="password" placeholder="初始密碼至少 6 碼"><input id="newMemberNameV29" placeholder="姓名／顯示名稱"></div>
+ <div class="cloud-row"><select id="newMemberRoleV29"><option value="editor">團隊成員</option><option value="vendor">廠商</option></select><button id="createMemberBtnV29" type="button" onclick="adminCreateAccountV29()">＋ 建立帳號</button></div></div>`+
+ data.map(m=>`<div class="member">
+ <div class="member-name">${esc(m.display_name||m.id)}<div class="sub">帳號：<b>${esc(m.username||'舊 Email 帳號')}</b></div></div>
+ <select id="role_${m.id}"><option value="admin" ${m.role==='admin'?'selected':''}>管理員</option><option value="editor" ${m.role==='editor'?'selected':''}>團隊成員</option><option value="vendor" ${m.role==='vendor'?'selected':''}>廠商</option></select>
+ <button type="button" onclick="saveMemberV27('${m.id}')">儲存</button>
+ <button type="button" class="danger" onclick="deleteMemberV31('${m.id}','${esc(m.display_name||m.username||'此成員')}')">刪除</button>
+ </div>`).join('');
+ box.style.display='block';
+}
+async function toggleTeamManagerV27(){
+ const box=document.getElementById('teamManagerV27');if(box.style.display==='block'){box.style.display='none';return}
+ await renderTeamManagerV29();
+}
+async function saveMemberV27(id){const role=document.getElementById('role_'+id).value,vendor_name=document.getElementById('vendor_'+id).value.trim()||null;const {error}=await dh2Cloud.from('profiles').update({role,vendor_name}).eq('id',id);if(error)return alert('儲存失敗：'+error.message);alert('成員權限已更新。')}
+
+dh2Cloud.auth.onAuthStateChange(()=>setTimeout(cloudRefreshAuthV27,0));
+window.addEventListener('DOMContentLoaded',()=>{
+ const main=document.querySelector('main');const panel=document.getElementById('cloudPanelV27');if(main&&panel)main.parentNode.insertBefore(panel,main);
+ cloudRefreshAuthV27();
+});
+</script>
+
+
+<script>
+/* V27.1: cloud-first delete. Prevent deleted cloud rows from being recreated by local upsert. */
+async function cloudDeleteOneV271(x){
+  const id=x?.cloudId||x?.id;
+  if(!id) throw new Error('找不到缺失雲端 ID');
+  const {data:photos,error:qe}=await dh2Cloud.from('defect_photos').select('storage_path').eq('defect_id',id);
+  if(qe) throw qe;
+  const paths=(photos||[]).map(r=>r.storage_path).filter(Boolean);
+  if(paths.length){
+    const {error:se}=await dh2Cloud.storage.from('defect-photos').remove(paths);
+    if(se) throw se;
+  }
+  const {error:de}=await dh2Cloud.from('defects').delete().eq('id',id);
+  if(de) throw de;
+}
+
+window.deleteDefect=async function(){
+  const p=project(); if(!p)return;
+  const x=p.defects.find(d=>String(d.id)===String(currentId)); if(!x)return;
+  if(!confirm('確定刪除這筆缺失？\n刪除後會同步從雲端移除，無法復原。'))return;
+  try{
+    if(cloudProfileV27){
+      if(cloudProfileV27.role==='vendor') throw new Error('廠商帳號沒有刪除缺失權限');
+      await cloudDeleteOneV271(x);
+    }
+    p.defects=p.defects.filter(d=>String(d.id)!==String(currentId));
+    originalSaveV27();
+    closeDetail(); render();
+    setCloudStatusV27(cloudProfileV27?'缺失已從雲端刪除':'缺失已從本機刪除');
+  }catch(e){console.error(e);alert('刪除失敗：'+e.message+'\n資料尚未刪除。');}
+};
+
+window.bulkDeleteDefects=async function(){
+  if(!selectedDefectIds.size){alert('請先勾選要刪除的缺失');return;}
+  const p=project(); if(!p)return;
+  const targets=p.defects.filter(x=>selectedDefectIds.has(String(x.id)));
+  if(!targets.length)return;
+  if(!confirm(`確定要刪除已選取的 ${targets.length} 筆缺失嗎？\n刪除後會同步從雲端移除，無法復原。`))return;
+  if(cloudProfileV27?.role==='vendor'){alert('廠商帳號沒有刪除缺失權限');return;}
+  try{
+    if(cloudProfileV27){
+      setCloudStatusV27(`正在刪除 ${targets.length} 筆雲端缺失…`);
+      for(const x of targets) await cloudDeleteOneV271(x);
+    }
+    const gone=new Set(targets.map(x=>String(x.id)));
+    p.defects=p.defects.filter(x=>!gone.has(String(x.id)));
+    selectedDefectIds.clear();
+    originalSaveV27(); render();
+    setCloudStatusV27(cloudProfileV27?'批量刪除已同步至雲端':'已從本機批量刪除');
+  }catch(e){
+    console.error(e);
+    selectedDefectIds.clear();
+    if(cloudProfileV27) await cloudLoadAllV27(); else render();
+    alert('批量刪除未全部完成：'+e.message+'\n畫面已重新同步雲端資料。');
+  }
+};
+</script>
+
 </body></html>
