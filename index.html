@@ -440,6 +440,50 @@ main{max-width:980px;padding:8px 20px 160px}
   }
 }
 </style>
+
+<style id="v34-3-member-compact">
+#teamManagerV27 .member{
+  display:grid!important;
+  grid-template-columns:minmax(110px,1.2fr) minmax(110px,.9fr) minmax(120px,1fr) auto auto!important;
+  gap:6px!important;
+  padding:8px!important;
+  margin:6px 0!important;
+  border:1px solid #e1e7e7!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  align-items:center!important;
+}
+#teamManagerV27 .member-name{min-width:0!important}
+#teamManagerV27 .member input,
+#teamManagerV27 .member select{
+  height:38px!important;
+  padding:7px 9px!important;
+  border-radius:10px!important;
+  font-size:13px!important;
+}
+#teamManagerV27 .member button{
+  height:38px!important;
+  padding:7px 12px!important;
+  border-radius:10px!important;
+  font-size:13px!important;
+  white-space:nowrap!important;
+}
+#teamManagerV27 .member .sub{font-size:11px!important;margin-top:2px!important}
+@media(max-width:650px){
+  #teamManagerV27 .member{
+    grid-template-columns:1fr 1fr!important;
+    gap:6px!important;
+    padding:8px!important;
+  }
+  #teamManagerV27 .member-name{grid-column:1/-1!important}
+  #teamManagerV27 .member input,
+  #teamManagerV27 .member select,
+  #teamManagerV27 .member button{
+    width:100%!important;
+    height:40px!important;
+  }
+}
+</style>
 </head>
 <body data-build="2026-09-11-v18">
 <header>
@@ -1908,7 +1952,7 @@ if(!restoreProjectFromHash()) showProjectsPage();
 .vendor-v27-hide{display:none!important}
 </style>
 <section id="cloudPanelV27">
-  <div><b>☁️ DH2 團隊雲端 · V34.2.2</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
+  <div><b>☁️ DH2 團隊雲端 · V34.3.2</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
   <div id="cloudStatusV27" class="sub" style="margin-top:4px">請先登入以讀取雲端資料</div>
   <div id="cloudLoginV27">
     <div class="cloud-row">
@@ -2164,24 +2208,42 @@ async function deleteMemberV31(id,name){
 }
 async function renderTeamManagerV29(){
  const box=document.getElementById('teamManagerV27');
- const {data,error}=await dh2Cloud.from('profiles').select('id,username,display_name,role,vendor_name').order('created_at');if(error)return alert(error.message);
- box.innerHTML=`<b>成員管理</b><div class="sub">帳號由管理員統一建立。選擇「廠商」後即可讀取缺失並進行改善操作。</div>
- <div style="padding:10px;margin:10px 0;border:1px solid #dce7e5;border-radius:12px">
- <div class="cloud-grid"><input id="newMemberEmailV29" type="text" autocomplete="off" placeholder="登入帳號，例如 water01"><input id="newMemberPasswordV29" type="password" placeholder="初始密碼至少 6 碼"><input id="newMemberNameV29" placeholder="姓名／顯示名稱"></div>
+ const {data,error}=await dh2Cloud.from('profiles').select('id,username,display_name,role,vendor_name').order('created_at');
+ if(error)return alert(error.message);
+ box.innerHTML=`<b>成員管理</b><div class="sub">可直接修改名稱、角色與密碼。密碼留白代表不變。</div>
+ <div style="padding:8px;margin:8px 0;border:1px solid #dce7e5;border-radius:12px">
+ <div class="cloud-grid"><input id="newMemberEmailV29" type="text" autocomplete="off" placeholder="登入帳號"><input id="newMemberPasswordV29" type="password" placeholder="初始密碼至少 6 碼"><input id="newMemberNameV29" placeholder="姓名／顯示名稱"></div>
  <div class="cloud-row"><select id="newMemberRoleV29"><option value="editor">團隊成員</option><option value="vendor">廠商</option></select><button id="createMemberBtnV29" type="button" onclick="adminCreateAccountV29()">＋ 建立帳號</button></div></div>`+
  data.map(m=>`<div class="member">
- <div class="member-name">${esc(m.display_name||m.id)}<div class="sub">帳號：<b>${esc(m.username||'舊 Email 帳號')}</b></div></div>
- <select id="role_${m.id}"><option value="admin" ${m.role==='admin'?'selected':''}>管理員</option><option value="editor" ${m.role==='editor'?'selected':''}>團隊成員</option><option value="vendor" ${m.role==='vendor'?'selected':''}>廠商</option></select>
- <button type="button" onclick="saveMemberV27('${m.id}')">儲存</button>
- <button type="button" class="danger" onclick="deleteMemberV31('${m.id}','${esc(m.display_name||m.username||'此成員')}')">刪除</button>
+   <div class="member-name"><b>${esc(m.username||'舊 Email 帳號')}</b><div class="sub">登入帳號</div></div>
+   <input id="name_${m.id}" value="${esc(m.display_name||'')}" placeholder="姓名／顯示名稱">
+   <input id="password_${m.id}" type="password" autocomplete="new-password" placeholder="新密碼（留白不變）">
+   <select id="role_${m.id}"><option value="admin" ${m.role==='admin'?'selected':''}>管理員</option><option value="editor" ${m.role==='editor'?'selected':''}>團隊成員</option><option value="vendor" ${m.role==='vendor'?'selected':''}>廠商</option></select>
+   <button type="button" onclick="saveMemberV27('${m.id}')">儲存</button>
+   <button type="button" class="danger" onclick="deleteMemberV31('${m.id}','${esc(m.display_name||m.username||'此成員')}')">刪除</button>
  </div>`).join('');
  box.style.display='block';
 }
 async function toggleTeamManagerV27(){
- const box=document.getElementById('teamManagerV27');if(box.style.display==='block'){box.style.display='none';return}
+ const box=document.getElementById('teamManagerV27');
+ if(box.style.display==='block'){box.style.display='none';return}
  await renderTeamManagerV29();
 }
-async function saveMemberV27(id){const role=document.getElementById('role_'+id).value;const {error}=await dh2Cloud.from('profiles').update({role,vendor_name:null}).eq('id',id);if(error)return alert('儲存失敗：'+error.message);alert('成員權限已更新。')}
+async function saveMemberV27(id){
+ const role=document.getElementById('role_'+id).value;
+ const display_name=document.getElementById('name_'+id).value.trim();
+ const password=document.getElementById('password_'+id).value;
+ if(password && password.length<6)return alert('新密碼至少 6 碼，或留白不修改。');
+ try{
+   const {data,error}=await dh2Cloud.functions.invoke('admin-update-user',{body:{user_id:id,display_name,password,role}});
+   if(error)throw error;
+   if(data?.error)throw new Error(data.error);
+   alert('成員資料已更新。');
+   await renderTeamManagerV29();
+ }catch(e){
+   alert('儲存失敗：'+(e?.message||e));
+ }
+}
 
 dh2Cloud.auth.onAuthStateChange(()=>setTimeout(cloudRefreshAuthV27,0));
 window.addEventListener('DOMContentLoaded',()=>{
