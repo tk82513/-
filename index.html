@@ -1908,7 +1908,7 @@ if(!restoreProjectFromHash()) showProjectsPage();
 .vendor-v27-hide{display:none!important}
 </style>
 <section id="cloudPanelV27">
-  <div><b>☁️ DH2 團隊雲端 · V34.1</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
+  <div><b>☁️ DH2 團隊雲端 · V34.2.2</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
   <div id="cloudStatusV27" class="sub" style="margin-top:4px">請先登入以讀取雲端資料</div>
   <div id="cloudLoginV27">
     <div class="cloud-row">
@@ -2019,7 +2019,10 @@ async function cloudLoadAllV27(){
    const url=await signedPhotoUrlV27(ph.storage_path); if(!url)continue;
    (photoMap[ph.defect_id]??=[]).push({type:ph.photo_type,url});
  }
- const next={current:projects[0].id,projects:projects.map(p=>({
+ const previousProjectId=state?.current||null;
+ const validProjectIds=new Set((projects||[]).map(p=>String(p.id)));
+ const nextCurrent=(previousProjectId&&validProjectIds.has(String(previousProjectId)))?previousProjectId:projects[0].id;
+ const next={current:nextCurrent,projects:projects.map(p=>({
    id:p.id,cloudId:p.id,name:p.name,no:p.no||'',address:p.address||'',owner:p.owner||'',builder:p.builder||'',start:'',end:'',
    defects:(defects||[]).filter(d=>d.project_id===p.id).map(d=>({
      id:d.id,cloudId:d.id,title:d.title,area:d.area||'',level:d.severity||'中',status:d.status||'pending',category:d.category||'其他',vendor:d.vendor||'',created:d.created_date||'',due:d.due_date||'',desc:d.description||'',improvementReply:d.improvement_reply||'',createdBy:d.created_by||null,createdByName:d.created_by?(profileMap[d.created_by]||'未命名'):'舊資料',
@@ -2027,7 +2030,9 @@ async function cloudLoadAllV27(){
      improvementPhotos:(photoMap[d.id]||[]).filter(x=>x.type==='improvement').map(x=>x.url)
    }))
  }))};
- state=next;originalSaveV27();cloudLoadedV27=true;render();showDetailPage();
+ state=next;originalSaveV27();cloudLoadedV27=true;render();
+ if(document.getElementById('detailPage')?.classList.contains('active')) showDetailPage();
+ else renderProjects();
  setCloudStatusV27(`雲端同步完成 · ${next.projects.length} 個工程 · ${(defects||[]).length} 筆缺失`);
 }
 
@@ -2471,6 +2476,17 @@ generateExcel=async function(){
  const safeName=String(p.name||'DH2工程缺失').replace(/[\\/:*?"<>|]/g,'_').trim()||'DH2工程缺失';
  saveBlobV34(new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),`${safeName}_篩選缺失報表_${localToday()}.xlsx`);
 };
+</script>
+
+
+<script id="v34-2-project-sync-fix">
+/* V34.2: cloud reloads must preserve the project the user is currently viewing. */
+window.addEventListener('hashchange',()=>{
+  const m=location.hash.match(/project=([^&]+)/);
+  if(m && state?.projects?.some(p=>String(p.id)===decodeURIComponent(m[1]))){
+    state.current=decodeURIComponent(m[1]);
+  }
+});
 </script>
 
 </body></html>
