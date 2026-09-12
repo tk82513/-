@@ -362,6 +362,10 @@ main{max-width:980px;padding:8px 20px 160px}
 #titleFilterV331,#areaFilterV331{min-width:160px}
 @media(max-width:600px){#titleFilterV331,#areaFilterV331{flex:1 1 calc(50% - 6px);min-width:0}}
 </style>
+<style>
+#creatorFilterV332{min-width:160px}
+@media(max-width:600px){#creatorFilterV332{flex:1 1 calc(50% - 6px);min-width:0}}
+</style>
 </head>
 <body data-build="2026-09-11-v18">
 <header>
@@ -447,6 +451,7 @@ main{max-width:980px;padding:8px 20px 160px}
 </select>
 <select id="titleFilterV331" onchange="renderDefects()"><option value="all">全部缺失名稱</option></select>
 <select id="areaFilterV331" onchange="renderDefects()"><option value="all">全部樓層／區域</option></select>
+<select id="creatorFilterV332" onchange="renderDefects()"><option value="all">全部起單人</option></select>
 </div>
 <div class="list-controls-v12">
   <div class="status-tabs-v12">
@@ -705,20 +710,24 @@ function renderDefects(){
  const dpn=document.getElementById('dashboardProjectName'); if(dpn) dpn.textContent=p.name||'工程';
  const st=document.getElementById('defectSectionTitle'); if(st) st.textContent=`缺失（${all.length}）`;
 
- const titleSel=document.getElementById('titleFilterV331'),areaSel=document.getElementById('areaFilterV331');
- const keepTitle=titleSel?.value||'all',keepArea=areaSel?.value||'all';
+ const titleSel=document.getElementById('titleFilterV331'),areaSel=document.getElementById('areaFilterV331'),creatorSel=document.getElementById('creatorFilterV332');
+ const keepTitle=titleSel?.value||'all',keepArea=areaSel?.value||'all',keepCreator=creatorSel?.value||'all';
  const titles=[...new Set(all.map(x=>(x.title||'').trim()).filter(Boolean))];
  const areas=[...new Set(all.map(x=>(x.area||'').trim()).filter(Boolean))];
+ const creators=[...new Set(all.map(x=>(x.createdByName||'舊資料').trim()).filter(Boolean))];
  if(titleSel){titleSel.replaceChildren(new Option('全部缺失名稱','all'),...titles.map(v=>new Option(v,v)));titleSel.value=titles.includes(keepTitle)?keepTitle:'all';}
  if(areaSel){areaSel.replaceChildren(new Option('全部樓層／區域','all'),...areas.map(v=>new Option(v,v)));areaSel.value=areas.includes(keepArea)?keepArea:'all';}
+ if(creatorSel){creatorSel.replaceChildren(new Option('全部起單人','all'),...creators.map(v=>new Option(v,v)));creatorSel.value=creators.includes(keepCreator)?keepCreator:'all';}
  const q=document.getElementById('search').value.toLowerCase();
  const f=document.getElementById('filter').value;
  const cf=document.getElementById('categoryFilter').value;
- const tf=titleSel?.value||'all',af=areaSel?.value||'all';
+ const tf=titleSel?.value||'all',af=areaSel?.value||'all',crf=creatorSel?.value||'all';
  const rows=all.filter(x=>{
-   const hit=((x.title||'')+' '+(x.area||'')+' '+(x.vendor||'')+' '+(x.category||'其他')+' '+(x.desc||'')).toLowerCase().includes(q);
+   const creator=(x.createdByName||'舊資料').trim();
+   const hit=((x.title||'')+' '+(x.area||'')+' '+(x.vendor||'')+' '+creator+' '+(x.category||'其他')+' '+(x.desc||'')).toLowerCase().includes(q);
    return hit&&(f==='all'||x.status===f)&&(cf==='all'||(x.category||'其他')===cf)
-     &&(tf==='all'||(x.title||'').trim()===tf)&&(af==='all'||(x.area||'').trim()===af);
+     &&(tf==='all'||(x.title||'').trim()===tf)&&(af==='all'||(x.area||'').trim()===af)
+     &&(crf==='all'||creator===crf);
  });
  visibleDefectIds=rows.map(x=>String(x.id));
  updateBulkUI();
@@ -743,7 +752,7 @@ function renderDefects(){
      const thumb=dp[0]?`<img class="thumb" src="${esc(dp[0])}" alt="缺失照片" onclick="event.stopPropagation();openPhotoLightbox('${x.id}',0,'defect')">`:'<div class="thumb" style="display:grid;place-items:center;background:#f1f4f4">—</div>';
      const od=makeOverdue(x);
      const checked=selectedDefectIds.has(String(x.id))?'checked':'';
-     return `<tr onclick="openDetail('${x.id}')"><td>${thumb}</td><td class="title-cell">${esc(x.title)}${od?`<div class="overdue-badge" style="margin:4px 0 0">${od}</div>`:''}<div class="row-meta"><span class="row-vendor">${esc(x.vendor||'機電工程')}</span><span class="row-dates">${esc(x.created||'-')} → ${esc(x.due||'-')}</span></div></td><td>${x.area?`<span class="loc-chip">📍 ${esc(x.area)}</span>`:'<span style="color:#9aa2a4">未辨識</span>'}</td><td><span class="state-chip ${esc(x.status||'pending')}">${esc(statusText[x.status]||'待處理')}</span></td><td class="select-col"><input class="defect-select" data-id="${esc(x.id)}" type="checkbox" ${checked} onclick="event.stopPropagation();toggleDefectSelection('${x.id}',this.checked)"></td></tr>`;
+     return `<tr onclick="openDetail('${x.id}')"><td>${thumb}</td><td class="title-cell">${esc(x.title)}${od?`<div class="overdue-badge" style="margin:4px 0 0">${od}</div>`:''}<div class="row-meta"><span class="row-vendor">${esc(x.vendor||'機電工程')} · 起單人：${esc(x.createdByName||'舊資料')}</span><span class="row-dates">${esc(x.created||'-')} → ${esc(x.due||'-')}</span></div></td><td>${x.area?`<span class="loc-chip">📍 ${esc(x.area)}</span>`:'<span style="color:#9aa2a4">未辨識</span>'}</td><td><span class="state-chip ${esc(x.status||'pending')}">${esc(statusText[x.status]||'待處理')}</span></td><td class="select-col"><input class="defect-select" data-id="${esc(x.id)}" type="checkbox" ${checked} onclick="event.stopPropagation();toggleDefectSelection('${x.id}',this.checked)"></td></tr>`;
    }).join('')}</tbody></table>`;
  }else{
    list.className='card-mode-v12';
@@ -776,6 +785,7 @@ function selectProjectByIndex(idx){
   document.getElementById('categoryFilter').value='all';
   const tf331=document.getElementById('titleFilterV331');if(tf331)tf331.value='all';
   const af331=document.getElementById('areaFilterV331');if(af331)af331.value='all';
+  const cr332=document.getElementById('creatorFilterV332');if(cr332)cr332.value='all';
 
   // 先切到專案頁，避免 iPhone Safari 在 click 事件中重畫工程卡片造成畫面留在原頁。
   showDetailPage();
@@ -1220,7 +1230,9 @@ async function batchCreateFromWatermarks(){
           level:'中', status:'pending', category:'其他', vendor:'機電工程',
           created:createdDate, due:defaultDue,
           desc:'請依照改善期限內修繕完成',
-          defectPhotos:[item.data], improvementPhotos:[]
+          defectPhotos:[item.data], improvementPhotos:[],
+          createdBy:cloudProfileV27?.id||null,
+          createdByName:cloudProfileV27?.display_name||cloudProfileV27?.username||'舊資料'
         });
         created++;
       });
@@ -1549,7 +1561,10 @@ function saveDefect(){
     defectPhotos:[...tempPhotos],
     improvementPhotos:[...tempImprovePhotos]
   };
-  if(editId) p.defects=p.defects.map(a=>String(a.id)===String(editId)?x:a); else p.defects.push(x);
+  if(editId) p.defects=p.defects.map(a=>String(a.id)===String(editId)?x:a); else {
+    if(cloudProfileV27){x.createdBy=cloudProfileV27.id;x.createdByName=cloudProfileV27.display_name||cloudProfileV27.username||'未命名';}
+    p.defects.push(x);
+  }
   if(!save()){
     p.defects=JSON.parse(backup);
     return;
@@ -1818,7 +1833,7 @@ if(!restoreProjectFromHash()) showProjectsPage();
 .vendor-v27-hide{display:none!important}
 </style>
 <section id="cloudPanelV27">
-  <div><b>☁️ DH2 團隊雲端 · V33.1</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
+  <div><b>☁️ DH2 團隊雲端 · V33.2</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
   <div id="cloudStatusV27" class="sub" style="margin-top:4px">請先登入以讀取雲端資料</div>
   <div id="cloudLoginV27">
     <div class="cloud-row">
@@ -1868,7 +1883,7 @@ async function cloudRefreshAuthV27(){
 }
  const {data:p,error}=await dh2Cloud.from('profiles').select('id,username,display_name,role,vendor_name').eq('id',session.user.id).maybeSingle();
  if(error){setCloudStatusV27('登入成功，但讀取權限失敗：'+error.message);return;}
- cloudProfileV27=p||{id:session.user.id,display_name:session.user.email,role:'editor',vendor_name:null};
+ cloudProfileV27=p?{...p,id:session.user.id}:{id:session.user.id,display_name:session.user.email,role:'editor',vendor_name:null};
  login.style.display='none';user.style.display='block';badge.textContent=roleNameV27(cloudProfileV27.role)+(cloudProfileV27.vendor_name?' · '+cloudProfileV27.vendor_name:'');
  document.getElementById('teamManageBtnV27').style.display=cloudProfileV27.role==='admin'?'':'none';
  applyRoleUIV27();
@@ -1908,12 +1923,14 @@ async function signedPhotoUrlV27(path){
 async function cloudLoadAllV27(){
  if(!cloudProfileV27)return;
  setCloudStatusV27('正在同步雲端資料…');
- const [{data:projects,error:pe},{data:defects,error:de},{data:photos,error:phe}]=await Promise.all([
+ const [{data:projects,error:pe},{data:defects,error:de},{data:photos,error:phe},{data:profiles,error:pre}]=await Promise.all([
   dh2Cloud.from('projects').select('*').order('created_at'),
   dh2Cloud.from('defects').select('*').order('created_date'),
-  dh2Cloud.from('defect_photos').select('*').order('created_at')
+  dh2Cloud.from('defect_photos').select('*').order('created_at'),
+  dh2Cloud.from('profiles').select('id,display_name,username')
  ]);
- if(pe||de||phe){setCloudStatusV27('同步失敗：'+(pe||de||phe).message);return;}
+ if(pe||de||phe||pre){setCloudStatusV27('同步失敗：'+(pe||de||phe||pre).message);return;}
+ const profileMap=Object.fromEntries((profiles||[]).map(p=>[p.id,p.display_name||p.username||'未命名']));
  if(!projects?.length){
   state={current:null,projects:[]};
   originalSaveV27();
@@ -1930,7 +1947,7 @@ async function cloudLoadAllV27(){
  const next={current:projects[0].id,projects:projects.map(p=>({
    id:p.id,cloudId:p.id,name:p.name,no:p.no||'',address:p.address||'',owner:p.owner||'',builder:p.builder||'',start:'',end:'',
    defects:(defects||[]).filter(d=>d.project_id===p.id).map(d=>({
-     id:d.id,cloudId:d.id,title:d.title,area:d.area||'',level:d.severity||'中',status:d.status||'pending',category:d.category||'其他',vendor:d.vendor||'',created:d.created_date||'',due:d.due_date||'',desc:d.description||'',improvementReply:d.improvement_reply||'',
+     id:d.id,cloudId:d.id,title:d.title,area:d.area||'',level:d.severity||'中',status:d.status||'pending',category:d.category||'其他',vendor:d.vendor||'',created:d.created_date||'',due:d.due_date||'',desc:d.description||'',improvementReply:d.improvement_reply||'',createdBy:d.created_by||null,createdByName:d.created_by?(profileMap[d.created_by]||'未命名'):'舊資料',
      defectPhotos:(photoMap[d.id]||[]).filter(x=>x.type==='defect').map(x=>x.url),
      improvementPhotos:(photoMap[d.id]||[]).filter(x=>x.type==='improvement').map(x=>x.url)
    }))
@@ -1978,6 +1995,7 @@ async function cloudSyncAllV27(force=false){
     for(const x of p.defects||[]){
       x.cloudId=x.cloudId||(/^[0-9a-f-]{36}$/i.test(String(x.id))?String(x.id):uuidV27());
       const payload={id:x.cloudId,project_id:p.cloudId,title:x.title||'未命名缺失',area:x.area||null,severity:x.level||'中',category:x.category||'其他',vendor:x.vendor||null,status:x.status||'pending',created_date:x.created||localToday(),due_date:x.due||null,description:x.desc||null,improvement_reply:x.improvementReply||null};
+      if(x.createdBy) payload.created_by=x.createdBy;
       const {error:de}=await dh2Cloud.from('defects').upsert(payload);if(de)throw de;
       for(const ph of (x.defectPhotos||x.photos||[]))if(String(ph).startsWith('data:'))await uploadPhotoV27(p.cloudId,x.cloudId,'defect',ph);
       for(const ph of (x.improvementPhotos||[]))if(String(ph).startsWith('data:'))await uploadPhotoV27(p.cloudId,x.cloudId,'improvement',ph);
