@@ -1952,7 +1952,7 @@ if(!restoreProjectFromHash()) showProjectsPage();
 .vendor-v27-hide{display:none!important}
 </style>
 <section id="cloudPanelV27">
-  <div><b>☁️ DH2 團隊雲端 · V34.4.4.2</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
+  <div><b>☁️ DH2 團隊雲端 · V34.5.4.2</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
   <div id="cloudStatusV27" class="sub" style="margin-top:4px">請先登入以讀取雲端資料</div>
   <div id="cloudLoginV27">
     <div class="cloud-row">
@@ -2855,6 +2855,93 @@ async function v344ShowPendingQueue(){
   }catch(e){console.warn('batch queue check failed',e)}
 }
 window.addEventListener('DOMContentLoaded',()=>setTimeout(v344ShowPendingQueue,800));
+</script>
+
+
+<script id="v34-5-multiuser-safe">
+/* V34.5 multi-user safety:
+   - deterministic image fingerprint for duplicate suppression
+   - browser-wide Gemini request lock/throttle
+   - updated_at optimistic conflict helper for edits
+*/
+async function v345HashDataUrl(dataUrl){
+  try{
+    const b64=String(dataUrl||'').split(',')[1]||'';
+    const raw=atob(b64), bytes=new Uint8Array(raw.length);
+    for(let i=0;i<raw.length;i++) bytes[i]=raw.charCodeAt(i);
+    const digest=await crypto.subtle.digest('SHA-256',bytes);
+    return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  }catch(e){return '';}
+}
+
+const V345_LOCK='dh2-gemini-throttle-v345';
+async function v345GeminiGate(){
+  // navigator.locks coordinates tabs on the same device. Server 429 handling remains the final guard.
+  if(!navigator.locks){await v344Sleep(700);return ()=>{};}
+  let release;
+  const ready=new Promise(r=>release=r);
+  let acquired;
+  const got=new Promise(r=>acquired=r);
+  navigator.locks.request(V345_LOCK,async()=>{acquired();await ready;});
+  await got;
+  await v344Sleep(650);
+  return ()=>release();
+}
+
+const v345OriginalBatch=callAIVisionBatch;
+callAIVisionBatch=async function(items){
+  const unlock=await v345GeminiGate();
+  try{return await v345OriginalBatch(items);}
+  finally{unlock();}
+};
+
+const v345OriginalSingle=callAIVision;
+callAIVision=async function(...args){
+  const unlock=await v345GeminiGate();
+  try{return await v345OriginalSingle(...args);}
+  finally{unlock();}
+};
+
+// Add fingerprint to newly queued photos. It survives refresh in IndexedDB.
+const v345OriginalQueuePut=v344QueuePut;
+v344QueuePut=async function(item){
+  if(item?.data && !item.fingerprint) item.fingerprint=await v345HashDataUrl(item.data);
+  return v345OriginalQueuePut(item);
+};
+
+// Before persisting an AI-created defect, suppress the same photo if this browser already
+// created it in the current project during this batch/session.
+const V345_DONE_PREFIX='dh2_done_fp_';
+const v345OriginalPersist=v344PersistOne;
+v344PersistOne=async function(p,item,parsed,createdDate,defaultDue){
+  const fp=item?.fingerprint||await v345HashDataUrl(item?.data);
+  const key=V345_DONE_PREFIX+String(p.cloudId||p.id);
+  let done=[];
+  try{done=JSON.parse(sessionStorage.getItem(key)||'[]');}catch(e){}
+  if(fp && done.includes(fp)){
+    return {photoError:'',duplicateSkipped:true};
+  }
+  const result=await v345OriginalPersist(p,item,parsed,createdDate,defaultDue);
+  if(fp){
+    done.push(fp);
+    if(done.length>500)done=done.slice(-500);
+    sessionStorage.setItem(key,JSON.stringify(done));
+  }
+  return result;
+};
+
+// Generic optimistic-update helper for subsequent edit paths.
+// It refuses to overwrite if updated_at has changed since the row was loaded.
+window.dh2SafeUpdateDefectV345=async function(defectId,changes,knownUpdatedAt){
+  let q=dh2Cloud.from('defects').update({...changes,updated_at:new Date().toISOString()}).eq('id',defectId);
+  if(knownUpdatedAt)q=q.eq('updated_at',knownUpdatedAt);
+  const {data,error}=await q.select('id,updated_at');
+  if(error)throw error;
+  if(knownUpdatedAt && (!data||!data.length)){
+    throw new Error('這筆缺失剛剛已被其他人更新，請重新同步後再修改。');
+  }
+  return data?.[0]||null;
+};
 </script>
 
 </body></html>
