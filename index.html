@@ -387,6 +387,59 @@ main{max-width:980px;padding:8px 20px 160px}
   #printReport h2{font-size:12px!important;margin:9px 0 4px!important}
 }
 </style>
+
+<style id="v34-1-print-bottom-fix">
+@media print{
+  /* PDF only: never print app chrome */
+  header, main, .bottom-nav, .fab, .modal, .photo-lightbox-v13,
+  #cloudBarV27, #teamManagerV27{
+    display:none!important;
+    visibility:hidden!important;
+  }
+
+  html,body{
+    margin:0!important;
+    padding:0!important;
+    height:auto!important;
+    min-height:0!important;
+    overflow:visible!important;
+    background:#fff!important;
+  }
+
+  #printReport{
+    display:block!important;
+    position:static!important;
+    width:auto!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+    background:#fff!important;
+  }
+
+  /* Leave a real safety zone at the bottom of every printed page. */
+  @page{
+    size:A4 landscape;
+    margin:8mm 8mm 18mm 8mm;
+  }
+
+  #printReport .r-table{
+    page-break-after:auto!important;
+  }
+  #printReport .r-table thead{
+    display:table-header-group!important;
+  }
+  #printReport .r-table tbody tr{
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+  #printReport .r-table th,
+  #printReport .r-table td{
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+}
+</style>
 </head>
 <body data-build="2026-09-11-v18">
 <header>
@@ -1855,7 +1908,7 @@ if(!restoreProjectFromHash()) showProjectsPage();
 .vendor-v27-hide{display:none!important}
 </style>
 <section id="cloudPanelV27">
-  <div><b>☁️ DH2 團隊雲端 · V34</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
+  <div><b>☁️ DH2 團隊雲端 · V34.1</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
   <div id="cloudStatusV27" class="sub" style="margin-top:4px">請先登入以讀取雲端資料</div>
   <div id="cloudLoginV27">
     <div class="cloud-row">
