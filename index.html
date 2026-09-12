@@ -1952,7 +1952,7 @@ if(!restoreProjectFromHash()) showProjectsPage();
 .vendor-v27-hide{display:none!important}
 </style>
 <section id="cloudPanelV27">
-  <div><b>☁️ DH2 團隊雲端 · V34.3.2</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
+  <div><b>☁️ DH2 團隊雲端 · V34.4.4.2</b> <span id="cloudRoleBadgeV27" class="cloud-badge">尚未登入</span></div>
   <div id="cloudStatusV27" class="sub" style="margin-top:4px">請先登入以讀取雲端資料</div>
   <div id="cloudLoginV27">
     <div class="cloud-row">
@@ -2549,6 +2549,312 @@ window.addEventListener('hashchange',()=>{
     state.current=decodeURIComponent(m[1]);
   }
 });
+</script>
+
+
+<script id="v34-4-batch-checkpoint">
+/* V34.4
+   1) AI batch queue persists in IndexedDB, so refresh does not lose unprocessed photos.
+   2) Every successfully recognized defect is written to Supabase immediately.
+   3) 429/quota errors pause the queue instead of marking all remaining photos as failed.
+*/
+
+const V344_DB='dh2_ai_batch_v344';
+const V344_STORE='queue';
+
+function v344OpenDB(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(V344_DB,1);
+    req.onupgradeneeded=()=>{ if(!req.result.objectStoreNames.contains(V344_STORE)) req.result.createObjectStore(V344_STORE,{keyPath:'id'}); };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function v344QueueAll(){
+  const db=await v344OpenDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(V344_STORE,'readonly'),req=tx.objectStore(V344_STORE).getAll();
+    req.onsuccess=()=>resolve((req.result||[]).sort((a,b)=>(a.order||0)-(b.order||0)));
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function v344QueuePut(item){
+  const db=await v344OpenDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(V344_STORE,'readwrite');tx.objectStore(V344_STORE).put(item);
+    tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);
+  });
+}
+async function v344QueueDelete(id){
+  const db=await v344OpenDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(V344_STORE,'readwrite');tx.objectStore(V344_STORE).delete(id);
+    tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);
+  });
+}
+async function v344QueueClear(){
+  const db=await v344OpenDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(V344_STORE,'readwrite');tx.objectStore(V344_STORE).clear();
+    tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);
+  });
+}
+function v344Is429(err){
+  const s=String(err?.message||err||'').toLowerCase();
+  return s.includes('429')||s.includes('quota')||s.includes('rate limit')||s.includes('resource_exhausted');
+}
+function v344Sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+async function v344PrepareSelected(files,status){
+  await v344QueueClear();
+  let prepared=0,failed=0;
+  for(let i=0;i<files.length;i++){
+    const file=files[i];
+    status.className='sub working';
+    status.textContent=`正在準備照片 ${i+1} / ${files.length}…`;
+    try{
+      const original=await fileToDataURL(file);
+      const data=await compressImage(file);
+      if(!data)throw new Error('照片壓縮失敗');
+      const source=original||data;
+      const [image,locationImage]=await Promise.all([
+        prepareAIWatermarkImage(source),
+        prepareAILocationOnlyImage(source)
+      ]);
+      await v344QueuePut({
+        id:`${Date.now()}_${i}_${Math.random().toString(36).slice(2)}`,
+        order:i,
+        name:file.name||`照片${i+1}`,
+        data,image,locationImage,
+        createdAt:Date.now()
+      });
+      prepared++;
+    }catch(e){
+      failed++;
+      console.warn('prepare failed',file?.name,e);
+    }
+  }
+  return {prepared,failed};
+}
+
+async function v344EnsureProjectCloud(p){
+  p.cloudId=p.cloudId||(/^[0-9a-f-]{36}$/i.test(String(p.id))?String(p.id):uuidV27());
+  const {error}=await dh2Cloud.from('projects').upsert({
+    id:p.cloudId,name:p.name||'工程',no:p.no||null,address:p.address||null,
+    owner:p.owner||null,builder:p.builder||null
+  });
+  if(error)throw error;
+  return p.cloudId;
+}
+
+async function v344PersistOne(p,item,parsed,createdDate,defaultDue){
+  const cloudId=uuidV27();
+  const title=String(parsed?.defect||'').trim();
+  if(!title)throw new Error('無法辨識缺失項目');
+  const row={
+    id:cloudId,
+    project_id:p.cloudId,
+    title,
+    area:formatAreaValue(parsed.location,parsed.area),
+    severity:'中',
+    category:'其他',
+    vendor:'機電工程',
+    status:'pending',
+    created_date:createdDate,
+    due_date:defaultDue,
+    description:typeof V34_DESC!=='undefined'?V34_DESC:'依照改善期限內修繕完成',
+    created_by:cloudProfileV27?.id||null
+  };
+  const {error}=await dh2Cloud.from('defects').insert(row);
+  if(error)throw error;
+
+  let photoUrl='',photoError='';
+  try{
+    const up=await uploadPhotoCloudV34(p.cloudId,cloudId,'defect',item.data);
+    photoUrl=up?.url||'';
+  }catch(e){
+    photoError=e?.message||String(e);
+    console.warn('photo upload failed',e);
+  }
+
+  // Keep current screen in sync immediately. No base64 is retained in state/localStorage.
+  p.defects.push({
+    id:cloudId,cloudId,title:row.title,area:row.area||'',level:'中',status:'pending',
+    category:'其他',vendor:'機電工程',created:createdDate,due:defaultDue,
+    desc:row.description,
+    defectPhotos:photoUrl?[photoUrl]:[],
+    improvementPhotos:[],
+    createdBy:cloudProfileV27?.id||null,
+    createdByName:cloudProfileV27?.display_name||cloudProfileV27?.username||'未命名'
+  });
+  saveMetadataOnlyV34?.();
+  renderDefects();renderProjects();
+  return {photoError};
+}
+
+async function v344BatchCallWithRetry(group,status){
+  let attempt=0;
+  while(true){
+    try{
+      return await callAIVisionBatch(group);
+    }catch(e){
+      if(!v344Is429(e))throw e;
+      attempt++;
+      if(attempt>1)throw e;
+      // One controlled retry. If the quota is truly exhausted, stop and keep queue for later.
+      for(let sec=20;sec>0;sec--){
+        status.className='sub working';
+        status.textContent=`Gemini 暫時限流，${sec} 秒後自動重試 1 次。已完成的缺失都已保存…`;
+        await v344Sleep(1000);
+      }
+    }
+  }
+}
+
+batchCreateFromWatermarks=async function(){
+  const input=document.getElementById('batchPhotos');
+  const status=document.getElementById('batchStatus');
+  const btn=document.getElementById('batchStartBtn');
+  const selected=[...(input?.files||[])];
+  const p=project();
+  if(!p)return;
+
+  if(!cloudProfileV27){
+    alert('請先登入雲端帳號，再執行批次 AI 建單。這樣每完成一筆就能立即保存，重新整理也不會遺失。');
+    return;
+  }
+  if(cloudProfileV27.role==='vendor'){
+    alert('廠商帳號不能建立缺失。');
+    return;
+  }
+
+  btn.disabled=true;
+  const oldText=btn.textContent;
+  btn.textContent='AI 建單處理中…';
+
+  try{
+    if(selected.length){
+      const q=await v344QueueAll();
+      if(q.length && !confirm(`目前還有 ${q.length} 張上次未完成的照片。\n\n按「確定」會清除舊佇列並改處理這次選的 ${selected.length} 張。`)){
+        input.value='';
+      }else{
+        const prep=await v344PrepareSelected(selected,status);
+        input.value='';
+        if(!prep.prepared){
+          status.className='sub err';status.textContent='沒有可處理的照片。';return;
+        }
+        if(prep.failed) status.textContent=`已準備 ${prep.prepared} 張，${prep.failed} 張照片準備失敗。`;
+      }
+    }
+
+    let queue=await v344QueueAll();
+    if(!queue.length){
+      status.className='sub err';
+      status.textContent='請先選擇照片；若先前有未完成批次，也會在這裡顯示可繼續處理。';
+      return;
+    }
+
+    await v344EnsureProjectCloud(p);
+    const createdDate=localToday();
+    const defaultDue=addDaysISO(createdDate,14);
+    let created=0,photoFailed=0,recognizeFailed=0;
+    const originalTotal=queue.length;
+
+    // Process 4 at a time, sequentially. Completed rows are checkpointed immediately.
+    while(queue.length){
+      const group=queue.slice(0,4);
+      status.className='sub working';
+      status.textContent=`AI 辨識中：已保存 ${created} 筆，待處理 ${queue.length} / ${originalTotal}…`;
+
+      let parsedList;
+      try{
+        parsedList=await v344BatchCallWithRetry(group,status);
+      }catch(batchErr){
+        if(v344Is429(batchErr)){
+          const remain=(await v344QueueAll()).length;
+          status.className='sub err';
+          status.textContent=`Gemini 額度／頻率已達上限。已成功保存 ${created} 筆，剩餘 ${remain} 張保留在待處理佇列；額度恢復後再按一次「AI 辨識」即可續跑。`;
+          alert(`Gemini API 目前 429 額度／頻率限制。\n\n已完成並保存：${created} 筆\n待處理：${remain} 張\n\n不用重新上傳已完成的照片。額度恢復後，直接再按「AI 辨識並自動建立全部缺失」即可從剩餘照片繼續。`);
+          return;
+        }
+
+        // Non-429 batch error: try individually so one bad photo cannot kill the group.
+        parsedList=[];
+        for(const item of group){
+          try{
+            parsedList.push(await callAIVision(item.image,'讀取完整浮水印。location 必須逐字抄錄「施工區域：」冒號後面的全部文字，不要分析格式或刪除任何字。',item.locationImage));
+          }catch(e){
+            if(v344Is429(e)){
+              const remain=(await v344QueueAll()).length;
+              status.className='sub err';
+              status.textContent=`Gemini 額度已達上限。已保存 ${created} 筆，剩餘 ${remain} 張稍後可續跑。`;
+              return;
+            }
+            parsedList.push(null);
+          }
+        }
+      }
+
+      for(let i=0;i<group.length;i++){
+        const item=group[i],parsed=parsedList?.[i];
+        if(!parsed?.defect){
+          recognizeFailed++;
+          // Leave this item queued so user can retry later instead of silently losing it.
+          continue;
+        }
+        try{
+          const saved=await v344PersistOne(p,item,parsed,createdDate,defaultDue);
+          if(saved.photoError)photoFailed++;
+          await v344QueueDelete(item.id);
+          created++;
+        }catch(e){
+          console.warn('persist defect failed',e);
+          // Keep queue item for a later retry.
+        }
+      }
+
+      queue=await v344QueueAll();
+
+      // If no item in the group could be removed, stop to avoid an infinite loop.
+      if(group.every(g=>queue.some(q=>q.id===g.id))){
+        status.className='sub err';
+        status.textContent=`這一批沒有可成功保存的照片。已保存 ${created} 筆；剩餘 ${queue.length} 張仍保留，可稍後重試。`;
+        break;
+      }
+    }
+
+    const remain=(await v344QueueAll()).length;
+    if(remain===0){
+      status.className=photoFailed?'sub err':'sub ok';
+      status.textContent=photoFailed
+        ?`完成：${created} 筆缺失已保存；${photoFailed} 張照片上傳失敗，但缺失資料不受影響。`
+        :`完成：${created} 筆缺失與照片都已逐筆保存到雲端。`;
+      await cloudLoadAllV27();
+    }else{
+      status.className='sub err';
+      status.textContent=`已保存 ${created} 筆，仍有 ${remain} 張待處理。再次按 AI 建單即可續跑。`;
+    }
+  }catch(e){
+    console.error(e);
+    status.className='sub err';
+    status.textContent='批次建單發生錯誤：'+(e?.message||String(e));
+  }finally{
+    btn.disabled=false;
+    btn.textContent=oldText;
+  }
+};
+
+async function v344ShowPendingQueue(){
+  try{
+    const q=await v344QueueAll();
+    const status=document.getElementById('batchStatus');
+    if(q.length&&status){
+      status.className='sub working';
+      status.textContent=`偵測到上次尚未完成的 ${q.length} 張照片。直接按「AI 辨識並自動建立全部缺失」即可繼續，不用重新選照片。`;
+    }
+  }catch(e){console.warn('batch queue check failed',e)}
+}
+window.addEventListener('DOMContentLoaded',()=>setTimeout(v344ShowPendingQueue,800));
 </script>
 
 </body></html>
