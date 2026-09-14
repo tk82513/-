@@ -2103,7 +2103,7 @@ async function cloudLoadAllV27(){
    const photoMap={};
    for(const ph of photos||[]){
      const url=signedMap[ph.storage_path]||''; if(!url)continue;
-     (photoMap[ph.defect_id]??=[]).push({type:ph.photo_type,url,createdAt:ph.created_at||''});
+     (photoMap[ph.defect_id]??=[]).push({id:ph.id||'',type:ph.photo_type,url,path:ph.storage_path||'',createdAt:ph.created_at||''});
    }
    const previousProjectId=state?.current||null;
    const validProjectIds=new Set((projects||[]).map(p=>String(p.id)));
@@ -2113,7 +2113,7 @@ async function cloudLoadAllV27(){
      defects:(defects||[]).filter(d=>d.project_id===p.id).map(d=>({
        id:d.id,cloudId:d.id,title:d.title,area:d.area||'',level:d.severity||'中',status:d.status||'pending',category:d.category||'其他',vendor:d.vendor||'',created:d.created_date||'',createdAt:((photoMap[d.id]||[]).map(x=>x.createdAt).filter(Boolean).sort()[0]||''),due:d.due_date||'',desc:d.description||'',improvementReply:d.improvement_reply||'',createdBy:d.created_by||null,createdByName:d.created_by?(profileMap[d.created_by]||'未命名'):'舊資料',
        defectPhotos:(photoMap[d.id]||[]).filter(x=>x.type==='defect').map(x=>x.url),
-       improvementPhotos:(photoMap[d.id]||[]).filter(x=>x.type==='improvement').map(x=>x.url)
+       improvementPhotos:(photoMap[d.id]||[]).filter(x=>x.type==='improvement').map(x=>x.url), improvementPhotoMeta:(photoMap[d.id]||[]).filter(x=>x.type==='improvement').map(x=>({id:x.id,path:x.path,url:x.url}))
      }))
    }))};
    state=next;originalSaveV27();cloudLoadedV27=true;render();
@@ -3081,13 +3081,28 @@ window.dh2SafeUpdateDefectV345=async function(defectId,changes,knownUpdatedAt){
       const photos=(group('缺失',dArr)+group('改善',iArr))||'<span class="r-no-photo">無照片</span>';
       return `<tr><td>${i+1}</td><td>${esc(x.title)}</td><td>${esc(x.area||'')}</td><td>${esc(x.category||'其他')}</td><td>${esc(x.vendor||'')}</td><td>${esc(x.level||'')}</td><td>${esc(statusText[x.status]||x.status)}</td><td>${esc(x.createdByName||'舊資料')}</td><td>${esc(x.created||'')}</td><td>${esc(x.due||'')}</td><td>${V34_DESC}</td><td>${photos}</td></tr>`;
     };
+    // V35.5：依內容高度估算分頁，不再固定 4 筆就強制換頁。
+    // 第一頁有標題/統計，容量略小；續頁可放更多。
     const pages=[];let chunk=[];let units=0;
     defects.forEach((x,i)=>{
       const d=(Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[])).length;
       const imp=(Array.isArray(x.improvementPhotos)?x.improvementPhotos:[]).length;
-      const unit=Math.max(1,Math.ceil(Math.max(d,imp,1)/3));
-      if(chunk.length && units+unit>4){pages.push(chunk);chunk=[];units=0;}
-      chunk.push({x,i});units+=unit;
+
+      // 每 3 張照片約佔一列高度；文字較長的缺失再多預留一些高度。
+      const photoUnits=Math.max(1,Math.ceil(Math.max(d,imp,1)/3));
+      const textLen=String(x.title||'').length+String(x.area||'').length+String(x.vendor||'').length;
+      const textUnits=textLen>42?1:0;
+      const unit=photoUnits+textUnits;
+
+      // 第一頁要留報表抬頭空間；後續頁盡量填滿。
+      const capacity=pages.length===0?6:9;
+      if(chunk.length && units+unit>capacity){
+        pages.push(chunk);
+        chunk=[];
+        units=0;
+      }
+      chunk.push({x,i});
+      units+=unit;
     });
     if(chunk.length)pages.push(chunk);
     const report=document.getElementById('printReport');
@@ -3494,7 +3509,7 @@ window.dh2SafeUpdateDefectV345=async function(defectId,changes,knownUpdatedAt){
     const sub=document.getElementById('pageSubtitle');
     if(sub)sub.textContent=(sub.textContent||'').replace(/V35(?:\.\d+)?/i,'V35.3');
     const cloud=document.querySelector('#cloudPanelV27 b');
-    if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V35.3';
+    if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V35.5';
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',v352SetVersion);
   else v352SetVersion();
@@ -3508,6 +3523,131 @@ window.dh2SafeUpdateDefectV345=async function(defectId,changes,knownUpdatedAt){
    2. Same-day chronological order now uses earliest defect_photos.created_at when available.
    3. Photo loading resumes because cloudLoadAllV27 no longer aborts on the invalid column.
 */
+</script>
+
+
+<script id="v354-photo-delete-fix">
+(function(){
+'use strict';
+
+function v354MetaFor(x,url){
+  return (x?.improvementPhotoMeta||[]).find(m=>m.url===url) || null;
+}
+
+async function v354DeleteImprovementPhoto(x,url){
+  const meta=v354MetaFor(x,url);
+  let q=dh2Cloud.from('defect_photos').delete();
+
+  if(meta?.id){
+    q=q.eq('id',meta.id);
+  }else{
+    const path=(typeof v351StoragePathFromUrl==='function')?v351StoragePathFromUrl(url):'';
+    if(!path)throw new Error('找不到照片的資料庫識別碼，請先重新同步後再刪除。');
+    q=q.eq('defect_id',x.cloudId||x.id).eq('photo_type','improvement').eq('storage_path',path);
+  }
+
+  const {data,error}=await q.select('id,storage_path');
+  if(error)throw error;
+  if(!data || data.length===0){
+    throw new Error('雲端資料沒有被刪除。可能是刪除權限不足，或照片資料已變更。');
+  }
+
+  const paths=[...new Set(data.map(r=>r.storage_path).filter(Boolean))];
+  if(paths.length){
+    const {error:se}=await dh2Cloud.storage.from('defect-photos').remove(paths);
+    if(se)console.warn('V35.4 storage cleanup:',se);
+  }
+  return data;
+}
+
+window.removeImprovePhoto=async function(i){
+  const item=(tempImprovePhotos||[])[i];
+  if(!item)return;
+  if(isDataImageV34(item)){
+    tempImprovePhotos.splice(i,1);renderImprovePhotoPreview();return;
+  }
+  const x=project()?.defects?.find(a=>String(a.id)===String(editId));
+  if(!x || !cloudProfileV27){
+    tempImprovePhotos.splice(i,1);renderImprovePhotoPreview();return;
+  }
+  if(!confirm('確定永久刪除這張改善照片嗎？'))return;
+  try{
+    setCloudStatusV27('正在永久刪除改善照片…');
+    await v354DeleteImprovementPhoto(x,item);
+    tempImprovePhotos.splice(i,1);
+    x.improvementPhotos=(x.improvementPhotos||[]).filter(v=>v!==item);
+    x.improvementPhotoMeta=(x.improvementPhotoMeta||[]).filter(m=>m.url!==item);
+    renderImprovePhotoPreview();
+    await cloudLoadAllV27();
+    setCloudStatusV27('改善照片已永久刪除');
+  }catch(e){
+    console.error(e);
+    alert('刪除失敗：'+(e?.message||e));
+    setCloudStatusV27('改善照片刪除失敗');
+  }
+};
+
+window.removeVendorExistingPhotoV351=async function(i){
+  if(v351VendorSaving)return;
+  const x=project()?.defects?.find(a=>String(a.id)===String(currentId));
+  const item=(x?.improvementPhotos||[])[i];
+  if(!x||!item)return;
+  if(!confirm('確定永久刪除這張已上傳的改善照片嗎？'))return;
+  try{
+    v351VendorSaving=true;
+    const saveBtn=document.getElementById('vendorSaveBtnV351');
+    if(saveBtn)saveBtn.disabled=true;
+    setUploadProgressV34('正在永久刪除改善照片…');
+    await v354DeleteImprovementPhoto(x,item);
+    x.improvementPhotos=(x.improvementPhotos||[]).filter(v=>v!==item);
+    x.improvementPhotoMeta=(x.improvementPhotoMeta||[]).filter(m=>m.url!==item);
+    await cloudLoadAllV27();
+    setUploadProgressV34('',false);
+    v351RenderVendorPhotos();
+    setCloudStatusV27('改善照片已永久刪除');
+  }catch(e){
+    console.error(e);
+    setUploadProgressV34('',false);
+    alert('刪除失敗：'+(e?.message||e));
+  }finally{
+    v351VendorSaving=false;
+    const saveBtn=document.getElementById('vendorSaveBtnV351');
+    if(saveBtn)saveBtn.disabled=false;
+  }
+};
+
+function v354Version(){
+ const sub=document.getElementById('pageSubtitle');
+ if(sub)sub.textContent=(sub.textContent||'').replace(/V35(?:\.\d+)?/i,'V35.4');
+ const cloud=document.querySelector('#cloudPanelV27 b');
+ if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V35.5';
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',v354Version);else v354Version();
+})();
+</script>
+
+
+<style id="v355-pdf-fill-fix">
+@media print{
+  #printReport .v35-pdf-page{padding:0!important;margin:0!important;}
+  #printReport .v35-pdf-page h2{margin:5px 0 3px!important;}
+  #printReport .v35-pdf-page .r-table{margin-top:3px!important;}
+  #printReport .v35-pdf-page .r-table th,
+  #printReport .v35-pdf-page .r-table td{padding:3px!important;line-height:1.22!important;}
+  #printReport .v35-pdf-page .r-photo{width:58px!important;height:44px!important;margin:1px!important;}
+}
+</style>
+<script id="v355-version">
+(function(){
+  function setV355(){
+    const sub=document.getElementById('pageSubtitle');
+    if(sub)sub.textContent=(sub.textContent||'').replace(/V35(?:\.\d+)?/i,'V35.5');
+    const cloud=document.querySelector('#cloudPanelV27 b');
+    if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V35.5';
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setV355);
+  else setV355();
+})();
 </script>
 
 </body></html>
