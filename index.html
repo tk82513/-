@@ -3650,4 +3650,59 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+<script id="v356-vendor-photo-delete-rpc-fix">
+(function(){
+'use strict';
+async function v356DeleteImprovementPhoto(x,url){
+  const meta=(x?.improvementPhotoMeta||[]).find(m=>m.url===url);
+  if(!meta?.id) throw new Error('找不到照片 ID，請重新整理頁面後再試。');
+  const {data,error}=await dh2Cloud.rpc('dh2_delete_improvement_photo',{p_photo_id:meta.id});
+  if(error) throw error;
+  const path=(Array.isArray(data)?data[0]?.storage_path:data?.storage_path)||meta.path||'';
+  if(path){
+    const {error:se}=await dh2Cloud.storage.from('defect-photos').remove([path]);
+    if(se) console.warn('V35.6 storage cleanup:',se);
+  }
+  return true;
+}
+window.removeVendorExistingPhotoV351=async function(i){
+  if(v351VendorSaving)return;
+  const x=project()?.defects?.find(a=>String(a.id)===String(currentId));
+  const existing=(typeof v351Unique==='function')?v351Unique(x?.improvementPhotos||[]):(x?.improvementPhotos||[]);
+  const item=existing[i];
+  if(!x||!item)return;
+  if(!confirm('確定永久刪除這張已上傳的改善照片嗎？'))return;
+  try{
+    v351VendorSaving=true;
+    const saveBtn=document.getElementById('vendorSaveBtnV351');
+    if(saveBtn)saveBtn.disabled=true;
+    setUploadProgressV34('正在永久刪除改善照片…');
+    await v356DeleteImprovementPhoto(x,item);
+    x.improvementPhotos=(x.improvementPhotos||[]).filter(v=>v!==item);
+    x.improvementPhotoMeta=(x.improvementPhotoMeta||[]).filter(m=>m.url!==item);
+    setUploadProgressV34('',false);
+    v351RenderVendorPhotos();
+    setCloudStatusV27('改善照片已永久刪除');
+    await cloudLoadAllV27();
+    v351RenderVendorPhotos();
+  }catch(e){
+    console.error('V35.6 vendor photo delete:',e);
+    setUploadProgressV34('',false);
+    alert('刪除失敗：'+(e?.message||e));
+    setCloudStatusV27('改善照片刪除失敗');
+  }finally{
+    v351VendorSaving=false;
+    const saveBtn=document.getElementById('vendorSaveBtnV351');
+    if(saveBtn)saveBtn.disabled=false;
+  }
+};
+function setV356(){
+ document.body.dataset.build='2026-09-15-v35.6';
+ const sub=document.getElementById('pageSubtitle');if(sub)sub.textContent='多專案工程缺失管理 · V35.6';
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setV356);else setV356();
+})();
+</script>
+
 </body></html>
