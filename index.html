@@ -4635,45 +4635,45 @@ window.generatePDF=async function(){
 </script>
 
 
-<!-- V51: measure real rendered row heights before Safari print -->
-<style id="v51-real-height-pagination">
+<!-- V63: measure real rendered row heights before Safari print -->
+<style id="v63-real-height-pagination">
 /* Measurement mode uses the exact same geometry as print. */
-#v51Measure{position:fixed;left:-12000px;top:0;width:194mm;background:#fff;visibility:hidden;pointer-events:none;z-index:-9999;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;color:#000;}
-#v51Measure .v50-title{font-size:13px;font-weight:700;text-align:center;margin:0 0 3px;line-height:1.2}
-#v51Measure .v50-meta{font-size:7px;margin:0 0 3px;line-height:1.25;white-space:nowrap}
-#v51Measure .v50-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:6.3px}
-#v51Measure .v50-table th,#v51Measure .v50-table td{border:1px solid #333;text-align:center;vertical-align:middle;padding:1px;box-sizing:border-box;overflow:hidden;overflow-wrap:anywhere}
-#v51Measure .v50-table th{height:7mm;background:#e9eeee;font-weight:700}
-#v51Measure .c-no{width:4%}#v51Measure .c-title{width:17%}#v51Measure .c-area{width:11%}#v51Measure .c-vendor{width:9%}#v51Measure .c-creator{width:8%}#v51Measure .c-created{width:10%}#v51Measure .c-due{width:10%}#v51Measure .c-dphoto{width:12%}#v51Measure .c-iphoto{width:12%}#v51Measure .c-note{width:7%}
-#v51Measure tr.v51-row td{height:13mm;max-height:13mm}
-#v51Measure tr.v51-row.v51-tall td{height:23mm;max-height:23mm}
-#v51Measure .v50-photo-cell{padding:1px}
-#v51Measure .v50-photos{width:100%;height:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:1px;align-items:center;justify-items:center}
-#v51Measure .v50-photos.one{grid-template-columns:1fr}
-#v51Measure .v50-photo{display:block;width:100%;height:100%;max-height:100%;object-fit:contain;margin:0;border:0;border-radius:0}
+#v63Measure{position:fixed;left:-12000px;top:0;width:194mm;background:#fff;visibility:hidden;pointer-events:none;z-index:-9999;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;color:#000;}
+#v63Measure .v50-title{font-size:13px;font-weight:700;text-align:center;margin:0 0 3px;line-height:1.2}
+#v63Measure .v50-meta{font-size:7px;margin:0 0 3px;line-height:1.25;white-space:nowrap}
+#v63Measure .v50-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:6.3px}
+#v63Measure .v50-table th,#v63Measure .v50-table td{border:1px solid #333;text-align:center;vertical-align:middle;padding:1px;box-sizing:border-box;overflow:hidden;overflow-wrap:anywhere}
+#v63Measure .v50-table th{height:7mm;background:#e9eeee;font-weight:700}
+#v63Measure .c-no{width:4%}#v63Measure .c-title{width:17%}#v63Measure .c-area{width:11%}#v63Measure .c-vendor{width:9%}#v63Measure .c-creator{width:8%}#v63Measure .c-created{width:10%}#v63Measure .c-due{width:10%}#v63Measure .c-dphoto{width:12%}#v63Measure .c-iphoto{width:12%}#v63Measure .c-note{width:7%}
+#v63Measure tr.v63-row td{height:13mm;max-height:13mm}
+#v63Measure tr.v63-row.v63-tall td{height:23mm;max-height:23mm}
+#v63Measure .v50-photo-cell{padding:1px}
+#v63Measure .v50-photos{width:100%;height:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:1px;align-items:center;justify-items:center}
+#v63Measure .v50-photos.one{grid-template-columns:1fr}
+#v63Measure .v50-photo{display:block;width:100%;height:100%;max-height:100%;object-fit:contain;margin:0;border:0;border-radius:0}
 @media print{
  @page{size:A4 portrait!important;margin:8mm!important}
  #printReport .v50-page{height:auto!important;min-height:0!important;overflow:visible!important;break-after:page!important;page-break-after:always!important}
  #printReport .v50-page:last-child{break-after:auto!important;page-break-after:auto!important}
- #printReport tr.v51-row{break-inside:avoid!important;page-break-inside:avoid!important}
- #printReport tr.v51-row td{height:13mm!important;max-height:13mm!important}
- #printReport tr.v51-row.v51-tall td{height:23mm!important;max-height:23mm!important}
+ #printReport tr.v63-row{break-inside:avoid!important;page-break-inside:avoid!important}
+ #printReport tr.v63-row td{height:13mm!important;max-height:13mm!important}
+ #printReport tr.v63-row.v63-tall td{height:23mm!important;max-height:23mm!important}
 }
 </style>
-<script id="v51-real-height-pagination-script">
+<script id="v63-real-height-pagination-script">
 (function(){
 'use strict';
-function setV51(){const sub=document.getElementById('pageSubtitle');if(sub)sub.textContent=(sub.textContent||'多專案工程缺失管理').replace(/V\d+(?:\.\d+)?/i,'V51');const cloud=document.querySelector('#cloudPanelV27 b');if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V51';document.body.dataset.build='2026-09-15-v51';}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setV51);else setV51();setTimeout(setV51,700);setTimeout(setV51,1800);
+function setV63(){const sub=document.getElementById('pageSubtitle');if(sub)sub.textContent=(sub.textContent||'多專案工程缺失管理').replace(/V\d+(?:\.\d+)?/i,'V63');const cloud=document.querySelector('#cloudPanelV27 b');if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V63';document.body.dataset.build='2026-09-15-v63';}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setV63);else setV63();setTimeout(setV63,700);setTimeout(setV63,1800);
 function items51(){if(typeof reportDefectsV40==='function')return reportDefectsV40();if(typeof filteredDefectsV34==='function')return filteredDefectsV34();return project()?.defects||[];}
 function arr51(x,k,f){return Array.isArray(x&&x[k])?x[k]:(f&&Array.isArray(x&&x[f])?x[f]:[]);}
 function photos51(a){if(!a.length)return '<div class="v50-photos one"></div>';const u=a.slice(0,4),c=u.length===1?'v50-photos one':'v50-photos';return '<div class="'+c+'">'+u.map(ph=>'<img class="v50-photo" src="'+esc(ph)+'">').join('')+'</div>';}
 function head51(){return '<thead><tr><th class="c-no">序</th><th class="c-title">缺失名稱</th><th class="c-area">樓層／區域</th><th class="c-vendor">工程別</th><th class="c-creator">起單人</th><th class="c-created">起單日期</th><th class="c-due">改善期限</th><th class="c-dphoto">缺失照片</th><th class="c-iphoto">改善照片</th><th class="c-note">備註</th></tr></thead>';}
-function row51(x,no){const d=arr51(x,'defectPhotos','photos'),im=arr51(x,'improvementPhotos');const tall=Math.max(d.length,im.length)>2;return '<tr class="v51-row'+(tall?' v51-tall':'')+'"><td>'+no+'</td><td>'+esc(x.title||'')+'</td><td>'+esc(x.area||'')+'</td><td>'+esc(x.vendor||'')+'</td><td>'+esc(x.createdByName||'舊資料')+'</td><td>'+esc(x.created||'')+'</td><td>'+esc(x.due||'')+'</td><td class="v50-photo-cell">'+photos51(d)+'</td><td class="v50-photo-cell">'+photos51(im)+'</td><td>'+esc(x.improvementReply||x.improvement_reply||'')+'</td></tr>';}
+function row51(x,no){const d=arr51(x,'defectPhotos','photos'),im=arr51(x,'improvementPhotos');const tall=Math.max(d.length,im.length)>2;return '<tr class="v63-row'+(tall?' v63-tall':'')+'"><td>'+no+'</td><td>'+esc(x.title||'')+'</td><td>'+esc(x.area||'')+'</td><td>'+esc(x.vendor||'')+'</td><td>'+esc(x.createdByName||'舊資料')+'</td><td>'+esc(x.created||'')+'</td><td>'+esc(x.due||'')+'</td><td class="v50-photo-cell">'+photos51(d)+'</td><td class="v50-photo-cell">'+photos51(im)+'</td><td>'+esc(x.improvementReply||x.improvement_reply||'')+'</td></tr>';}
 function shell51(p,rows,page,total){return '<section class="v50-page"><div class="v50-title">'+esc(p.name||'DH2')+' 工程缺失管理</div><div class="v50-meta">工程地址：'+esc(p.address||'')+'　　報表日期：'+localToday()+'　　輸出：'+total+' 筆　　頁次：'+page+'</div><table class="v50-table">'+head51()+'<tbody>'+rows+'</tbody></table></section>';}
 window.generatePDF=async function(){
  const p=project();if(!p)return alert('請先選擇工程。');const defects=items51();if(!defects.length)return alert('目前篩選結果沒有缺失可輸出。');
- let m=document.getElementById('v51Measure');if(m)m.remove();m=document.createElement('div');m.id='v51Measure';document.body.appendChild(m);
+ let m=document.getElementById('v63Measure');if(m)m.remove();m=document.createElement('div');m.id='v63Measure';document.body.appendChild(m);
  // A4 printable height = 281mm with 8mm top/bottom margins. Reserve 4mm for Safari rounding.
  const probe=document.createElement('div');probe.style.cssText='position:absolute;width:1mm;height:273mm;left:-9999px;top:0';document.body.appendChild(probe);const maxPx=probe.getBoundingClientRect().height;probe.remove();
  const pages=[];let cur=[];
@@ -4689,31 +4689,84 @@ window.generatePDF=async function(){
  const report=document.getElementById('printReport');report.innerHTML=pages.map((pg,pi)=>shell51(p,pg.map(o=>row51(o.x,o.no)).join(''),(pi+1)+' / '+pages.length,defects.length)).join('');
  await waitForReportImagesV34(report,12000);
  const old=document.title,safe=String(p.name||'DH2').replace(/[\\/:*?"<>|]/g,'_').trim()||'DH2';document.title=safe+'_工程缺失報表_'+localToday();
- const restore=()=>{document.title=old;window.removeEventListener('afterprint',restore);setV51();};window.addEventListener('afterprint',restore);window.print();setTimeout(restore,5000);
+ const restore=()=>{document.title=old;window.removeEventListener('afterprint',restore);setV63();};window.addEventListener('afterprint',restore);window.print();setTimeout(restore,5000);
 };
 })();
 </script>
 
 
-<!-- V51 display lock only: keep original V51 PDF/layout logic unchanged -->
-<script id="v51-display-lock-only">
+<!-- V63 display lock only: keep original V63 PDF/layout logic unchanged -->
+<script id="v63-display-lock-only">
 (function(){
   'use strict';
-  function lockV51(){
+  function lockV63(){
     var cloud=document.querySelector('#cloudPanelV27 b');
-    if(cloud && cloud.textContent!=='☁️ DH2 團隊雲端 · V51') cloud.textContent='☁️ DH2 團隊雲端 · V51';
+    if(cloud && cloud.textContent!=='☁️ DH2 團隊雲端 · V63') cloud.textContent='☁️ DH2 團隊雲端 · V63';
     var sub=document.getElementById('pageSubtitle');
-    if(sub && /V\d+(?:\.\d+)?/i.test(sub.textContent||'')) sub.textContent=(sub.textContent||'').replace(/V\d+(?:\.\d+)?/ig,'V51');
-    if(document.body) document.body.dataset.build='2026-09-15-v51';
+    if(sub && /V\d+(?:\.\d+)?/i.test(sub.textContent||'')) sub.textContent=(sub.textContent||'').replace(/V\d+(?:\.\d+)?/ig,'V63');
+    if(document.body) document.body.dataset.build='2026-09-15-v63';
   }
   function start(){
-    lockV51();
+    lockV63();
     var target=document.getElementById('cloudPanelV27')||document.body;
-    if(target){ new MutationObserver(lockV51).observe(target,{subtree:true,childList:true,characterData:true}); }
-    setTimeout(lockV51,100); setTimeout(lockV51,500); setTimeout(lockV51,1000); setTimeout(lockV51,2500);
+    if(target){ new MutationObserver(lockV63).observe(target,{subtree:true,childList:true,characterData:true}); }
+    setTimeout(lockV63,100); setTimeout(lockV63,500); setTimeout(lockV63,1000); setTimeout(lockV63,2500);
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
 })();
 </script>
-\n<!-- V51 save-speed fix only: keep UI/PDF/version display unchanged -->\n<script id="v51-save-speed-fix">\n(function(){\n'use strict';\nasync function saveOneDefectV51(p,x,progressCb){\n  p.cloudId=p.cloudId||(/^[0-9a-f-]{36}$/i.test(String(p.id))?String(p.id):uuidV27());\n  x.cloudId=x.cloudId||(/^[0-9a-f-]{36}$/i.test(String(x.id))?String(x.id):uuidV27());\n  const {error:pe}=await dh2Cloud.from('projects').upsert({id:p.cloudId,name:p.name||'工程',no:p.no||null,address:p.address||null,owner:p.owner||null,builder:p.builder||null});\n  if(pe) throw pe;\n  const payload={id:x.cloudId,project_id:p.cloudId,title:x.title||'未命名缺失',area:x.area||null,severity:x.level||'中',category:x.category||'其他',vendor:x.vendor||null,status:x.status||'pending',created_date:x.created||localToday(),due_date:x.due||null,description:V34_DESC,improvement_reply:x.improvementReply||null};\n  if(x.createdBy) payload.created_by=x.createdBy;\n  const {error:de}=await dh2Cloud.from('defects').upsert(payload);\n  if(de) throw de;\n\n  const jobs=[];\n  for(const key of ['defectPhotos','improvementPhotos']){\n    const type=key==='improvementPhotos'?'improvement':'defect';\n    const arr=Array.isArray(x[key])?x[key]:[];\n    arr.forEach((ph,i)=>{if(isDataImageV34(ph)) jobs.push({key,type,ph,i});});\n  }\n  let done=0,failed=0;\n  const results=await Promise.all(jobs.map(async j=>{\n    try{const up=await uploadPhotoCloudV34(p.cloudId,x.cloudId,j.type,j.ph);return {...j,url:up.url||'',ok:true};}\n    catch(e){failed++;console.warn('photo upload failed',e);return {...j,ok:false,error:e};}\n    finally{done++;if(progressCb)progressCb(done,jobs.length,failed);}\n  }));\n  for(const key of ['defectPhotos','improvementPhotos']){\n    const arr=Array.isArray(x[key])?x[key]:[];\n    const mapped=arr.map((ph,i)=>{const r=results.find(z=>z.key===key&&z.i===i);return r?(r.ok?r.url:null):ph;}).filter(Boolean);\n    x[key]=mapped;\n  }\n  saveMetadataOnlyV34();\n  return {photoFailures:results.filter(r=>!r.ok),totalPhotos:jobs.length};\n}\n\nsaveDefect=async function(){\n  const title=document.getElementById('fTitle').value.trim();if(!title){alert('請輸入缺失名稱');return}\n  const p=project(), old=editId?p.defects.find(a=>String(a.id)===String(editId)):null;\n  const wasEdit=!!editId;\n  const x={id:editId||Date.now(),cloudId:old?.cloudId,title,area:fArea.value,level:fLevel.value,status:old?.status||'pending',category:fCategory.value||'其他',vendor:fVendor.value.trim()||'機電工程',created:fCreated.value||localToday(),due:fDue.value,desc:V34_DESC,defectPhotos:[...tempPhotos],improvementPhotos:[...tempImprovePhotos],createdBy:old?.createdBy||cloudProfileV27?.id||null,createdByName:old?.createdByName||cloudProfileV27?.display_name||cloudProfileV27?.username||'舊資料'};\n  if(wasEdit)p.defects=p.defects.map(a=>String(a.id)===String(editId)?x:a);else p.defects.push(x);\n  saveMetadataOnlyV34();render();\n  if(!cloudProfileV27||cloudProfileV27.role==='vendor'){closeModal();alert(wasEdit?'缺失已更新':'缺失已儲存');return}\n  clearTimeout(cloudTimerV27);setUploadProgressV34('正在儲存缺失資料…');\n  try{\n    const result=await saveOneDefectV51(p,x,(done,total,failed)=>setUploadProgressV34(total?`照片上傳 ${done} / ${total}${failed?`（失敗 ${failed}）`:''}`:'正在儲存缺失資料…'));\n    setUploadProgressV34('',false);closeModal();render();setCloudStatusV27(result.photoFailures.length?`資料已同步；${result.photoFailures.length} 張照片上傳失敗`:'雲端已更新');\n    if(result.photoFailures.length)alert(`缺失資料已儲存，但有 ${result.photoFailures.length} 張照片上傳失敗。其他資料不受影響。`);else alert(wasEdit?'缺失已更新並同步雲端':'缺失已儲存並同步雲端');\n  }catch(e){setUploadProgressV34('',false);console.error(e);setCloudStatusV27('雲端更新失敗：'+(e.message||e));alert('缺失資料同步失敗：'+(e.message||e));}\n};\n})();\n</script>\n
+
+<!-- V63 save-speed fix only: keep UI/PDF/version display unchanged -->
+<script id="v63-save-speed-fix">
+(function(){
+'use strict';
+async function saveOneDefectV63(p,x,progressCb){
+  p.cloudId=p.cloudId||(/^[0-9a-f-]{36}$/i.test(String(p.id))?String(p.id):uuidV27());
+  x.cloudId=x.cloudId||(/^[0-9a-f-]{36}$/i.test(String(x.id))?String(x.id):uuidV27());
+  const {error:pe}=await dh2Cloud.from('projects').upsert({id:p.cloudId,name:p.name||'工程',no:p.no||null,address:p.address||null,owner:p.owner||null,builder:p.builder||null});
+  if(pe) throw pe;
+  const payload={id:x.cloudId,project_id:p.cloudId,title:x.title||'未命名缺失',area:x.area||null,severity:x.level||'中',category:x.category||'其他',vendor:x.vendor||null,status:x.status||'pending',created_date:x.created||localToday(),due_date:x.due||null,description:V34_DESC,improvement_reply:x.improvementReply||null};
+  if(x.createdBy) payload.created_by=x.createdBy;
+  const {error:de}=await dh2Cloud.from('defects').upsert(payload);
+  if(de) throw de;
+
+  const jobs=[];
+  for(const key of ['defectPhotos','improvementPhotos']){
+    const type=key==='improvementPhotos'?'improvement':'defect';
+    const arr=Array.isArray(x[key])?x[key]:[];
+    arr.forEach((ph,i)=>{if(isDataImageV34(ph)) jobs.push({key,type,ph,i});});
+  }
+  let done=0,failed=0;
+  const results=await Promise.all(jobs.map(async j=>{
+    try{const up=await uploadPhotoCloudV34(p.cloudId,x.cloudId,j.type,j.ph);return {...j,url:up.url||'',ok:true};}
+    catch(e){failed++;console.warn('photo upload failed',e);return {...j,ok:false,error:e};}
+    finally{done++;if(progressCb)progressCb(done,jobs.length,failed);}
+  }));
+  for(const key of ['defectPhotos','improvementPhotos']){
+    const arr=Array.isArray(x[key])?x[key]:[];
+    const mapped=arr.map((ph,i)=>{const r=results.find(z=>z.key===key&&z.i===i);return r?(r.ok?r.url:null):ph;}).filter(Boolean);
+    x[key]=mapped;
+  }
+  saveMetadataOnlyV34();
+  return {photoFailures:results.filter(r=>!r.ok),totalPhotos:jobs.length};
+}
+
+saveDefect=async function(){
+  const title=document.getElementById('fTitle').value.trim();if(!title){alert('請輸入缺失名稱');return}
+  const p=project(), old=editId?p.defects.find(a=>String(a.id)===String(editId)):null;
+  const wasEdit=!!editId;
+  const x={id:editId||Date.now(),cloudId:old?.cloudId,title,area:fArea.value,level:fLevel.value,status:old?.status||'pending',category:fCategory.value||'其他',vendor:fVendor.value.trim()||'機電工程',created:fCreated.value||localToday(),due:fDue.value,desc:V34_DESC,defectPhotos:[...tempPhotos],improvementPhotos:[...tempImprovePhotos],createdBy:old?.createdBy||cloudProfileV27?.id||null,createdByName:old?.createdByName||cloudProfileV27?.display_name||cloudProfileV27?.username||'舊資料'};
+  if(wasEdit)p.defects=p.defects.map(a=>String(a.id)===String(editId)?x:a);else p.defects.push(x);
+  saveMetadataOnlyV34();render();
+  if(!cloudProfileV27||cloudProfileV27.role==='vendor'){closeModal();alert(wasEdit?'缺失已更新':'缺失已儲存');return}
+  clearTimeout(cloudTimerV27);setUploadProgressV34('正在儲存缺失資料…');
+  try{
+    const result=await saveOneDefectV63(p,x,(done,total,failed)=>setUploadProgressV34(total?`照片上傳 ${done} / ${total}${failed?`（失敗 ${failed}）`:''}`:'正在儲存缺失資料…'));
+    setUploadProgressV34('',false);closeModal();render();setCloudStatusV27(result.photoFailures.length?`資料已同步；${result.photoFailures.length} 張照片上傳失敗`:'雲端已更新');
+    if(result.photoFailures.length)alert(`缺失資料已儲存，但有 ${result.photoFailures.length} 張照片上傳失敗。其他資料不受影響。`);else alert(wasEdit?'缺失已更新並同步雲端':'缺失已儲存並同步雲端');
+  }catch(e){setUploadProgressV34('',false);console.error(e);setCloudStatusV27('雲端更新失敗：'+(e.message||e));alert('缺失資料同步失敗：'+(e.message||e));}
+};
+})();
+</script>
+
 </body></html>
