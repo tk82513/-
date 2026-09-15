@@ -4140,5 +4140,68 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
-\n<!-- V43: off-screen PDF renderer; keeps temporary report out of app UI -->\n<style id="v43-pdf-offscreen-fix">\n#pdfExportV43{position:fixed!important;left:-12000px!important;top:0!important;width:194mm!important;background:#fff!important;display:block!important;visibility:visible!important;pointer-events:none!important;z-index:-1!important;}\n#pdfExportV43 .pdf-v43-page{width:194mm;min-height:277mm;background:#fff;padding:0;margin:0;box-sizing:border-box;page-break-after:always;break-after:page;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;color:#000;}\n#pdfExportV43 .pdf-v43-page:last-child{page-break-after:auto;break-after:auto;}\n#pdfExportV43 .pdf-v43-title{text-align:center;font-size:15px;font-weight:700;margin:0 0 5px;}\n#pdfExportV43 .pdf-v43-meta{font-size:8px;margin:0 0 5px;line-height:1.4;}\n#pdfExportV43 table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:6.5px;}\n#pdfExportV43 th,#pdfExportV43 td{border:1px solid #333;padding:2px;text-align:center;vertical-align:middle;overflow-wrap:anywhere;}\n#pdfExportV43 th{background:#e9eeee;font-weight:700;height:18px;}\n#pdfExportV43 tr{page-break-inside:avoid!important;break-inside:avoid!important;}\n#pdfExportV43 .c-no{width:4%}#pdfExportV43 .c-title{width:17%}#pdfExportV43 .c-area{width:11%}#pdfExportV43 .c-vendor{width:9%}#pdfExportV43 .c-creator{width:8%}#pdfExportV43 .c-created{width:10%}#pdfExportV43 .c-due{width:10%}#pdfExportV43 .c-dphoto{width:12%}#pdfExportV43 .c-iphoto{width:12%}#pdfExportV43 .c-note{width:7%}\n#pdfExportV43 .pdf-v43-photo-cell{padding:1px!important;text-align:left!important;vertical-align:top!important;}\n#pdfExportV43 .pdf-v43-photo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;align-content:start;}\n#pdfExportV43 .pdf-v43-photo{display:block;width:100%;height:34px;object-fit:cover;margin:0;border:0;}\n#pdfExportV43 .pdf-v43-empty{min-height:34px;}\n</style>\n<script id="v43-pdf-script">\n(function(){\n'use strict';\nfunction setV43(){\n const sub=document.getElementById('pageSubtitle');\n if(sub)sub.textContent=(sub.textContent||'多專案工程缺失管理').replace(/V\\d+(?:\\.\\d+)?/i,'V43');\n const cloud=document.querySelector('#cloudPanelV27 b');if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V43';\n document.body.dataset.build='2026-09-15-v43';\n}\nif(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setV43);else setV43();\nsetTimeout(setV43,800);setTimeout(setV43,2000);\nfunction photoHTML(arr){\n if(!Array.isArray(arr)||!arr.length)return '<div class="pdf-v43-empty"></div>';\n return '<div class="pdf-v43-photo-grid">'+arr.map(ph=>'<img class="pdf-v43-photo" crossorigin="anonymous" src="'+esc(ph)+'">').join('')+'</div>';\n}\nfunction tableHead(){return '<thead><tr><th class="c-no">序</th><th class="c-title">缺失名稱</th><th class="c-area">樓層／區域</th><th class="c-vendor">工程別</th><th class="c-creator">起單人</th><th class="c-created">起單日期</th><th class="c-due">改善期限</th><th class="c-dphoto">缺失照片</th><th class="c-iphoto">改善照片</th><th class="c-note">備註</th></tr></thead>';}\nwindow.generatePDF=async function(){\n const p=project();if(!p)return alert('請先選擇工程。');\n const defects=(typeof reportDefectsV40==='function'?reportDefectsV40():filteredDefectsV34());\n if(!defects.length)return alert('目前篩選結果沒有缺失可輸出。');\n if(typeof html2pdf==='undefined')return alert('PDF 元件載入失敗，請確認網路後再試。');\n const old=document.getElementById('pdfExportV43');if(old)old.remove();\n const host=document.createElement('div');host.id='pdfExportV43';\n const perPage=7,pages=[];for(let i=0;i<defects.length;i+=perPage)pages.push(defects.slice(i,i+perPage));\n host.innerHTML=pages.map((page,pi)=>{\n  const rows=page.map((x,j)=>{\n   const idx=pi*perPage+j;\n   const dArr=Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]);\n   const iArr=Array.isArray(x.improvementPhotos)?x.improvementPhotos:[];\n   return '<tr><td>'+(idx+1)+'</td><td>'+esc(x.title||'')+'</td><td>'+esc(x.area||'')+'</td><td>'+esc(x.vendor||'')+'</td><td>'+esc(x.createdByName||'舊資料')+'</td><td>'+esc(x.created||'')+'</td><td>'+esc(x.due||'')+'</td><td class="pdf-v43-photo-cell">'+photoHTML(dArr)+'</td><td class="pdf-v43-photo-cell">'+photoHTML(iArr)+'</td><td>'+esc(x.improvementReply||x.improvement_reply||'')+'</td></tr>';\n  }).join('');\n  return '<section class="pdf-v43-page"><div class="pdf-v43-title">'+esc(p.name||'DH2')+' 工程缺失管理</div><div class="pdf-v43-meta">工程地址：'+esc(p.address||'')+'　　報表日期：'+localToday()+'　　輸出：'+defects.length+' 筆　　第 '+(pi+1)+'/'+pages.length+' 頁</div><table>'+tableHead()+'<tbody>'+rows+'</tbody></table></section>';\n }).join('');\n document.body.appendChild(host);\n try{\n  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));\n  await waitForReportImagesV34(host,12000);\n  const safeName=String(p.name||'DH2').replace(/[\\\\/:*?"<>|]/g,'_').trim()||'DH2';\n  const filename=safeName+'_工程缺失報表_'+localToday()+'.pdf';\n  await html2pdf().set({margin:0,filename:filename,image:{type:'jpeg',quality:0.94},html2canvas:{scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff',logging:false,scrollX:0,scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy'],avoid:['tr']}}).from(host).save();\n }catch(e){console.error(e);alert('PDF 產生失敗：'+(e&&e.message?e.message:'未知錯誤'));}\n finally{host.remove();setV43();}\n};\n})();\n</script>\n
+
+<!-- V43: off-screen PDF renderer; keeps temporary report out of app UI -->
+<style id="v43-pdf-offscreen-fix">
+#pdfExportV43{position:fixed!important;left:-12000px!important;top:0!important;width:194mm!important;background:#fff!important;display:block!important;visibility:visible!important;pointer-events:none!important;z-index:-1!important;}
+#pdfExportV43 .pdf-v43-page{width:194mm;min-height:277mm;background:#fff;padding:0;margin:0;box-sizing:border-box;page-break-after:always;break-after:page;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;color:#000;}
+#pdfExportV43 .pdf-v43-page:last-child{page-break-after:auto;break-after:auto;}
+#pdfExportV43 .pdf-v43-title{text-align:center;font-size:15px;font-weight:700;margin:0 0 5px;}
+#pdfExportV43 .pdf-v43-meta{font-size:8px;margin:0 0 5px;line-height:1.4;}
+#pdfExportV43 table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:6.5px;}
+#pdfExportV43 th,#pdfExportV43 td{border:1px solid #333;padding:2px;text-align:center;vertical-align:middle;overflow-wrap:anywhere;}
+#pdfExportV43 th{background:#e9eeee;font-weight:700;height:18px;}
+#pdfExportV43 tr{page-break-inside:avoid!important;break-inside:avoid!important;}
+#pdfExportV43 .c-no{width:4%}#pdfExportV43 .c-title{width:17%}#pdfExportV43 .c-area{width:11%}#pdfExportV43 .c-vendor{width:9%}#pdfExportV43 .c-creator{width:8%}#pdfExportV43 .c-created{width:10%}#pdfExportV43 .c-due{width:10%}#pdfExportV43 .c-dphoto{width:12%}#pdfExportV43 .c-iphoto{width:12%}#pdfExportV43 .c-note{width:7%}
+#pdfExportV43 .pdf-v43-photo-cell{padding:1px!important;text-align:left!important;vertical-align:top!important;}
+#pdfExportV43 .pdf-v43-photo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;align-content:start;}
+#pdfExportV43 .pdf-v43-photo{display:block;width:100%;height:34px;object-fit:cover;margin:0;border:0;}
+#pdfExportV43 .pdf-v43-empty{min-height:34px;}
+</style>
+<script id="v43-pdf-script">
+(function(){
+'use strict';
+function setV43(){
+ const sub=document.getElementById('pageSubtitle');
+ if(sub)sub.textContent=(sub.textContent||'多專案工程缺失管理').replace(/V\\d+(?:\\.\\d+)?/i,'V43');
+ const cloud=document.querySelector('#cloudPanelV27 b');if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V43.1';
+ document.body.dataset.build='2026-09-15-v43-1';
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setV43);else setV43();
+setTimeout(setV43,800);setTimeout(setV43,2000);
+function photoHTML(arr){
+ if(!Array.isArray(arr)||!arr.length)return '<div class="pdf-v43-empty"></div>';
+ return '<div class="pdf-v43-photo-grid">'+arr.map(ph=>'<img class="pdf-v43-photo" crossorigin="anonymous" src="'+esc(ph)+'">').join('')+'</div>';
+}
+function tableHead(){return '<thead><tr><th class="c-no">序</th><th class="c-title">缺失名稱</th><th class="c-area">樓層／區域</th><th class="c-vendor">工程別</th><th class="c-creator">起單人</th><th class="c-created">起單日期</th><th class="c-due">改善期限</th><th class="c-dphoto">缺失照片</th><th class="c-iphoto">改善照片</th><th class="c-note">備註</th></tr></thead>';}
+window.generatePDF=async function(){
+ const p=project();if(!p)return alert('請先選擇工程。');
+ const defects=(typeof reportDefectsV40==='function'?reportDefectsV40():filteredDefectsV34());
+ if(!defects.length)return alert('目前篩選結果沒有缺失可輸出。');
+ if(typeof html2pdf==='undefined')return alert('PDF 元件載入失敗，請確認網路後再試。');
+ const old=document.getElementById('pdfExportV43');if(old)old.remove();
+ const host=document.createElement('div');host.id='pdfExportV43.1';
+ const perPage=7,pages=[];for(let i=0;i<defects.length;i+=perPage)pages.push(defects.slice(i,i+perPage));
+ host.innerHTML=pages.map((page,pi)=>{
+  const rows=page.map((x,j)=>{
+   const idx=pi*perPage+j;
+   const dArr=Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]);
+   const iArr=Array.isArray(x.improvementPhotos)?x.improvementPhotos:[];
+   return '<tr><td>'+(idx+1)+'</td><td>'+esc(x.title||'')+'</td><td>'+esc(x.area||'')+'</td><td>'+esc(x.vendor||'')+'</td><td>'+esc(x.createdByName||'舊資料')+'</td><td>'+esc(x.created||'')+'</td><td>'+esc(x.due||'')+'</td><td class="pdf-v43-photo-cell">'+photoHTML(dArr)+'</td><td class="pdf-v43-photo-cell">'+photoHTML(iArr)+'</td><td>'+esc(x.improvementReply||x.improvement_reply||'')+'</td></tr>';
+  }).join('');
+  return '<section class="pdf-v43-page"><div class="pdf-v43-title">'+esc(p.name||'DH2')+' 工程缺失管理</div><div class="pdf-v43-meta">工程地址：'+esc(p.address||'')+'　　報表日期：'+localToday()+'　　輸出：'+defects.length+' 筆　　第 '+(pi+1)+'/'+pages.length+' 頁</div><table>'+tableHead()+'<tbody>'+rows+'</tbody></table></section>';
+ }).join('');
+ document.body.appendChild(host);
+ try{
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  await waitForReportImagesV34(host,12000);
+  const safeName=String(p.name||'DH2').replace(/[\\\\/:*?"<>|]/g,'_').trim()||'DH2';
+  const filename=safeName+'_工程缺失報表_'+localToday()+'.pdf';
+  await html2pdf().set({margin:0,filename:filename,image:{type:'jpeg',quality:0.94},html2canvas:{scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff',logging:false,scrollX:0,scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy'],avoid:['tr']}}).from(host).save();
+ }catch(e){console.error(e);alert('PDF 產生失敗：'+(e&&e.message?e.message:'未知錯誤'));}
+ finally{host.remove();setV43();}
+};
+})();
+</script>
+
 </body></html>
