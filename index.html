@@ -4561,4 +4561,76 @@ window.generatePDF=async function(){
 })();
 </script>
 
+
+
+<!-- V50: independent A4 pages for Safari print; no cross-page defect rows -->
+<style id="v50-independent-a4">
+@media print{
+  @page{size:A4 portrait!important;margin:8mm!important;}
+  #printReport{width:100%!important;margin:0!important;padding:0!important;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif!important;color:#000!important;}
+  #printReport .v50-page{box-sizing:border-box!important;width:100%!important;height:280mm!important;overflow:hidden!important;break-after:page!important;page-break-after:always!important;break-inside:avoid!important;page-break-inside:avoid!important;}
+  #printReport .v50-page:last-child{break-after:auto!important;page-break-after:auto!important;}
+  #printReport .v50-title{text-align:center!important;font-size:13px!important;font-weight:700!important;margin:0 0 3px!important;line-height:1.2!important;}
+  #printReport .v50-meta{font-size:7px!important;margin:0 0 3px!important;line-height:1.25!important;white-space:nowrap!important;}
+  #printReport .v50-table{width:100%!important;border-collapse:collapse!important;table-layout:fixed!important;font-size:6.3px!important;}
+  #printReport .v50-table th,#printReport .v50-table td{border:1px solid #333!important;text-align:center!important;vertical-align:middle!important;padding:1px!important;box-sizing:border-box!important;overflow:hidden!important;overflow-wrap:anywhere!important;}
+  #printReport .v50-table th{height:7mm!important;background:#e9eeee!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;font-weight:700!important;}
+  #printReport .v50-row-normal{height:13mm!important;min-height:13mm!important;max-height:13mm!important;}
+  #printReport .v50-row-tall{height:23mm!important;min-height:23mm!important;max-height:23mm!important;}
+  #printReport .v50-row-normal td{height:13mm!important;max-height:13mm!important;}
+  #printReport .v50-row-tall td{height:23mm!important;max-height:23mm!important;}
+  #printReport .c-no{width:4%!important} #printReport .c-title{width:17%!important} #printReport .c-area{width:11%!important}
+  #printReport .c-vendor{width:9%!important} #printReport .c-creator{width:8%!important} #printReport .c-created{width:10%!important}
+  #printReport .c-due{width:10%!important} #printReport .c-dphoto{width:12%!important} #printReport .c-iphoto{width:12%!important} #printReport .c-note{width:7%!important}
+  #printReport .v50-photo-cell{padding:1px!important;}
+  #printReport .v50-photos{width:100%!important;height:100%!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:1fr!important;gap:1px!important;align-items:center!important;justify-items:center!important;}
+  #printReport .v50-photos.one{grid-template-columns:1fr!important;}
+  #printReport .v50-photo{display:block!important;width:100%!important;height:100%!important;max-height:100%!important;object-fit:contain!important;margin:0!important;border:0!important;border-radius:0!important;}
+}
+</style>
+<script id="v50-independent-a4-script">
+(function(){
+'use strict';
+function setV50(){
+ const sub=document.getElementById('pageSubtitle');if(sub)sub.textContent=(sub.textContent||'多專案工程缺失管理').replace(/V\d+(?:\.\d+)?/i,'V50');
+ const cloud=document.querySelector('#cloudPanelV27 b');if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V50';
+ document.body.dataset.build='2026-09-15-v50';
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setV50);else setV50();setTimeout(setV50,700);setTimeout(setV50,1800);
+function items50(){if(typeof reportDefectsV40==='function')return reportDefectsV40();if(typeof filteredDefectsV34==='function')return filteredDefectsV34();return project()?.defects||[];}
+function arr50(x,k,fallback){return Array.isArray(x&&x[k])?x[k]:(fallback&&Array.isArray(x&&x[fallback])?x[fallback]:[]);}
+function photoHtml50(arr){
+ if(!arr.length)return '<div class="v50-photos one"></div>';
+ const use=arr.slice(0,4), cls=use.length===1?'v50-photos one':'v50-photos';
+ return '<div class="'+cls+'">'+use.map(ph=>'<img class="v50-photo" src="'+esc(ph)+'">').join('')+'</div>';
+}
+function head50(){return '<thead><tr><th class="c-no">序</th><th class="c-title">缺失名稱</th><th class="c-area">樓層／區域</th><th class="c-vendor">工程別</th><th class="c-creator">起單人</th><th class="c-created">起單日期</th><th class="c-due">改善期限</th><th class="c-dphoto">缺失照片</th><th class="c-iphoto">改善照片</th><th class="c-note">備註</th></tr></thead>';}
+function row50(x,no,tall){
+ const d=arr50(x,'defectPhotos','photos'), im=arr50(x,'improvementPhotos');
+ return '<tr class="'+(tall?'v50-row-tall':'v50-row-normal')+'"><td>'+no+'</td><td>'+esc(x.title||'')+'</td><td>'+esc(x.area||'')+'</td><td>'+esc(x.vendor||'')+'</td><td>'+esc(x.createdByName||'舊資料')+'</td><td>'+esc(x.created||'')+'</td><td>'+esc(x.due||'')+'</td><td class="v50-photo-cell">'+photoHtml50(d)+'</td><td class="v50-photo-cell">'+photoHtml50(im)+'</td><td>'+esc(x.improvementReply||x.improvement_reply||'')+'</td></tr>';
+}
+window.generatePDF=async function(){
+ const p=project();if(!p)return alert('請先選擇工程。');
+ const defects=items50();if(!defects.length)return alert('目前篩選結果沒有缺失可輸出。');
+ // Printable content budget. Each page is built BEFORE Safari sees it, so Safari never decides where a defect row is cut.
+ const budget=248; // mm available to defect rows after title/meta/header
+ let pages=[], cur=[], used=0;
+ defects.forEach((x,i)=>{
+   const d=arr50(x,'defectPhotos','photos'), im=arr50(x,'improvementPhotos');
+   const tall=Math.max(d.length,im.length)>2;
+   const h=tall?23:13;
+   if(cur.length && used+h>budget){pages.push(cur);cur=[];used=0;}
+   cur.push({x,no:i+1,tall});used+=h;
+ });
+ if(cur.length)pages.push(cur);
+ const report=document.getElementById('printReport');
+ report.innerHTML=pages.map((pg,pi)=>'<section class="v50-page"><div class="v50-title">'+esc(p.name||'DH2')+' 工程缺失管理</div><div class="v50-meta">工程地址：'+esc(p.address||'')+'　　報表日期：'+localToday()+'　　輸出：'+defects.length+' 筆　　頁次：'+(pi+1)+' / '+pages.length+'</div><table class="v50-table">'+head50()+'<tbody>'+pg.map(o=>row50(o.x,o.no,o.tall)).join('')+'</tbody></table></section>').join('');
+ await waitForReportImagesV34(report,12000);
+ const old=document.title,safe=String(p.name||'DH2').replace(/[\\/:*?"<>|]/g,'_').trim()||'DH2';
+ document.title=safe+'_工程缺失報表_'+localToday();
+ const restore=()=>{document.title=old;window.removeEventListener('afterprint',restore);setV50();};
+ window.addEventListener('afterprint',restore);window.print();setTimeout(restore,5000);
+};
+})();
+</script>
 </body></html>
