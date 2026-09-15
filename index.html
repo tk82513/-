@@ -484,12 +484,25 @@ main{max-width:980px;padding:8px 20px 160px}
   }
 }
 </style>
+
+<style id="v36-filter-sort-enhancement">
+/* V36: larger mobile filters + clickable defect sorting */
+.sortable-th-v36{cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.sortable-th-v36 .sort-arrow-v36{display:inline-block;min-width:12px;margin-left:3px;color:var(--brand);font-weight:900}
+.sortable-th-v36.active{color:var(--brand-deep);background:#e5f1ef}
+@media(max-width:650px){
+  .toolbar{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+  .toolbar>*{min-width:0!important;width:100%!important;flex:none!important}
+  .toolbar input,.toolbar select{height:56px!important;padding:10px 12px!important;font-size:14px!important;border-radius:14px!important}
+  #titleFilterV331,#areaFilterV331,#creatorFilterV332{min-width:0!important}
+}
+</style>
 </head>
-<body data-build="2026-09-14-v35">
+<body data-build="2026-09-15-v36">
 <header>
 <div>
   <h1 id="pageTitle">我的工程</h1>
-  <div class="sub" id="pageSubtitle">多專案工程缺失管理 · V35</div>
+  <div class="sub" id="pageSubtitle">多專案工程缺失管理 · V36</div>
 </div>
 <button class="secondary" id="headerAction" onclick="openProject()">＋ 新增工程</button>
 </header>
@@ -802,6 +815,37 @@ function setDefectViewMode(v){
   document.getElementById('viewCardBtn')?.classList.toggle('active',defectViewMode==='card');
   renderDefects();
 }
+let defectSortV36={key:'',dir:1};
+function toggleDefectSortV36(key){
+  if(defectSortV36.key===key) defectSortV36.dir*=-1;
+  else { defectSortV36.key=key; defectSortV36.dir=1; }
+  renderDefects();
+}
+function defectNaturalCompareV36(a,b){
+  return String(a||'').localeCompare(String(b||''),'zh-Hant',{numeric:true,sensitivity:'base'});
+}
+function areaSortKeyV36(value){
+  const s=String(value||'').trim().toUpperCase();
+  let m=s.match(/^B(\d+)F(?:\b|\s|$)/);
+  if(m) return {group:0,floor:-Number(m[1]),text:s};
+  m=s.match(/^(\d+)F(?:\b|\s|$)/);
+  if(m) return {group:1,floor:Number(m[1]),text:s};
+  m=s.match(/^R(\d*)F(?:\b|\s|$)/);
+  if(m) return {group:2,floor:Number(m[1]||0),text:s};
+  if(/^RF(?:\b|\s|$)/.test(s)) return {group:2,floor:999,text:s};
+  return {group:3,floor:0,text:s};
+}
+function compareAreaV36(a,b){
+  const A=areaSortKeyV36(a),B=areaSortKeyV36(b);
+  if(A.group!==B.group)return A.group-B.group;
+  if(A.floor!==B.floor)return A.floor-B.floor;
+  return defectNaturalCompareV36(A.text,B.text);
+}
+function sortArrowV36(key){
+  if(defectSortV36.key!==key)return '↕';
+  return defectSortV36.dir===1?'▲':'▼';
+}
+
 function renderDefects(){
  const p=project(); if(!p)return;
 
@@ -841,13 +885,22 @@ function renderDefects(){
  const f=document.getElementById('filter').value;
  const cf=document.getElementById('categoryFilter').value;
  const tf=titleSel?.value||'all',af=areaSel?.value||'all',crf=creatorSel?.value||'all';
- const rows=all.filter(x=>{
+ let rows=all.filter(x=>{
    const creator=(x.createdByName||'舊資料').trim();
    const hit=((x.title||'')+' '+(x.area||'')+' '+(x.vendor||'')+' '+creator+' '+(x.category||'其他')+' '+(x.desc||'')).toLowerCase().includes(q);
    return hit&&(f==='all'||x.status===f)&&(cf==='all'||(x.category||'其他')===cf)
      &&(tf==='all'||(x.title||'').trim()===tf)&&(af==='all'||(x.area||'').trim()===af)
      &&(crf==='all'||creator===crf);
  });
+ if(defectSortV36.key){
+   const dir=defectSortV36.dir;
+   rows=rows.slice().sort((a,b)=>{
+     const cmp=defectSortV36.key==='area'
+       ? compareAreaV36(a.area,b.area)
+       : defectNaturalCompareV36(a.title,b.title);
+     return cmp*dir;
+   });
+ }
  visibleDefectIds=rows.map(x=>String(x.id));
  updateBulkUI();
 
@@ -866,7 +919,7 @@ function renderDefects(){
  };
  if(defectViewMode==='table'){
    list.className='';
-   list.innerHTML=`<table class="defect-table-v12"><thead><tr><th>照片</th><th>缺失名稱</th><th>樓層／區域</th><th>狀態</th><th class="select-col">✓</th></tr></thead><tbody>${rows.map((x,i)=>{
+   list.innerHTML=`<table class="defect-table-v12"><thead><tr><th>照片</th><th class="sortable-th-v36 ${defectSortV36.key==='title'?'active':''}" onclick="toggleDefectSortV36('title')">缺失名稱 <span class="sort-arrow-v36">${sortArrowV36('title')}</span></th><th class="sortable-th-v36 ${defectSortV36.key==='area'?'active':''}" onclick="toggleDefectSortV36('area')">樓層／區域 <span class="sort-arrow-v36">${sortArrowV36('area')}</span></th><th>狀態</th><th class="select-col">✓</th></tr></thead><tbody>${rows.map((x,i)=>{
      const dp=Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]);
      const thumb=dp[0]?`<img class="thumb" src="${esc(dp[0])}" alt="缺失照片" onclick="event.stopPropagation();openPhotoLightbox('${x.id}',0,'defect')">`:'<div class="thumb" style="display:grid;place-items:center;background:#f1f4f4">—</div>';
      const od=makeOverdue(x);
