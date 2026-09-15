@@ -4775,7 +4775,7 @@ setTimeout(install,5200);
         old.id='appVersionV54';
         name.appendChild(old);
       }
-      old.textContent='V54';
+      old.textContent='V58';
     }
     var wrong=document.getElementById('versionBadgeV53');
     if(wrong) wrong.remove();
@@ -5124,4 +5124,63 @@ else{installV57();setTimeout(installV57,1800);}
 setTimeout(installV57,4500);
 })();
 </script>
+
+<!-- V58 FINAL: capture PDF click + authoritative version -->
+<style id="v58-final-print">
+@media print{
+ @page{size:A4 portrait;margin:8mm}
+ #printReport .v58-page{display:block!important;width:100%!important;box-sizing:border-box!important;overflow:hidden!important;break-after:page!important;page-break-after:always!important;}
+ #printReport .v58-page:last-child{break-after:auto!important;page-break-after:auto!important;}
+ #printReport .v58-title{text-align:center;font-size:13px;font-weight:700;line-height:1.15;margin:0 0 1.5mm}
+ #printReport .v58-meta{font-size:7px;line-height:1.15;margin:0 0 1.5mm;white-space:nowrap}
+ #printReport .v58-table{width:100%!important;border-collapse:collapse!important;table-layout:fixed!important;font-size:6px!important;margin:0!important}
+ #printReport .v58-table th,#printReport .v58-table td{border:1px solid #333!important;text-align:center!important;vertical-align:middle!important;padding:1px!important;box-sizing:border-box!important;overflow:hidden!important;overflow-wrap:anywhere!important}
+ #printReport .v58-table th{height:7mm!important;background:#e9eeee!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ #printReport .v58-table tbody tr,#printReport .v58-table tbody td{height:17mm!important;max-height:17mm!important;min-height:17mm!important;break-inside:avoid!important;page-break-inside:avoid!important}
+ #printReport .v58-table .v53-photos{width:100%!important;height:16mm!important;max-height:16mm!important;overflow:hidden!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:1px!important;align-items:center!important;justify-items:center!important}
+ #printReport .v58-table .v53-photos.one{grid-template-columns:1fr!important}
+ #printReport .v58-table .v53-photo{width:100%!important;height:16mm!important;max-height:16mm!important;object-fit:contain!important;display:block!important}
+}
+</style>
+<script id="v58-final-script">
+(function(){
+ 'use strict';
+ const VERSION='V58', PER_PAGE=10;
+ function forceVersion(){
+   const name=document.getElementById('dashboardProjectName');
+   if(!name)return;
+   let b=document.getElementById('appVersionV54')||document.getElementById('appVersionV58');
+   if(!b){b=document.createElement('span');name.appendChild(b);}
+   b.id='appVersionV58'; b.textContent=VERSION;
+ }
+ async function generatePDFV58(){
+   const p=project(); if(!p)return alert('請先選擇工程。');
+   const defects=(typeof reportDefectsV40==='function'?reportDefectsV40():(typeof filteredDefectsV34==='function'?filteredDefectsV34():(p.defects||[])));
+   if(!defects.length)return alert('目前篩選結果沒有缺失可輸出。');
+   const total=Math.ceil(defects.length/PER_PAGE), pages=[];
+   for(let start=0;start<defects.length;start+=PER_PAGE){
+     const pg=defects.slice(start,start+PER_PAGE), pi=pages.length+1;
+     pages.push('<section class="v58-page"><div class="v58-title">'+esc(p.name||'DH2')+' 工程缺失管理</div><div class="v58-meta">工程地址：'+esc(p.address||'')+'　　報表日期：'+localToday()+'　　輸出：'+defects.length+' 筆　　頁次：'+pi+' / '+total+'</div><table class="v58-table">'+head()+'<tbody>'+pg.map((x,j)=>row(x,start+j+1)).join('')+'</tbody></table></section>');
+   }
+   const report=document.getElementById('printReport'); report.innerHTML=pages.join('');
+   await waitForReportImagesV34(report,12000);
+   const old=document.title, safe=String(p.name||'DH2').replace(/[\\/:*?"<>|]/g,'_').trim()||'DH2';
+   document.title=safe+'_工程缺失報表_'+localToday();
+   const restore=()=>{document.title=old;window.removeEventListener('afterprint',restore);forceVersion();};
+   window.addEventListener('afterprint',restore,{once:true}); window.print(); setTimeout(restore,5000);
+ }
+ // Capture phase: old delayed patches can no longer steal the PDF button.
+ document.addEventListener('click',function(e){
+   const b=e.target.closest&&e.target.closest('button');
+   if(!b)return;
+   const oc=b.getAttribute('onclick')||'';
+   if(oc.includes('generatePDF')){e.preventDefault();e.stopImmediatePropagation();generatePDFV58();}
+ },true);
+ window.generatePDF=generatePDFV58;
+ forceVersion();
+ new MutationObserver(forceVersion).observe(document.documentElement,{childList:true,subtree:true,characterData:true});
+ setInterval(forceVersion,1000);
+})();
+</script>
+
 </body></html>
