@@ -4382,4 +4382,84 @@ window.generatePDF=async function(){
 };
 })();
 </script>
+
+
+<!-- V47: native Safari print with explicit page groups + denser mobile filters -->
+<style id="v47-print-pagination-filter-density">
+@media(max-width:650px){
+  .toolbar{gap:5px!important;margin:8px 0 6px!important;}
+  .toolbar input,.toolbar select,.v356-multi>button,#v356ClearFilters{
+    height:42px!important;min-height:42px!important;padding:5px 8px!important;
+    font-size:12px!important;border-radius:10px!important;
+  }
+  .v356-menu{max-height:270px!important;padding:4px!important;}
+  .v356-opt{min-height:40px!important;padding:5px 5px!important;font-size:12px!important;gap:6px!important;}
+  .v356-opt input{width:16px!important;height:16px!important;}
+  .v356-actions{gap:5px!important;padding-top:4px!important;}
+  .v356-actions button{height:34px!important;min-height:34px!important;padding:4px!important;font-size:12px!important;}
+}
+@media print{
+  #printReport .v47-page{display:block!important;break-after:page!important;page-break-after:always!important;}
+  #printReport .v47-page:last-child{break-after:auto!important;page-break-after:auto!important;}
+  #printReport .v47-page .v38-pdf-table{margin:0!important;}
+  #printReport .v47-page .v38-pdf-table tbody,
+  #printReport .v47-page .v38-pdf-table tr,
+  #printReport .v47-page .v38-pdf-table td{break-inside:avoid!important;page-break-inside:avoid!important;}
+  #printReport .v47-page-head{margin-bottom:4px!important;}
+}
+</style>
+<script id="v47-native-print-paged">
+(function(){
+'use strict';
+function setV47(){
+ const sub=document.getElementById('pageSubtitle');
+ if(sub) sub.textContent=(sub.textContent||'多專案工程缺失管理').replace(/V\d+(?:\.\d+)?/i,'V47');
+ const cloud=document.querySelector('#cloudPanelV27 b');
+ if(cloud) cloud.textContent='☁️ DH2 團隊雲端 · V47';
+ document.body.dataset.build='2026-09-15-v47';
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setV47);else setV47();
+setTimeout(setV47,800);setTimeout(setV47,2000);
+function pg(arr){
+ if(!Array.isArray(arr)||!arr.length)return '<div class="v38-empty"></div>';
+ return '<div class="v38-photo-grid">'+arr.map(ph=>'<img class="v38-photo" src="'+esc(ph)+'">').join('')+'</div>';
+}
+function reportItems(){
+ if(typeof reportDefectsV40==='function')return reportDefectsV40();
+ if(typeof filteredDefectsV34==='function')return filteredDefectsV34();
+ return project()?.defects||[];
+}
+function rowHtml(x,no){
+ const dArr=Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]);
+ const iArr=Array.isArray(x.improvementPhotos)?x.improvementPhotos:[];
+ return '<tbody class="v39-row-group"><tr>'+ 
+  '<td>'+no+'</td><td>'+esc(x.title||'')+'</td><td>'+esc(x.area||'')+'</td>'+ 
+  '<td>'+esc(x.vendor||'')+'</td><td>'+esc(x.createdByName||'舊資料')+'</td>'+ 
+  '<td>'+esc(x.created||'')+'</td><td>'+esc(x.due||'')+'</td>'+ 
+  '<td class="v38-photo-cell">'+pg(dArr)+'</td>'+ 
+  '<td class="v38-photo-cell">'+pg(iArr)+'</td>'+ 
+  '<td>'+esc(x.improvementReply||x.improvement_reply||'')+'</td></tr></tbody>';
+}
+function tableHead(){return '<thead><tr><th class="c-no">序</th><th class="c-title">缺失名稱</th><th class="c-area">樓層／區域</th><th class="c-vendor">工程別</th><th class="c-creator">起單人</th><th class="c-created">起單日期</th><th class="c-due">改善期限</th><th class="c-dphoto">缺失照片</th><th class="c-iphoto">改善照片</th><th class="c-note">備註</th></tr></thead>';}
+window.generatePDF=async function(){
+ const p=project();if(!p)return alert('請先選擇工程。');
+ const defects=reportItems();if(!defects.length)return alert('目前篩選結果沒有缺失可輸出。');
+ // Keep each printed sheet deliberately below Safari's page boundary. 12 rows/page
+ // prevents WebKit from slicing a photo row while preserving original image pixels.
+ const perPage=12,pages=[];
+ for(let start=0;start<defects.length;start+=perPage){
+   const part=defects.slice(start,start+perPage);
+   const head=start===0?'<div class="v47-page-head"><div class="v38-report-title">'+esc(p.name||'DH2')+' 工程缺失管理</div><div class="v38-report-meta">工程地址：'+esc(p.address||'')+'　　報表日期：'+localToday()+'　　輸出：'+defects.length+' 筆</div></div>':'';
+   pages.push('<section class="v47-page">'+head+'<table class="v38-pdf-table">'+tableHead()+part.map((x,j)=>rowHtml(x,start+j+1)).join('')+'</table></section>');
+ }
+ const report=document.getElementById('printReport');report.innerHTML=pages.join('');
+ await waitForReportImagesV34(report,12000);
+ const oldTitle=document.title;
+ const safeName=String(p.name||'DH2').replace(/[\\/:*?"<>|]/g,'_').trim()||'DH2';
+ document.title=safeName+'_工程缺失報表_'+localToday();
+ const restore=()=>{document.title=oldTitle;window.removeEventListener('afterprint',restore);setV47();};
+ window.addEventListener('afterprint',restore);window.print();setTimeout(restore,5000);
+};
+})();
+</script>
 </body></html>
