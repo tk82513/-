@@ -555,7 +555,7 @@ main{max-width:980px;padding:8px 20px 160px}
 
 <div class="toolbar">
 <input id="search" placeholder="🔎 搜尋缺失" oninput="renderDefects()">
-<select id="filter" onchange="renderDefects()"><option value="all">全部狀態</option><option value="pending">待處理</option><option value="doing">進行中</option><option value="closed">已關閉</option></select>
+<select id="filter" onchange="renderDefects()"><option value="all">全部狀態</option><option value="pending" selected>待處理</option><option value="doing">進行中</option><option value="closed">已關閉</option></select>
 <select id="categoryFilter" onchange="renderDefects()">
 <option value="all">全部分類</option>
 <option value="電氣">電氣</option>
@@ -3509,7 +3509,7 @@ window.dh2SafeUpdateDefectV345=async function(defectId,changes,knownUpdatedAt){
     const sub=document.getElementById('pageSubtitle');
     if(sub)sub.textContent=(sub.textContent||'').replace(/V35(?:\.\d+)?/i,'V35.3');
     const cloud=document.querySelector('#cloudPanelV27 b');
-    if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V35.5';
+    if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V35.6';
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',v352SetVersion);
   else v352SetVersion();
@@ -3620,7 +3620,7 @@ function v354Version(){
  const sub=document.getElementById('pageSubtitle');
  if(sub)sub.textContent=(sub.textContent||'').replace(/V35(?:\.\d+)?/i,'V35.4');
  const cloud=document.querySelector('#cloudPanelV27 b');
- if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V35.5';
+ if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V35.6';
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',v354Version);else v354Version();
 })();
@@ -3643,7 +3643,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const sub=document.getElementById('pageSubtitle');
     if(sub)sub.textContent=(sub.textContent||'').replace(/V35(?:\.\d+)?/i,'V35.5');
     const cloud=document.querySelector('#cloudPanelV27 b');
-    if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V35.5';
+    if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V35.6';
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setV355);
   else setV355();
@@ -3651,57 +3651,171 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </script>
 
 
-<script id="v356-vendor-photo-delete-rpc-fix">
+<style id="v356-multifilter-style">
+.v356-multi{position:relative;flex:1 1 190px;min-width:0}
+.v356-multi>button{width:100%;height:100%;min-height:52px;background:#fff;color:var(--ink);border:1px solid #d8e0e1;border-radius:14px;text-align:left;padding:0 38px 0 14px;font:inherit;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v356-multi>button:after{content:"⌄";position:absolute;right:13px;top:50%;transform:translateY(-54%);font-weight:900}
+.v356-menu{display:none;position:absolute;z-index:90;left:0;right:0;top:calc(100% + 5px);background:#fff;border:1px solid #d8e0e1;border-radius:14px;box-shadow:0 12px 28px rgba(0,0,0,.14);padding:8px;max-height:300px;overflow:auto}
+.v356-multi.open .v356-menu{display:block}
+.v356-opt{display:flex;align-items:center;gap:9px;padding:9px 7px;border-radius:9px;font-size:14px}
+.v356-opt input{width:18px;height:18px;flex:0 0 auto}
+.v356-actions{display:flex;gap:7px;position:sticky;bottom:-8px;background:#fff;padding:8px 0 2px}
+.v356-actions button{min-height:38px;flex:1;padding:7px;border-radius:9px}
+#v356ClearFilters{background:#eef5f4;color:var(--brand);border:1px solid #cfe0dd}
+@media(max-width:600px){.v356-multi{flex:1 1 calc(50% - 6px)}}
+</style>
+<script id="v356-multifilter">
 (function(){
 'use strict';
-async function v356DeleteImprovementPhoto(x,url){
-  const meta=(x?.improvementPhotoMeta||[]).find(m=>m.url===url);
-  if(!meta?.id) throw new Error('找不到照片 ID，請重新整理頁面後再試。');
-  const {data,error}=await dh2Cloud.rpc('dh2_delete_improvement_photo',{p_photo_id:meta.id});
-  if(error) throw error;
-  const path=(Array.isArray(data)?data[0]?.storage_path:data?.storage_path)||meta.path||'';
-  if(path){
-    const {error:se}=await dh2Cloud.storage.from('defect-photos').remove([path]);
-    if(se) console.warn('V35.6 storage cleanup:',se);
-  }
-  return true;
-}
-window.removeVendorExistingPhotoV351=async function(i){
-  if(v351VendorSaving)return;
-  const x=project()?.defects?.find(a=>String(a.id)===String(currentId));
-  const existing=(typeof v351Unique==='function')?v351Unique(x?.improvementPhotos||[]):(x?.improvementPhotos||[]);
-  const item=existing[i];
-  if(!x||!item)return;
-  if(!confirm('確定永久刪除這張已上傳的改善照片嗎？'))return;
-  try{
-    v351VendorSaving=true;
-    const saveBtn=document.getElementById('vendorSaveBtnV351');
-    if(saveBtn)saveBtn.disabled=true;
-    setUploadProgressV34('正在永久刪除改善照片…');
-    await v356DeleteImprovementPhoto(x,item);
-    x.improvementPhotos=(x.improvementPhotos||[]).filter(v=>v!==item);
-    x.improvementPhotoMeta=(x.improvementPhotoMeta||[]).filter(m=>m.url!==item);
-    setUploadProgressV34('',false);
-    v351RenderVendorPhotos();
-    setCloudStatusV27('改善照片已永久刪除');
-    await cloudLoadAllV27();
-    v351RenderVendorPhotos();
-  }catch(e){
-    console.error('V35.6 vendor photo delete:',e);
-    setUploadProgressV34('',false);
-    alert('刪除失敗：'+(e?.message||e));
-    setCloudStatusV27('改善照片刪除失敗');
-  }finally{
-    v351VendorSaving=false;
-    const saveBtn=document.getElementById('vendorSaveBtnV351');
-    if(saveBtn)saveBtn.disabled=false;
-  }
+
+const cfg=[
+ ['filter','狀態',[['pending','待處理'],['doing','進行中'],['closed','已關閉']]],
+ ['categoryFilter','分類',[['電氣','電氣'],['弱電','弱電'],['給水','給水'],['排水','排水'],['消防','消防'],['空調','空調'],['建築','建築'],['其他','其他']]],
+ ['titleFilterV331','缺失名稱',null],
+ ['areaFilterV331','樓層／區域',null],
+ ['creatorFilterV332','起單人',null]
+];
+const selected={
+ filter:new Set(['pending']),
+ categoryFilter:new Set(),
+ titleFilterV331:new Set(),
+ areaFilterV331:new Set(),
+ creatorFilterV332:new Set()
 };
-function setV356(){
- document.body.dataset.build='2026-09-15-v35.6';
- const sub=document.getElementById('pageSubtitle');if(sub)sub.textContent='多專案工程缺失管理 · V35.6';
+let installed=false;
+
+function allDefects(){return project()?.defects||[]}
+function dynamicOptions(id){
+ const all=allDefects();
+ if(id==='titleFilterV331')return [...new Set(all.map(x=>(x.title||'').trim()).filter(Boolean))].sort().map(v=>[v,v]);
+ if(id==='areaFilterV331')return [...new Set(all.map(x=>(x.area||'').trim()).filter(Boolean))].sort().map(v=>[v,v]);
+ if(id==='creatorFilterV332')return [...new Set(all.map(x=>(x.createdByName||'舊資料').trim()).filter(Boolean))].sort().map(v=>[v,v]);
+ return [];
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setV356);else setV356();
+function optionsFor(id){return cfg.find(x=>x[0]===id)?.[2]||dynamicOptions(id)}
+function labelFor(id){
+ const c=cfg.find(x=>x[0]===id), vals=[...selected[id]];
+ if(!vals.length)return '全部'+c[1];
+ const opts=new Map(optionsFor(id));
+ if(vals.length===1)return opts.get(vals[0])||vals[0];
+ return `${c[1]}（${vals.length}項）`;
+}
+function syncHidden(id){
+ const el=document.getElementById(id);if(!el)return;
+ const vals=[...selected[id]];
+ el.value=vals.length===1?vals[0]:'all';
+}
+function renderMenu(id){
+ const box=document.querySelector(`.v356-multi[data-for="${id}"]`);if(!box)return;
+ const menu=box.querySelector('.v356-menu');
+ menu.innerHTML=optionsFor(id).map(([v,t])=>`<label class="v356-opt"><input type="checkbox" value="${esc(v)}" ${selected[id].has(v)?'checked':''}><span>${esc(t)}</span></label>`).join('')+
+ `<div class="v356-actions"><button type="button" data-clear="${id}">全部</button><button type="button" data-done="${id}">完成</button></div>`;
+ box.querySelector('button').textContent=labelFor(id);
+ menu.querySelectorAll('input[type=checkbox]').forEach(ch=>ch.onchange=()=>{
+   ch.checked?selected[id].add(ch.value):selected[id].delete(ch.value);
+   syncHidden(id);box.querySelector('button').textContent=labelFor(id);renderDefects();
+ });
+ menu.querySelector(`[data-clear="${id}"]`).onclick=()=>{selected[id].clear();syncHidden(id);renderMenu(id);renderDefects()};
+ menu.querySelector(`[data-done="${id}"]`).onclick=()=>box.classList.remove('open');
+}
+function install(){
+ if(installed)return;installed=true;
+ cfg.forEach(([id])=>{
+   const el=document.getElementById(id);if(!el)return;
+   el.style.display='none';
+   const box=document.createElement('div');box.className='v356-multi';box.dataset.for=id;
+   box.innerHTML=`<button type="button"></button><div class="v356-menu"></div>`;
+   el.after(box);
+   box.querySelector('button').onclick=e=>{
+     e.stopPropagation();
+     document.querySelectorAll('.v356-multi.open').forEach(x=>{if(x!==box)x.classList.remove('open')});
+     box.classList.toggle('open');renderMenu(id);
+   };
+   renderMenu(id);
+ });
+ const toolbar=document.querySelector('.toolbar');
+ if(toolbar){
+   const clear=document.createElement('button');
+   clear.type='button';clear.id='v356ClearFilters';clear.textContent='清除篩選';
+   clear.onclick=()=>{
+     Object.keys(selected).forEach(k=>selected[k].clear());
+     Object.keys(selected).forEach(k=>{syncHidden(k);renderMenu(k)});
+     renderDefects();
+   };
+   toolbar.appendChild(clear);
+ }
+ document.addEventListener('click',e=>{if(!e.target.closest('.v356-multi'))document.querySelectorAll('.v356-multi.open').forEach(x=>x.classList.remove('open'))});
+}
+
+function matchesMulti(x){
+ const creator=(x.createdByName||'舊資料').trim(),cat=x.category||'其他';
+ return (!selected.filter.size||selected.filter.has(x.status))
+   &&(!selected.categoryFilter.size||selected.categoryFilter.has(cat))
+   &&(!selected.titleFilterV331.size||selected.titleFilterV331.has((x.title||'').trim()))
+   &&(!selected.areaFilterV331.size||selected.areaFilterV331.has((x.area||'').trim()))
+   &&(!selected.creatorFilterV332.size||selected.creatorFilterV332.has(creator));
+}
+
+const baseRender=window.renderDefects;
+window.renderDefects=function(){
+ install();
+ // Let existing renderer keep all its table/card/date/bulk logic, but neutralize its single-select filters.
+ const saved={};
+ cfg.forEach(([id])=>{const el=document.getElementById(id);if(el){saved[id]=el.value;el.value='all'}});
+ const out=baseRender.apply(this,arguments);
+ cfg.forEach(([id])=>{const el=document.getElementById(id);if(el)el.value=saved[id]??'all'});
+
+ // Existing renderer has already applied search. Apply V35.6 multi filters to those visible ids.
+ const p=project();if(!p)return out;
+ const byId=new Map((p.defects||[]).map(x=>[String(x.id),x]));
+ visibleDefectIds=(visibleDefectIds||[]).filter(id=>matchesMulti(byId.get(String(id))));
+
+ // Re-render only the visible rows/cards by temporarily narrowing p.defects.
+ const original=p.defects;
+ p.defects=original.filter(x=>visibleDefectIds.includes(String(x.id)));
+ try{
+   cfg.forEach(([id])=>{const el=document.getElementById(id);if(el)el.value='all'});
+   baseRender();
+ }finally{
+   p.defects=original;
+   cfg.forEach(([id])=>{const el=document.getElementById(id);if(el)el.value=saved[id]??'all'});
+ }
+ visibleDefectIds=(visibleDefectIds||[]).map(String);
+ updateBulkUI();
+
+ // Restore dashboard counters to ALL project defects, not filtered counts.
+ const pending=original.filter(x=>x.status==='pending').length,doing=original.filter(x=>x.status==='doing').length,closed=original.filter(x=>x.status==='closed').length;
+ document.getElementById('total').innerHTML=`${original.length} <small>總缺失數</small>`;
+ document.getElementById('pending').textContent=`🔴 ${pending} 待處理`;
+ document.getElementById('doing').textContent=`🟠 ${doing} 進行中`;
+ document.getElementById('closed').textContent=`🟢 ${closed} 已關閉`;
+ document.getElementById('tabPendingCount').textContent=pending;
+ document.getElementById('tabDoingCount').textContent=doing;
+ document.getElementById('tabClosedCount').textContent=closed;
+ const st=document.getElementById('defectSectionTitle');if(st)st.textContent=`缺失（${visibleDefectIds.length}）`;
+
+ cfg.forEach(([id])=>renderMenu(id));
+ return out;
+};
+
+// Quick status buttons become multi-select toggles.
+window.quickStatusFilter=function(status){
+ selected.filter.has(status)?selected.filter.delete(status):selected.filter.add(status);
+ syncHidden('filter');renderMenu('filter');renderDefects();
+};
+
+// On first load / project entry: pending only.
+function defaultPending(){
+ selected.filter=new Set(['pending']);syncHidden('filter');renderMenu('filter');renderDefects();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{install();defaultPending()});
+else {install();defaultPending()}
+
+function version(){
+ const sub=document.getElementById('pageSubtitle');if(sub)sub.textContent=(sub.textContent||'').replace(/V35(?:\.\d+)?/i,'V35.6');
+ const cloud=document.querySelector('#cloudPanelV27 b');if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · V35.6';
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',version);else version();
 })();
 </script>
 
