@@ -498,11 +498,11 @@ main{max-width:980px;padding:8px 20px 160px}
 }
 </style>
 </head>
-<body data-build="2026-09-15-v39">
+<body data-build="2026-09-15-v40">
 <header>
 <div>
   <h1 id="pageTitle">我的工程</h1>
-  <div class="sub" id="pageSubtitle">多專案工程缺失管理 · V39</div>
+  <div class="sub" id="pageSubtitle">多專案工程缺失管理 · V40</div>
 </div>
 <button class="secondary" id="headerAction" onclick="openProject()">＋ 新增工程</button>
 </header>
@@ -4016,4 +4016,63 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </script>
 
 <!-- V39: stronger PDF row page-break protection + dated PDF/Excel filenames -->
+
+
+<!-- V40: compact filters + export selected visible defects when any are checked -->
+<style id="v40-compact-filters">
+@media(max-width:650px){
+  .toolbar{gap:7px!important;margin:10px 0 8px!important;}
+  .toolbar input,.toolbar select,.v356-multi>button,#v356ClearFilters{
+    height:46px!important;min-height:46px!important;padding:7px 10px!important;
+    font-size:13px!important;border-radius:12px!important;
+  }
+  .v356-menu{max-height:245px!important;padding:6px!important;}
+  .v356-opt{padding:7px 6px!important;font-size:13px!important;gap:7px!important;}
+  .v356-opt input{width:17px!important;height:17px!important;}
+  .v356-actions button{height:36px!important;min-height:36px!important;padding:6px!important;}
+}
+</style>
+<script id="v40-selected-export">
+(function(){
+ 'use strict';
+ const V40='V40';
+ function setV40Version(){
+   const sub=document.getElementById('pageSubtitle');
+   if(sub) sub.textContent=(sub.textContent||'多專案工程缺失管理').replace(/V\d+(?:\.\d+)?/i,V40);
+   const cloud=document.querySelector('#cloudPanelV27 b');
+   if(cloud) cloud.textContent='☁️ DH2 團隊雲端 · '+V40;
+   document.body.dataset.build='2026-09-15-v40';
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setV40Version);else setV40Version();
+ setTimeout(setV40Version,600);
+ setTimeout(setV40Version,1600);
+
+ // Export rule: filters are applied first. If any currently-visible rows are checked,
+ // PDF/Excel exports only those checked rows. If none are checked, export all filtered rows.
+ window.reportDefectsV40=function(){
+   const p=project(); if(!p)return [];
+   const byId=new Map((p.defects||[]).map(x=>[String(x.id),x]));
+   const visible=(visibleDefectIds||[]).map(id=>String(id));
+   const selectedVisible=visible.filter(id=>selectedDefectIds.has(id));
+   const ids=selectedVisible.length?selectedVisible:visible;
+   return ids.map(id=>byId.get(id)).filter(Boolean);
+ };
+
+ // Existing V34/V37 Excel calls filteredDefectsV34(), so route that helper through V40.
+ filteredDefectsV34=function(){ return reportDefectsV40(); };
+
+ // Make the selection counter explain the report behavior without adding another bulky control.
+ const baseUpdateBulkUI=window.updateBulkUI;
+ window.updateBulkUI=function(){
+   if(baseUpdateBulkUI)baseUpdateBulkUI();
+   const el=document.getElementById('bulkCount');
+   if(!el)return;
+   const visible=(visibleDefectIds||[]).map(String);
+   const n=visible.filter(id=>selectedDefectIds.has(id)).length;
+   el.textContent=n?`已選 ${n} 筆（報表只輸出已選）`:'已選 0 筆';
+ };
+ setTimeout(()=>window.updateBulkUI&&window.updateBulkUI(),800);
+})();
+</script>
+
 </body></html>
