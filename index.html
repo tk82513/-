@@ -4078,7 +4078,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 <!-- V41: real PDF download, fixed page groups, dated filename -->
-<style id="v41-pdf-fix">
+<style id="v42-pdf-fix">
 #pdfExportV41{display:none}
 .pdf-v41-page{width:194mm;min-height:277mm;background:#fff;padding:0;margin:0;box-sizing:border-box;page-break-after:always;break-after:page;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;color:#000}
 .pdf-v41-page:last-child{page-break-after:auto;break-after:auto}
@@ -4094,15 +4094,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .pdf-v41-photo{display:block;width:100%;height:34px;object-fit:cover;margin:0;border:0}
 .pdf-v41-empty{min-height:34px}
 </style>
-<script id="v41-pdf-fix-script">
+<script id="v42-pdf-fix-script">
 (function(){
  'use strict';
- const V41='V41';
+ const V41='V42';
  function setVersion(){
    const sub=document.getElementById('pageSubtitle');
    if(sub)sub.textContent=(sub.textContent||'多專案工程缺失管理').replace(/V\d+(?:\.\d+)?/i,V41);
    const cloud=document.querySelector('#cloudPanelV27 b');if(cloud)cloud.textContent='☁️ DH2 團隊雲端 · '+V41;
-   document.body.dataset.build='2026-09-15-v41';
+   document.body.dataset.build='2026-09-15-v42';
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setVersion);else setVersion();
  setTimeout(setVersion,700);setTimeout(setVersion,1800);
@@ -4116,7 +4116,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    const defects=(typeof reportDefectsV40==='function'?reportDefectsV40():filteredDefectsV34());
    if(!defects.length)return alert('目前篩選結果沒有缺失可輸出。');
    if(typeof html2pdf==='undefined')return alert('PDF 元件載入失敗，請確認網路後再試。');
-   const host=document.createElement('div');host.id='pdfExportV41';host.style.display='block';host.style.position='fixed';host.style.left='-10000px';host.style.top='0';host.style.background='#fff';
+   const host=document.createElement('div');host.id='pdfExportV41';host.style.display='block';host.style.position='absolute';host.style.left='0';host.style.top='0';host.style.width='194mm';host.style.background='#fff';host.style.zIndex='-2147483647';host.style.pointerEvents='none';
    const perPage=10,pages=[];
    for(let i=0;i<defects.length;i+=perPage)pages.push(defects.slice(i,i+perPage));
    host.innerHTML=pages.map((page,pi)=>{
