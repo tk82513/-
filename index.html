@@ -498,11 +498,11 @@ main{max-width:980px;padding:8px 20px 160px}
 }
 </style>
 </head>
-<body data-build="2026-09-15-v37">
+<body data-build="2026-09-15-v39">
 <header>
 <div>
   <h1 id="pageTitle">我的工程</h1>
-  <div class="sub" id="pageSubtitle">多專案工程缺失管理 · V37</div>
+  <div class="sub" id="pageSubtitle">多專案工程缺失管理 · V39</div>
 </div>
 <button class="secondary" id="headerAction" onclick="openProject()">＋ 新增工程</button>
 </header>
@@ -3955,18 +3955,20 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   #printReport .v38-photo-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:1px!important;align-content:start!important}
   #printReport .v38-photo{display:block!important;width:100%!important;height:34px!important;object-fit:cover!important;border:0!important;margin:0!important;border-radius:0!important}
   #printReport .v38-empty{min-height:34px!important}
+  #printReport .v39-row-group{break-inside:avoid!important;page-break-inside:avoid!important;display:table-row-group!important}
+  #printReport .v39-row-group tr,#printReport .v39-row-group td{break-inside:avoid!important;page-break-inside:avoid!important}
 }
 </style>
 <script id="v38-version-pdf">
 (function(){
  'use strict';
- const V38='V38';
+ const V38='V39';
  function setV38Version(){
    const sub=document.getElementById('pageSubtitle');
    if(sub) sub.textContent=(sub.textContent||'多專案工程缺失管理').replace(/V\d+(?:\.\d+)?/i,V38);
    const cloud=document.querySelector('#cloudPanelV27 b');
    if(cloud) cloud.textContent='☁️ DH2 團隊雲端 · '+V38;
-   document.body.dataset.build='2026-09-15-v38';
+   document.body.dataset.build='2026-09-15-v39';
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setV38Version);else setV38Version();
  setTimeout(setV38Version,500);
@@ -3981,14 +3983,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    const rows=defects.map((x,i)=>{
      const dArr=Array.isArray(x.defectPhotos)?x.defectPhotos:(Array.isArray(x.photos)?x.photos:[]);
      const iArr=Array.isArray(x.improvementPhotos)?x.improvementPhotos:[];
-     return `<tr>
+     return `<tbody class="v39-row-group"><tr>
        <td>${i+1}</td><td>${esc(x.title||'')}</td><td>${esc(x.area||'')}</td>
        <td>${esc(x.vendor||'')}</td><td>${esc(x.createdByName||'舊資料')}</td>
        <td>${esc(x.created||'')}</td><td>${esc(x.due||'')}</td>
        <td class="v38-photo-cell">${v38Photos(dArr)}</td>
        <td class="v38-photo-cell">${v38Photos(iArr)}</td>
        <td>${esc(x.improvementReply||x.improvement_reply||'')}</td>
-     </tr>`;
+     </tr></tbody>`;
    }).join('');
    const report=document.getElementById('printReport');
    report.innerHTML=`
@@ -3999,12 +4001,19 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
          <th class="c-no">序</th><th class="c-title">缺失名稱</th><th class="c-area">樓層／區域</th>
          <th class="c-vendor">工程別</th><th class="c-creator">起單人</th><th class="c-created">起單日期</th>
          <th class="c-due">改善期限</th><th class="c-dphoto">缺失照片</th><th class="c-iphoto">改善照片</th><th class="c-note">備註</th>
-       </tr></thead><tbody>${rows}</tbody>
+       </tr></thead>${rows}
      </table>`;
    await waitForReportImagesV34(report,7000);
+   const oldTitle=document.title;
+   const safeName=String(p.name||'DH2').replace(/[\\/:*?"<>|]/g,'_').trim()||'DH2';
+   document.title=`${safeName}_工程缺失報表_${localToday()}`;
+   const restoreTitle=()=>{document.title=oldTitle;window.removeEventListener('afterprint',restoreTitle);};
+   window.addEventListener('afterprint',restoreTitle);
    window.print();
+   setTimeout(restoreTitle,3000);
  };
 })();
 </script>
 
+<!-- V39: stronger PDF row page-break protection + dated PDF/Excel filenames -->
 </body></html>
