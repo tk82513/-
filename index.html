@@ -4694,4 +4694,30 @@ window.generatePDF=async function(){
 })();
 </script>
 
+<style id="v51-final-version-lock-style">
+/* Stable visible build badge. Does not affect PDF report. */
+.dashboard-project-name::after{content:"V51"!important;display:inline-block!important;margin-left:10px!important;padding:3px 9px!important;border-radius:999px!important;background:#e5f2ef!important;color:#2f756d!important;font-size:14px!important;font-weight:800!important;vertical-align:middle!important;}
+</style>
+<script id="v51-final-version-lock">
+(function(){
+  'use strict';
+  function lockV51(){
+    const sub=document.getElementById('pageSubtitle');
+    if(sub){
+      let t=sub.textContent||'多專案工程缺失管理';
+      t=t.replace(/V\d+(?:\.\d+)?/ig,'').replace(/\s*[·•]\s*$/,'').trim();
+      sub.textContent=t+' · V51';
+    }
+    const cloud=document.querySelector('#cloudPanelV27 b');
+    if(cloud) cloud.textContent='☁️ DH2 團隊雲端 · V51';
+    document.body.dataset.build='2026-09-15-v51-final';
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',lockV51); else lockV51();
+  setTimeout(lockV51,500); setTimeout(lockV51,1500); setTimeout(lockV51,3500);
+  const obs=new MutationObserver(()=>{ clearTimeout(window.__v51LockTimer); window.__v51LockTimer=setTimeout(lockV51,30); });
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>obs.observe(document.body,{childList:true,subtree:true,characterData:true}));
+  else obs.observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+
 </body></html>
